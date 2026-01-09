@@ -15,9 +15,20 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   
   // HARDCODE Vercel URL for production - no fallback to localhost
-  const isProduction = process.env.NODE_ENV === 'production' || vercelUrl || requestUrl.host.includes('vercel.app')
-  const baseUrl = isProduction 
+  // Check multiple ways to detect Vercel
+  const isVercel = !!(
+    process.env.VERCEL || 
+    process.env.VERCEL_URL || 
+    requestUrl.host.includes('vercel.app') ||
+    requestUrl.host.includes('vercel.com')
+  )
+  const isProduction = process.env.NODE_ENV === 'production' || isVercel
+  
+  // NEVER use localhost if we're on Vercel
+  const baseUrl = isVercel
     ? (process.env.NEXT_PUBLIC_APP_URL || vercelUrl || 'https://[your-project].vercel.app')
+    : isProduction
+    ? (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}` || 'https://[your-project].vercel.app')
     : (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}` || 'http://localhost:3000')
   
   // Build redirect URI - MUST match what was sent to Facebook
