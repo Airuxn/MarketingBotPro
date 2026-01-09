@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketingBot Pro - AI Marketing Automation Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --primary-light: #38bdf8;
+            --secondary: #6366f1;
+            --accent: #8b5cf6;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            --bg: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success: #10b981;
+            --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.75;
+            color: var(--text);
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-size: 16px;
+        }
+
+        /* Header */
+        .hero {
+            background: var(--bg);
+            padding: 6rem 2rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -0.04em;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #0f172a 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero .subtitle {
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .badge {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .badge:hover {
+            background: var(--bg);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border-light);
+            padding: 1.25rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        nav .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            transition: color 0.2s;
+            position: relative;
+            padding: 0.5rem 0;
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--text);
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Content */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+        }
+
+        section {
+            margin-bottom: 6rem;
+            scroll-margin-top: 100px;
+        }
+
+        h2 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 3rem;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+
+        h3 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        h4 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+            font-size: 1.0625rem;
+            line-height: 1.8;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-card h4 {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+        }
+
+        .feature-card ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .feature-card li {
+            padding: 0.75rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            line-height: 1.75;
+        }
+
+        .feature-card li:before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.875rem;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, rgba(254, 243, 199, 0.6) 0%, rgba(253, 230, 138, 0.6) 100%);
+            padding: 0.15rem 0.5rem;
+            border-radius: 5px;
+            font-weight: 600;
+            color: #92400e;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        /* Code Blocks */
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 2rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', 'Monaco', 'Menlo', monospace;
+            font-size: 0.9375rem;
+            line-height: 1.8;
+            margin: 1.5rem 0;
+            border: 1px solid #334155;
+            box-shadow: var(--shadow-md);
+            position: relative;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .code-inline {
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875em;
+            color: var(--primary);
+            border: 1px solid var(--border);
+            font-weight: 500;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tech-item {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .tech-item:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+            background: var(--bg);
+        }
+
+        .tech-item strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 0.75rem;
+            font-size: 1.125rem;
+        }
+
+        .tech-item a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .tech-item a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Usage Steps */
+        .usage-steps {
+            counter-reset: step-counter;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .usage-steps li {
+            counter-increment: step-counter;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            position: relative;
+            padding-left: 6rem;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .usage-steps li:hover {
+            transform: translateX(8px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
+            background: var(--bg);
+        }
+
+        .usage-steps li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 2rem;
+            top: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .usage-steps li strong {
+            color: var(--text);
+            font-size: 1.25rem;
+            display: block;
+            margin-bottom: 1rem;
+        }
+
+        .usage-steps li ul {
+            margin-top: 1rem;
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .usage-steps li ul li {
+            padding: 0.5rem 0;
+            margin: 0;
+            background: none;
+            border: none;
+            padding-left: 1.5rem;
+            transform: none;
+            box-shadow: none;
+            position: relative;
+        }
+
+        .usage-steps li ul li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+            background: none;
+            width: auto;
+            height: auto;
+            border-radius: 0;
+            box-shadow: none;
+            top: 0.5rem;
+        }
+
+        /* Lists */
+        section ul:not(.usage-steps):not(.feature-card ul) {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        section ul:not(.usage-steps):not(.feature-card ul) li {
+            padding-left: 2rem;
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+
+        section ul:not(.usage-steps):not(.feature-card ul) li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #cbd5e1;
+            padding: 4rem 2rem;
+            text-align: center;
+            margin-top: 6rem;
+        }
+
+        footer p {
+            margin: 0.75rem 0;
+            color: #cbd5e1;
+        }
+
+        footer a {
+            color: #60a5fa;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+
+        footer strong {
+            color: white;
+            font-size: 1.375rem;
+            display: block;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 4rem 1.5rem 3rem;
+            }
+
+            .hero h1 {
+                font-size: 2.75rem;
+            }
+
+            .hero .subtitle {
+                font-size: 1.25rem;
+            }
+
+            .content {
+                padding: 3rem 1.5rem;
+            }
+
+            h2 {
+                font-size: 2.25rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav .nav-container {
+                gap: 1.5rem;
+                font-size: 0.875rem;
+            }
+
+            .usage-steps li {
+                padding-left: 5rem;
+            }
+
+            .usage-steps li:before {
+                left: 1.5rem;
+                width: 2.5rem;
+                height: 2.5rem;
+            }
+        }
+
+        /* Smooth animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        section {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Links */
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        /* Section dividers */
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 4rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">⚡ Enterprise-Grade Marketing Automation</div>
+            <h1>MarketingBot Pro</h1>
+            <p class="subtitle">
+                A modern, enterprise-grade Progressive Web App that automates marketing tasks using AI. 
+                Built for businesses that demand simplicity without compromising on power and sophistication.
+            </p>
+            <div class="badges">
+                <span class="badge">Next.js 14.2</span>
+                <span class="badge">TypeScript 5.3</span>
+                <span class="badge">Gemini Powered</span>
+                <span class="badge">MIT License</span>
+            </div>
+        </div>
+    </div>
+
+    <nav>
+        <div class="nav-container">
+            <a href="#features">Features</a>
+            <a href="#quick-start">Quick Start</a>
+            <a href="#usage">Usage</a>
+            <a href="#tech-stack">Tech Stack</a>
+            <a href="#architecture">Architecture</a>
+        </div>
+    </nav>
+
+    <div class="content">
+        <section id="features">
+            <h2>✨ Features</h2>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h4>🤖 AI-Powered Content Generation</h4>
+                    <ul>
+                        <li>Generate social media posts, emails, and ad copy with Google Gemini</li>
+                        <li>Review one example at a time - regenerate until you're happy</li>
+                        <li><span class="highlight">Edit generated content</span> - make changes and the AI learns from your edits</li>
+                        <li><span class="highlight">Adaptive Learning System</span> - AI learns your preferences from accepted content and edits</li>
+                        <li>Platform-specific optimization (Twitter, LinkedIn, Facebook, Instagram)</li>
+                        <li>Style learning from your existing content</li>
+                        <li>Performance-based content recommendations</li>
+                        <li>Gets smarter with every use - learns what you like and adapts</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>📅 Smart Scheduling</h4>
+                    <ul>
+                        <li>Schedule posts across multiple platforms</li>
+                        <li>Manage drafts and scheduled content</li>
+                        <li>Track posting history and engagement</li>
+                        <li>Mark posts as published with engagement tracking</li>
+                        <li>Manual engagement tracking for accurate analytics</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>📧 Email Campaign Automation</h4>
+                    <ul>
+                        <li>Create email campaigns with AI assistance</li>
+                        <li>Manage recipient lists</li>
+                        <li>Track campaign performance</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>👥 Lead Management</h4>
+                    <ul>
+                        <li>Capture and organize leads</li>
+                        <li>Track lead status (new, contacted, qualified, converted)</li>
+                        <li>Advanced search and filtering</li>
+                        <li>Lead source tracking</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>📊 Advanced Analytics</h4>
+                    <ul>
+                        <li>Real-time engagement metrics (views, likes, comments, shares, reach)</li>
+                        <li><span class="highlight">AI Performance Insights</span> - actionable recommendations at the top</li>
+                        <li>Best posting times analysis</li>
+                        <li>Content type performance tracking</li>
+                        <li>Platform performance comparison</li>
+                        <li>Top performing posts identification</li>
+                        <li>Engagement rate calculations</li>
+                        <li>Performance scoring system</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🌍 Internationalization</h4>
+                    <ul>
+                        <li>Multi-language support (English, French, Dutch)</li>
+                        <li>Seamless language switching</li>
+                        <li>Localized content generation</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>🎨 Professional Design</h4>
+                    <ul>
+                        <li>Modern, clean interface inspired by leading tech companies</li>
+                        <li>Responsive design (mobile, tablet, desktop)</li>
+                        <li>Smooth animations and transitions</li>
+                        <li>Professional typography and spacing</li>
+                    </ul>
+                </div>
+
+                <div class="feature-card">
+                    <h4>📱 Progressive Web App</h4>
+                    <ul>
+                        <li>Installable on any device</li>
+                        <li>Offline support</li>
+                        <li>Fast loading with optimized assets</li>
+                        <li>Native app-like experience</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <section id="quick-start">
+            <h2>🚀 Quick Start</h2>
+            
+            <h3>Prerequisites</h3>
+            <ul>
+                <li><strong>Node.js</strong> 18+ and npm</li>
+                <li><strong>Google Gemini API Key</strong> - <a href="https://aistudio.google.com/app/apikey" target="_blank">Get one here</a></li>
+            </ul>
+
+            <h3>Installation</h3>
+            <ol>
+                <li><strong>Clone and install:</strong>
+                    <div class="code-block">
+<code>npm install</code>
+                    </div>
+                </li>
+                <li><strong>Set up environment:</strong>
+                    <div class="code-block">
+<code>cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY</code>
+                    </div>
+                </li>
+                <li><strong>Run development server:</strong>
+                    <div class="code-block">
+<code>npm run dev</code>
+                    </div>
+                </li>
+                <li><strong>Open</strong> <a href="http://localhost:3000" target="_blank">http://localhost:3000</a> in your browser</li>
+            </ol>
+
+            <h3>Production Build</h3>
+            <div class="code-block">
+<code>npm run build
+npm start</code>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <section id="usage">
+            <h2>🎯 Usage</h2>
+            <ol class="usage-steps">
+                <li>
+                    <strong>Initial Setup</strong>
+                    <ul>
+                        <li>Go to Settings</li>
+                        <li>Add your Google Gemini API key</li>
+                        <li>Fill in business information</li>
+                        <li>Connect social media accounts (optional)</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Create Content</strong>
+                    <ul>
+                        <li>Navigate to Content</li>
+                        <li>Select content type (Post, Ad, Email)</li>
+                        <li>Choose platform</li>
+                        <li>Enter your prompt at the top</li>
+                        <li>Generate content - review the example</li>
+                        <li><strong>Edit if needed</strong> - the AI learns from your edits</li>
+                        <li>Regenerate if not satisfied</li>
+                        <li>Accept when happy - AI learns your preferences</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Schedule Posts</strong>
+                    <ul>
+                        <li>Create or save content</li>
+                        <li>Schedule for optimal times</li>
+                        <li>Track engagement after posting</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Manage Leads</strong>
+                    <ul>
+                        <li>Add leads manually or import</li>
+                        <li>Track status and notes</li>
+                        <li>Convert leads to clients</li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Analytics</strong>
+                    <ul>
+                        <li>View performance metrics</li>
+                        <li>Get AI-powered insights</li>
+                        <li>Optimize based on data</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <section id="tech-stack">
+            <h2>🛠️ Tech Stack</h2>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <strong><a href="https://nextjs.org/" target="_blank">Next.js 14</a></strong>
+                    React framework with App Router
+                </div>
+                <div class="tech-item">
+                    <strong><a href="https://www.typescriptlang.org/" target="_blank">TypeScript</a></strong>
+                    Type safety and developer experience
+                </div>
+                <div class="tech-item">
+                    <strong><a href="https://tailwindcss.com/" target="_blank">Tailwind CSS</a></strong>
+                    Utility-first CSS framework
+                </div>
+                <div class="tech-item">
+                    <strong><a href="https://zustand-demo.pmnd.rs/" target="_blank">Zustand</a></strong>
+                    Lightweight state management
+                </div>
+                <div class="tech-item">
+                    <strong><a href="https://deepmind.google/technologies/gemini/" target="_blank">Google Gemini</a></strong>
+                    AI content generation
+                </div>
+                <div class="tech-item">
+                    <strong><a href="https://lucide.dev/" target="_blank">Lucide React</a></strong>
+                    Icon library
+                </div>
+                <div class="tech-item">
+                    <strong><a href="https://react-hot-toast.com/" target="_blank">React Hot Toast</a></strong>
+                    Toast notifications
+                </div>
+                <div class="tech-item">
+                    <strong><a href="https://recharts.org/" target="_blank">Recharts</a></strong>
+                    Chart library for analytics
+                </div>
+            </div>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <section id="architecture">
+            <h2>🏗️ Architecture</h2>
+            <ul>
+                <li><strong>App Router:</strong> Next.js 14 App Router for file-based routing</li>
+                <li><strong>Server Components:</strong> Default server-side rendering</li>
+                <li><strong>Client Components:</strong> Marked with <span class="code-inline">'use client'</span> directive</li>
+                <li><strong>API Routes:</strong> Next.js API routes for backend functionality</li>
+                <li><strong>State Management:</strong> Zustand with persistence middleware</li>
+                <li><strong>Styling:</strong> Tailwind CSS with custom design system</li>
+                <li><strong>Internationalization:</strong> Custom i18n solution</li>
+                <li><strong>AI Learning System:</strong> Tracks user preferences from accepted content and edits</li>
+                <li><strong>Content Performance Analysis:</strong> Analyzes engagement data to improve recommendations</li>
+            </ul>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <section id="documentation">
+            <h2>📚 Documentation</h2>
+            <ul>
+                <li><a href="docs/QUICKSTART.md">Quick Start Guide</a> - Get up and running quickly</li>
+                <li><a href="docs/SETUP.md">Setup Instructions</a> - Detailed setup guide</li>
+                <li><a href="docs/ARCHITECTURE.md">Architecture</a> - System architecture and design</li>
+                <li><a href="docs/AD_INTEGRATION.md">Ad Integration</a> - Ad platform integration guide</li>
+                <li><a href="docs/BRAND_IMAGES.md">Brand Images</a> - Brand image library documentation</li>
+                <li><a href="docs/MEDIA_FEATURES.md">Media Features</a> - Media handling and optimization</li>
+            </ul>
+        </section>
+
+        <div class="section-divider"></div>
+
+        <section id="development">
+            <h2>🔧 Development</h2>
+            <h3>Scripts</h3>
+            <div class="code-block">
+<code>npm run dev         # Start development server
+npm run build       # Build for production
+npm run start       # Start production server
+npm run lint        # Run ESLint
+npm run type-check  # TypeScript type checking
+npm run clean       # Clean build artifacts</code>
+            </div>
+
+            <h3>Code Style</h3>
+            <ul>
+                <li>TypeScript strict mode enabled</li>
+                <li>ESLint configured with Next.js rules</li>
+                <li>Prettier recommended (add if needed)</li>
+            </ul>
+        </section>
+    </div>
+
+    <footer>
+        <p><strong>MarketingBot Pro</strong></p>
+        <p>MIT License - see <a href="LICENSE">LICENSE</a> file for details</p>
+        <p style="margin-top: 2rem; opacity: 0.8; font-size: 1.125rem;">Built with ❤️ using Next.js and TypeScript</p>
+    </footer>
+</body>
+</html>

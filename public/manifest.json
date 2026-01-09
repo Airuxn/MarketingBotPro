@@ -1,0 +1,11 @@
+{
+  "name": "MarketingBot Pro",
+  "short_name": "MarketingBot",
+  "description": "AI-Powered Marketing Automation Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "icons": []
+}
