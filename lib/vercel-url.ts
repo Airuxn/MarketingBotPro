@@ -41,3 +41,4 @@ export function getOAuthUrls(request: Request, callbackPath: string = '/api/oaut
     requestUrl,
   }
 }
+// Force new build - Fr 09 Jan 2026 15:21:05 CET
