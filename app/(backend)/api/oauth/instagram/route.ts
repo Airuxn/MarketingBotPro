@@ -9,13 +9,8 @@ const FACEBOOK_LOGIN_CONFIG_ID = process.env.FACEBOOK_LOGIN_CONFIG_ID
 const INSTAGRAM_CLIENT_ID = process.env.INSTAGRAM_CLIENT_ID || process.env.FACEBOOK_CLIENT_ID
 
 export async function GET(request: Request) {
-  // Get redirect URI - MUST use the exact same logic as the callback route
-  // Use the request URL to construct the redirect URI (same as callback does)
-  const requestUrl = new URL(request.url)
-  const host = requestUrl.host
-  const protocol = requestUrl.protocol
-  const baseUrl = `${protocol}//${host}`
-  const instagramRedirectUri = `${baseUrl}/api/oauth/instagram/callback`
+  // Get redirect URI using same helper as Facebook - ensures consistency
+  const { baseUrl, redirectUri: instagramRedirectUri } = getOAuthUrls(request, '/api/oauth/instagram/callback')
   
   // Debug logging
   console.log('[Instagram OAuth] ========== START ==========')

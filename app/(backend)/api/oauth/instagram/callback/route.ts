@@ -15,13 +15,9 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
   
-  // Get redirect URI - MUST use the exact same logic as the OAuth route
-  // Use the request URL to construct the redirect URI (same as OAuth route does)
-  const requestUrl = new URL(request.url)
-  const host = requestUrl.host
-  const protocol = requestUrl.protocol
-  const baseUrl = `${protocol}//${host}`
-  const INSTAGRAM_REDIRECT_URI = `${baseUrl}/api/oauth/instagram/callback`
+  // Get redirect URI - use same helper as Facebook OAuth (which works)
+  const { baseUrl, redirectUri: baseRedirectUri } = getOAuthUrls(request, '/api/oauth/facebook/callback')
+  const INSTAGRAM_REDIRECT_URI = baseRedirectUri.replace('/facebook/callback', '/instagram/callback')
   
   // Debug logging
   console.log('[Instagram Callback] ========== START ==========')
@@ -74,8 +70,7 @@ export async function GET(request: Request) {
     console.log('[Instagram Callback] Code received:', code ? 'YES' : 'NO')
     console.log('[Instagram Callback] Using client_id:', clientId)
     console.log('[Instagram Callback] Using redirect_uri:', INSTAGRAM_REDIRECT_URI)
-    console.log('[Instagram Callback] Request host:', host)
-    console.log('[Instagram Callback] Request protocol:', protocol)
+    console.log('[Instagram Callback] Base redirect URI:', baseRedirectUri)
     
     const tokenExchangeUrl = `https://graph.facebook.com/v18.0/oauth/access_token?` +
       `client_id=${clientId}` +
