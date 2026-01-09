@@ -15,9 +15,8 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
   
-  // Get redirect URI - use same helper as Facebook OAuth (which works)
-  const { baseUrl, redirectUri: baseRedirectUri } = getOAuthUrls(request, '/api/oauth/facebook/callback')
-  const INSTAGRAM_REDIRECT_URI = baseRedirectUri.replace('/facebook/callback', '/instagram/callback')
+  // Get redirect URI - use same helper as OAuth route (which uses '/api/oauth/instagram/callback')
+  const { baseUrl, redirectUri: INSTAGRAM_REDIRECT_URI } = getOAuthUrls(request, '/api/oauth/instagram/callback')
   
   // Debug logging
   console.log('[Instagram Callback] ========== START ==========')
