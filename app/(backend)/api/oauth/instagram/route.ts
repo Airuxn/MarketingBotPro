@@ -29,40 +29,24 @@ export async function GET(request: Request) {
     )
   }
 
-  // Use Facebook OAuth for Instagram Business (recommended approach)
-  // This works for users who have Instagram accounts connected to Facebook Pages
-  // It doesn't require users to have a professional account - just a Facebook Page with Instagram connected
-  // Direct Instagram OAuth requires professional accounts, which not all users have
-  const authParams = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: instagramRedirectUri,
-    response_type: 'code',
-    state: 'instagram_business',
-  })
-
-  // Use config_id if provided (Facebook Login for Business with Instagram permissions)
-  // Otherwise use scope (Consumer login with Instagram permissions)
-  if (FACEBOOK_LOGIN_CONFIG_ID) {
-    // Business login - use config_id (recommended for Instagram Business)
-    console.log('[Instagram OAuth] Using Facebook Login for Business (config_id)')
-    authParams.set('config_id', FACEBOOK_LOGIN_CONFIG_ID)
-  } else {
-    // Consumer login - use scope with Instagram Business permissions
-    console.log('[Instagram OAuth] Using Facebook Login with Instagram scopes')
-    const scopes = [
-      'pages_show_list',                    // List Facebook Pages (required for Instagram Business)
-      'pages_read_engagement',              // Read Page posts
-      'instagram_basic',                    // Instagram Basic Display
-      'instagram_manage_comments',          // Manage Instagram comments
-      'instagram_manage_insights',          // Instagram insights
-      'instagram_content_publish',          // Publish to Instagram
-    ].join(',')
-    authParams.set('scope', scopes)
-  }
+  // Use Instagram Basic Display API for regular Instagram accounts
+  // This works for ANY Instagram account (personal, business, creator - doesn't matter)
+  // Users don't need a professional account or Facebook Page
+  console.log('[Instagram OAuth] Using Instagram Basic Display API (works for all account types)')
   
-  // Instagram Business Login uses Facebook OAuth endpoint
-  // The user will authorize Facebook, then we can access their Instagram Business account via their Facebook Pages
-  const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?${authParams.toString()}`
+  // Instagram Basic Display API uses direct Instagram OAuth
+  // This works for regular accounts without requiring Business/Creator accounts
+  const scopes = [
+    'user_profile',           // Basic profile info
+    'user_media',             // Access to user's media
+  ].join(',')
+  
+  const authUrl = `https://api.instagram.com/oauth/authorize?` +
+    `client_id=${clientId}` +
+    `&redirect_uri=${encodeURIComponent(instagramRedirectUri)}` +
+    `&scope=${encodeURIComponent(scopes)}` +
+    `&response_type=code` +
+    `&state=instagram`
 
   console.log('[Instagram OAuth] Redirecting to Facebook (for Instagram Business):', authUrl)
   console.log('[Instagram OAuth] ========== END ==========')
