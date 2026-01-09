@@ -169,13 +169,27 @@ export async function GET(request: Request) {
       console.error('[Instagram Callback] ============================================')
       
       // Extract detailed error message
-      const errorMessage = errorData.error?.message || 
-                          errorData.error?.error_user_msg || 
-                          errorData.error?.error_subcode ? 
-                            `${errorData.error.message} (subcode: ${errorData.error.error_subcode})` : 
-                            errorData.message || 
-                          errorData.raw || 
-                          `Failed to exchange code for token (status: ${tokenResponse.status})`
+      let errorMessage = errorData.error?.message || 
+                        errorData.error?.error_user_msg || 
+                        errorData.message || 
+                        errorData.raw || 
+                        `Failed to exchange code for token (status: ${tokenResponse.status})`
+      
+      // Add error code and subcode if available
+      if (errorData.error) {
+        if (errorData.error.code) {
+          errorMessage += ` [Code: ${errorData.error.code}]`
+        }
+        if (errorData.error.error_subcode) {
+          errorMessage += ` [Subcode: ${errorData.error.error_subcode}]`
+        }
+        if (errorData.error.type) {
+          errorMessage += ` [Type: ${errorData.error.type}]`
+        }
+      }
+      
+      // Log the full error for debugging
+      console.error('[Instagram Callback] Full error object:', JSON.stringify(errorData, null, 2))
       
       throw new Error(errorMessage)
     }
