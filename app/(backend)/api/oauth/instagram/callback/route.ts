@@ -318,9 +318,20 @@ export async function GET(request: Request) {
     )
   } catch (error: any) {
     console.error('[Instagram Callback] ========== ERROR ==========')
-    console.error('[Instagram Callback] Error:', error)
+    console.error('[Instagram Callback] Error type:', typeof error)
+    console.error('[Instagram Callback] Error message:', error?.message)
+    console.error('[Instagram Callback] Error stack:', error?.stack)
+    console.error('[Instagram Callback] Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+    
+    // Include detailed error message in redirect
+    const errorMessage = error?.message || 'oauth_failed'
+    const errorDetails = error?.message?.includes('Code:') || error?.message?.includes('Subcode:') 
+      ? errorMessage 
+      : `${errorMessage} - Check Vercel logs for details`
+    
+    console.error('[Instagram Callback] Redirecting with error:', errorDetails)
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_error=${encodeURIComponent(error.message || 'oauth_failed')}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent(errorDetails)}`
     )
   }
 }
