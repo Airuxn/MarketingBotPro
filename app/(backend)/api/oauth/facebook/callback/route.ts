@@ -3,8 +3,8 @@ import { cookies } from 'next/headers'
 
 const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID
 const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET
-// Use FACEBOOK_REDIRECT_URI if set, otherwise use default
-const REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:3000/api/oauth/facebook/callback'
+// Use NEXT_PUBLIC_OAUTH_REDIRECT_URI for production, fallback to localhost for development
+const REDIRECT_URI = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:3000/api/oauth/facebook/callback'
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -12,8 +12,8 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
 
-  // Facebook always redirects to localhost (not ngrok)
-  const baseUrl = 'http://localhost:3000'
+  // Use NEXT_PUBLIC_APP_URL for production, fallback to localhost for development
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   
   if (error) {
     return NextResponse.redirect(
@@ -87,16 +87,16 @@ export async function GET(request: Request) {
     })
 
     // Redirect to settings page - frontend will retrieve token
-    // Facebook always uses localhost (not ngrok)
-    const baseUrl = 'http://localhost:3000'
+    // Use NEXT_PUBLIC_APP_URL for production, fallback to localhost for development
+    const redirectBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_success=facebook`
+      `${redirectBaseUrl}/settings?oauth_success=facebook`
     )
   } catch (error: any) {
     console.error('Facebook OAuth error:', error)
-    const baseUrl = 'http://localhost:3000'
+    const redirectBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_error=${encodeURIComponent(error.message || 'oauth_failed')}`
+      `${redirectBaseUrl}/settings?oauth_error=${encodeURIComponent(error.message || 'oauth_failed')}`
     )
   }
 }

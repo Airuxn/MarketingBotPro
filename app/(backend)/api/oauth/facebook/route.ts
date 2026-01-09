@@ -3,12 +3,12 @@ import { NextResponse } from 'next/server'
 const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID
 const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET
 const FACEBOOK_LOGIN_CONFIG_ID = process.env.FACEBOOK_LOGIN_CONFIG_ID
-// Facebook always uses localhost (Instagram uses ngrok for HTTPS requirement)
-const REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:3000/api/oauth/facebook/callback'
+// Use NEXT_PUBLIC_OAUTH_REDIRECT_URI for production, fallback to localhost for development
+const REDIRECT_URI = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:3000/api/oauth/facebook/callback'
 
 export async function GET(request: Request) {
-  // Facebook always uses localhost (not ngrok)
-  const baseUrl = 'http://localhost:3000'
+  // Use NEXT_PUBLIC_APP_URL for production, fallback to localhost for development
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   
   if (!FACEBOOK_CLIENT_ID) {
     return NextResponse.redirect(
