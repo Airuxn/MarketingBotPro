@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getOAuthUrls } from '@/lib/vercel-url'
 
-// Instagram Business Login uses Instagram's OAuth endpoint with Instagram App ID
-const INSTAGRAM_CLIENT_ID = process.env.INSTAGRAM_CLIENT_ID
+// Instagram Business Login uses Facebook OAuth with Facebook App ID
+// Instagram Business accounts are accessed through Facebook Pages
+const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID
+const INSTAGRAM_CLIENT_ID = process.env.INSTAGRAM_CLIENT_ID || process.env.FACEBOOK_CLIENT_ID
 
 export async function GET(request: Request) {
   // Get URLs using helper function - ensures correct URL on Vercel
@@ -15,32 +17,39 @@ export async function GET(request: Request) {
   console.log('[Instagram OAuth] ========== START ==========')
   console.log('[Instagram OAuth] baseRedirectUri:', baseRedirectUri)
   console.log('[Instagram OAuth] instagramRedirectUri:', instagramRedirectUri)
+  console.log('[Instagram OAuth] FACEBOOK_CLIENT_ID:', FACEBOOK_CLIENT_ID ? 'SET' : 'NOT SET')
   console.log('[Instagram OAuth] INSTAGRAM_CLIENT_ID:', INSTAGRAM_CLIENT_ID ? 'SET' : 'NOT SET')
   
-  if (!INSTAGRAM_CLIENT_ID) {
+  // For Instagram Business Login, we need Facebook Client ID
+  const clientId = FACEBOOK_CLIENT_ID || INSTAGRAM_CLIENT_ID
+  
+  if (!clientId) {
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_error=${encodeURIComponent('Instagram OAuth not configured. Please set INSTAGRAM_CLIENT_ID in environment variables. See docs/OAUTH_SETUP.md for setup instructions.')}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent('Instagram OAuth not configured. Please set FACEBOOK_CLIENT_ID or INSTAGRAM_CLIENT_ID in environment variables. See docs/OAUTH_SETUP.md for setup instructions.')}`
     )
   }
 
-  // Instagram Business Login scopes
+  // Instagram Business Login requires Facebook OAuth with Instagram scopes
+  // These scopes are Facebook permissions that grant access to Instagram Business accounts
   const scopes = [
-    'instagram_business_basic',
-    'instagram_business_manage_messages',
-    'instagram_business_manage_comments',
-    'instagram_business_content_publish',
-    'instagram_business_manage_insights',
+    'pages_show_list',                    // List Facebook Pages
+    'pages_read_engagement',              // Read Page posts
+    'instagram_basic',                    // Instagram Basic Display (if available)
+    'instagram_manage_comments',          // Manage Instagram comments
+    'instagram_manage_insights',          // Instagram insights
+    'instagram_content_publish',          // Publish to Instagram
   ].join(',')
   
-  // Instagram Business Login uses Instagram's OAuth endpoint
-  const authUrl = `https://www.instagram.com/oauth/authorize?` +
-    `client_id=${INSTAGRAM_CLIENT_ID}` +
+  // Instagram Business Login uses Facebook OAuth endpoint
+  // The user will authorize Facebook, then we can access their Instagram Business account via their Facebook Pages
+  const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
+    `client_id=${clientId}` +
     `&redirect_uri=${encodeURIComponent(instagramRedirectUri)}` +
     `&scope=${encodeURIComponent(scopes)}` +
     `&response_type=code` +
-    `&state=social_post`
+    `&state=instagram_business`
 
-  console.log('[Instagram OAuth] Redirecting to Instagram:', authUrl)
+  console.log('[Instagram OAuth] Redirecting to Facebook (for Instagram Business):', authUrl)
   console.log('[Instagram OAuth] ========== END ==========')
   
   return NextResponse.redirect(authUrl)

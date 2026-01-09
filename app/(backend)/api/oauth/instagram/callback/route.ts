@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getOAuthUrls } from '@/lib/vercel-url'
 
-// Instagram Business Login uses Instagram App ID/Secret for authorization
-// Token exchange may still use Facebook Graph API
-const INSTAGRAM_CLIENT_ID = process.env.INSTAGRAM_CLIENT_ID
-const INSTAGRAM_CLIENT_SECRET = process.env.INSTAGRAM_CLIENT_SECRET || process.env.FACEBOOK_CLIENT_SECRET
+// Instagram Business Login uses Facebook OAuth
+// We use Facebook credentials because Instagram Business accounts are accessed through Facebook Pages
+const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID
+const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET
+const INSTAGRAM_CLIENT_ID = process.env.INSTAGRAM_CLIENT_ID || FACEBOOK_CLIENT_ID
+const INSTAGRAM_CLIENT_SECRET = process.env.INSTAGRAM_CLIENT_SECRET || FACEBOOK_CLIENT_SECRET
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -21,6 +23,8 @@ export async function GET(request: Request) {
   console.log('[Instagram Callback] ========== START ==========')
   console.log('[Instagram Callback] code:', code ? 'PRESENT' : 'MISSING')
   console.log('[Instagram Callback] error:', error || 'NONE')
+  console.log('[Instagram Callback] FACEBOOK_CLIENT_ID:', FACEBOOK_CLIENT_ID ? 'SET' : 'NOT SET')
+  console.log('[Instagram Callback] FACEBOOK_CLIENT_SECRET:', FACEBOOK_CLIENT_SECRET ? 'SET' : 'NOT SET')
   console.log('[Instagram Callback] INSTAGRAM_CLIENT_ID:', INSTAGRAM_CLIENT_ID ? 'SET' : 'NOT SET')
   console.log('[Instagram Callback] INSTAGRAM_CLIENT_SECRET:', INSTAGRAM_CLIENT_SECRET ? 'SET' : 'NOT SET')
   console.log('[Instagram Callback] INSTAGRAM_REDIRECT_URI:', INSTAGRAM_REDIRECT_URI)
@@ -40,29 +44,35 @@ export async function GET(request: Request) {
     )
   }
 
-  if (!INSTAGRAM_CLIENT_ID) {
-    console.log('[Instagram Callback] INSTAGRAM_CLIENT_ID not set')
+  // For Instagram Business Login, we need Facebook credentials
+  const clientId = FACEBOOK_CLIENT_ID || INSTAGRAM_CLIENT_ID
+  const clientSecret = FACEBOOK_CLIENT_SECRET || INSTAGRAM_CLIENT_SECRET
+
+  if (!clientId) {
+    console.log('[Instagram Callback] No client ID found (FACEBOOK_CLIENT_ID or INSTAGRAM_CLIENT_ID)')
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_error=${encodeURIComponent('Instagram OAuth not configured. Please set INSTAGRAM_CLIENT_ID in environment variables.')}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent('Instagram OAuth not configured. Please set FACEBOOK_CLIENT_ID or INSTAGRAM_CLIENT_ID in environment variables.')}`
     )
   }
 
-  if (!INSTAGRAM_CLIENT_SECRET) {
-    console.log('[Instagram Callback] INSTAGRAM_CLIENT_SECRET not set')
+  if (!clientSecret) {
+    console.log('[Instagram Callback] No client secret found (FACEBOOK_CLIENT_SECRET or INSTAGRAM_CLIENT_SECRET)')
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_error=${encodeURIComponent('Instagram OAuth not configured. Please set INSTAGRAM_CLIENT_SECRET in environment variables.')}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent('Instagram OAuth not configured. Please set FACEBOOK_CLIENT_SECRET or INSTAGRAM_CLIENT_SECRET in environment variables.')}`
     )
   }
 
   try {
     // Exchange code for access token
-    // Instagram Business Login token exchange typically uses Facebook Graph API
-    // Try Facebook Graph API first (standard for Instagram Business Login)
+    // Instagram Business Login uses Facebook Graph API for token exchange
     console.log('[Instagram Callback] Attempting token exchange with Facebook Graph API...')
+    console.log('[Instagram Callback] Using client_id:', clientId)
+    console.log('[Instagram Callback] Using redirect_uri:', INSTAGRAM_REDIRECT_URI)
+    
     let tokenResponse = await fetch(
       `https://graph.facebook.com/v18.0/oauth/access_token?` +
-      `client_id=${INSTAGRAM_CLIENT_ID}` +
-      `&client_secret=${INSTAGRAM_CLIENT_SECRET}` +
+      `client_id=${clientId}` +
+      `&client_secret=${clientSecret}` +
       `&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}` +
       `&code=${code}`,
       { method: 'GET' }
@@ -72,8 +82,19 @@ export async function GET(request: Request) {
     
     // If that fails, try Instagram's own endpoint
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.json().catch(() => ({}))
-      console.log('[Instagram Callback] Facebook Graph API failed:', errorData)
+      const errorText = await tokenResponse.text()
+      let errorData: any = {}
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        errorData = { raw: errorText }
+      }
+      
+      console.log('[Instagram Callback] Facebook Graph API failed:')
+      console.log('[Instagram Callback] Status:', tokenResponse.status)
+      console.log('[Instagram Callback] Error data:', JSON.stringify(errorData, null, 2))
+      console.log('[Instagram Callback] Redirect URI used:', INSTAGRAM_REDIRECT_URI)
+      console.log('[Instagram Callback] Client ID used:', INSTAGRAM_CLIENT_ID)
       console.log('[Instagram Callback] Trying Instagram API endpoint...')
       
       tokenResponse = await fetch(
@@ -84,8 +105,8 @@ export async function GET(request: Request) {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: new URLSearchParams({
-            client_id: INSTAGRAM_CLIENT_ID!,
-            client_secret: INSTAGRAM_CLIENT_SECRET!,
+            client_id: clientId!,
+            client_secret: clientSecret!,
             grant_type: 'authorization_code',
             redirect_uri: INSTAGRAM_REDIRECT_URI,
             code: code,
@@ -93,13 +114,33 @@ export async function GET(request: Request) {
         }
       )
       
+      const instagramErrorText = await tokenResponse.text()
+      let instagramErrorData: any = {}
+      try {
+        instagramErrorData = JSON.parse(instagramErrorText)
+      } catch {
+        instagramErrorData = { raw: instagramErrorText }
+      }
+      
       console.log('[Instagram Callback] Instagram API response status:', tokenResponse.status)
+      console.log('[Instagram Callback] Instagram API error data:', JSON.stringify(instagramErrorData, null, 2))
     }
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.json().catch(() => ({ error: { message: 'Unknown error' } }))
-      console.error('[Instagram Callback] Token exchange failed:', errorData)
-      throw new Error(errorData.error?.message || 'Failed to exchange code for token')
+      const errorText = await tokenResponse.text()
+      let errorData: any = {}
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        errorData = { raw: errorText, message: 'Failed to parse error response' }
+      }
+      
+      console.error('[Instagram Callback] Token exchange failed:')
+      console.error('[Instagram Callback] Status:', tokenResponse.status)
+      console.error('[Instagram Callback] Full error:', JSON.stringify(errorData, null, 2))
+      
+      const errorMessage = errorData.error?.message || errorData.error?.error_user_msg || errorData.message || errorData.raw || 'Failed to exchange code for token'
+      throw new Error(errorMessage)
     }
 
     const tokenData = await tokenResponse.json()
