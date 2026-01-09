@@ -10,16 +10,24 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
 
-  // Get base URL from request or environment variable
+  // Get base URL - Vercel provides VERCEL_URL automatically
+  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
   const requestUrl = new URL(request.url)
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                  (requestUrl.protocol + '//' + requestUrl.host) || 
-                  'http://localhost:3000'
   
-  // Build redirect URI dynamically from request
+  // Use Vercel URL if available, otherwise use request URL
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                  vercelUrl ||
+                  `${requestUrl.protocol}//${requestUrl.host}` ||
+                  'https://[your-project].vercel.app'
+  
+  // Build redirect URI - MUST match what was sent to Facebook
   const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
                      process.env.FACEBOOK_REDIRECT_URI ||
+                     (vercelUrl ? `${vercelUrl}/api/oauth/facebook/callback` : null) ||
                      `${baseUrl}/api/oauth/facebook/callback`
+  
+  // Ensure HTTPS for production
+  const finalRedirectUri = redirectUri.replace(/^http:\/\//, 'https://')
   
   if (error) {
     return NextResponse.redirect(
@@ -39,7 +47,7 @@ export async function GET(request: Request) {
       `https://graph.facebook.com/v18.0/oauth/access_token?` +
       `client_id=${FACEBOOK_CLIENT_ID}` +
       `&client_secret=${FACEBOOK_CLIENT_SECRET}` +
-      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&redirect_uri=${encodeURIComponent(finalRedirectUri)}` +
       `&code=${code}`,
       { method: 'GET' }
     )

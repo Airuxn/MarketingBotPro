@@ -5,22 +5,26 @@ const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET
 const FACEBOOK_LOGIN_CONFIG_ID = process.env.FACEBOOK_LOGIN_CONFIG_ID
 
 export async function GET(request: Request) {
-  // Get base URL from request or environment variable
+  // Get base URL - Vercel provides VERCEL_URL automatically
+  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
   const requestUrl = new URL(request.url)
-  const protocol = requestUrl.protocol || 'https:'
-  const host = requestUrl.host || '[your-project].vercel.app'
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                  `${protocol}//${host}` || 
+                  vercelUrl ||
+                  `${requestUrl.protocol}//${requestUrl.host}` ||
                   'https://[your-project].vercel.app'
   
-  // Build redirect URI dynamically from request - MUST match Facebook App Settings
+  // Build redirect URI - MUST match Facebook App Settings exactly
   const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
                      process.env.FACEBOOK_REDIRECT_URI ||
                      `${baseUrl}/api/oauth/facebook/callback`
   
-  // Debug log (remove in production)
-  console.log('OAuth redirect URI:', redirectUri)
+  // Force HTTPS for production
+  const finalRedirectUri = redirectUri.replace('http://', 'https://')
+  
+  // Debug log
+  console.log('OAuth redirect URI:', finalRedirectUri)
   console.log('Base URL:', baseUrl)
+  console.log('VERCEL_URL:', process.env.VERCEL_URL)
   
   if (!FACEBOOK_CLIENT_ID) {
     return NextResponse.redirect(
@@ -28,10 +32,10 @@ export async function GET(request: Request) {
     )
   }
 
-  // Build OAuth URL
+  // Build OAuth URL - use finalRedirectUri that matches Facebook settings
   const authParams = new URLSearchParams({
     client_id: FACEBOOK_CLIENT_ID,
-    redirect_uri: redirectUri,
+    redirect_uri: finalRedirectUri,
     response_type: 'code',
     state: 'social_post',
   })
