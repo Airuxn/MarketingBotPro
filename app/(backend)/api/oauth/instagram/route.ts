@@ -29,34 +29,10 @@ export async function GET(request: Request) {
     )
   }
 
-  // Try direct Instagram OAuth first (if INSTAGRAM_CLIENT_ID is set and different from FACEBOOK_CLIENT_ID)
-  // Otherwise use Facebook OAuth (which also works for Instagram Business)
-  const useDirectInstagram = INSTAGRAM_CLIENT_ID && INSTAGRAM_CLIENT_ID !== FACEBOOK_CLIENT_ID
-  
-  if (useDirectInstagram) {
-    // Direct Instagram Business Login
-    console.log('[Instagram OAuth] Using direct Instagram OAuth')
-    const scopes = [
-      'instagram_business_basic',
-      'instagram_business_manage_messages',
-      'instagram_business_manage_comments',
-      'instagram_business_content_publish',
-      'instagram_business_manage_insights',
-    ].join(',')
-    
-    const authUrl = `https://www.instagram.com/oauth/authorize?` +
-      `client_id=${INSTAGRAM_CLIENT_ID}` +
-      `&redirect_uri=${encodeURIComponent(instagramRedirectUri)}` +
-      `&scope=${encodeURIComponent(scopes)}` +
-      `&response_type=code` +
-      `&state=instagram_business`
-    
-    console.log('[Instagram OAuth] Redirecting to Instagram:', authUrl)
-    console.log('[Instagram OAuth] ========== END ==========')
-    return NextResponse.redirect(authUrl)
-  }
-  
-  // Fallback: Use Facebook OAuth (standard for Instagram Business via Facebook Pages)
+  // Use Facebook OAuth for Instagram Business (recommended approach)
+  // This works for users who have Instagram accounts connected to Facebook Pages
+  // It doesn't require users to have a professional account - just a Facebook Page with Instagram connected
+  // Direct Instagram OAuth requires professional accounts, which not all users have
   const authParams = new URLSearchParams({
     client_id: clientId,
     redirect_uri: instagramRedirectUri,
