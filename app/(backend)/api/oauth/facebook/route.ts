@@ -14,12 +14,14 @@ export async function GET(request: Request) {
                   'https://[your-project].vercel.app'
   
   // Build redirect URI - MUST match Facebook App Settings exactly
+  // Priority: env var > Vercel URL > baseUrl
   const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
                      process.env.FACEBOOK_REDIRECT_URI ||
+                     (vercelUrl ? `${vercelUrl}/api/oauth/facebook/callback` : null) ||
                      `${baseUrl}/api/oauth/facebook/callback`
   
-  // Force HTTPS for production
-  const finalRedirectUri = redirectUri.replace('http://', 'https://')
+  // Force HTTPS for production (Vercel always uses HTTPS)
+  const finalRedirectUri = redirectUri.replace(/^http:\/\//, 'https://')
   
   // Debug log
   console.log('OAuth redirect URI:', finalRedirectUri)
