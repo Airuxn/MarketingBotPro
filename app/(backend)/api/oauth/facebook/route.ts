@@ -3,12 +3,18 @@ import { NextResponse } from 'next/server'
 const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID
 const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET
 const FACEBOOK_LOGIN_CONFIG_ID = process.env.FACEBOOK_LOGIN_CONFIG_ID
-// Use NEXT_PUBLIC_OAUTH_REDIRECT_URI for production, fallback to localhost for development
-const REDIRECT_URI = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:3000/api/oauth/facebook/callback'
 
 export async function GET(request: Request) {
-  // Use NEXT_PUBLIC_APP_URL for production, fallback to localhost for development
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // Get base URL from request or environment variable
+  const requestUrl = new URL(request.url)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+                  (requestUrl.protocol + '//' + requestUrl.host) || 
+                  'http://localhost:3000'
+  
+  // Build redirect URI dynamically from request
+  const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
+                     process.env.FACEBOOK_REDIRECT_URI ||
+                     `${baseUrl}/api/oauth/facebook/callback`
   
   if (!FACEBOOK_CLIENT_ID) {
     return NextResponse.redirect(
@@ -19,7 +25,7 @@ export async function GET(request: Request) {
   // Build OAuth URL
   const authParams = new URLSearchParams({
     client_id: FACEBOOK_CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: redirectUri,
     response_type: 'code',
     state: 'social_post',
   })
