@@ -7,14 +7,20 @@ const FACEBOOK_LOGIN_CONFIG_ID = process.env.FACEBOOK_LOGIN_CONFIG_ID
 export async function GET(request: Request) {
   // Get base URL from request or environment variable
   const requestUrl = new URL(request.url)
+  const protocol = requestUrl.protocol || 'https:'
+  const host = requestUrl.host || '[your-project].vercel.app'
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                  (requestUrl.protocol + '//' + requestUrl.host) || 
-                  'http://localhost:3000'
+                  `${protocol}//${host}` || 
+                  'https://[your-project].vercel.app'
   
-  // Build redirect URI dynamically from request
+  // Build redirect URI dynamically from request - MUST match Facebook App Settings
   const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
                      process.env.FACEBOOK_REDIRECT_URI ||
                      `${baseUrl}/api/oauth/facebook/callback`
+  
+  // Debug log (remove in production)
+  console.log('OAuth redirect URI:', redirectUri)
+  console.log('Base URL:', baseUrl)
   
   if (!FACEBOOK_CLIENT_ID) {
     return NextResponse.redirect(
