@@ -14,20 +14,31 @@ export async function GET(request: Request) {
   const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
   const requestUrl = new URL(request.url)
   
-  // Use Vercel URL if available, otherwise use request URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                  vercelUrl ||
-                  `${requestUrl.protocol}//${requestUrl.host}` ||
-                  'https://[your-project].vercel.app'
+  // HARDCODE Vercel URL for production - no fallback to localhost
+  const isProduction = process.env.NODE_ENV === 'production' || vercelUrl || requestUrl.host.includes('vercel.app')
+  const baseUrl = isProduction 
+    ? (process.env.NEXT_PUBLIC_APP_URL || vercelUrl || 'https://[your-project].vercel.app')
+    : (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}` || 'http://localhost:3000')
   
   // Build redirect URI - MUST match what was sent to Facebook
-  const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
-                     process.env.FACEBOOK_REDIRECT_URI ||
-                     (vercelUrl ? `${vercelUrl}/api/oauth/facebook/callback` : null) ||
-                     `${baseUrl}/api/oauth/facebook/callback`
+  // HARDCODE for production to prevent localhost fallback
+  const redirectUri = isProduction
+    ? (process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
+       process.env.FACEBOOK_REDIRECT_URI ||
+       (vercelUrl ? `${vercelUrl}/api/oauth/facebook/callback` : 'https://[your-project].vercel.app/api/oauth/facebook/callback'))
+    : (process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
+       process.env.FACEBOOK_REDIRECT_URI ||
+       `${baseUrl}/api/oauth/facebook/callback`)
   
   // Ensure HTTPS for production
-  const finalRedirectUri = redirectUri.replace(/^http:\/\//, 'https://')
+  const finalRedirectUri = isProduction 
+    ? redirectUri.replace(/^http:\/\//, 'https://')
+    : redirectUri
+  
+  console.log('[OAuth Callback] Production:', isProduction)
+  console.log('[OAuth Callback] Redirect URI:', finalRedirectUri)
+  console.log('[OAuth Callback] Base URL:', baseUrl)
+  console.log('[OAuth Callback] Request Host:', requestUrl.host)
   
   if (error) {
     return NextResponse.redirect(
