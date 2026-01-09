@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { getOAuthUrls } from '@/lib/vercel-url'
 
 const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID
 const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET
@@ -10,42 +11,23 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
 
-  // Get base URL - Vercel provides VERCEL_URL automatically
-  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
-  const requestUrl = new URL(request.url)
+  // Get URLs using helper function - NEVER uses localhost on Vercel
+  const { baseUrl, redirectUri: finalRedirectUri, isVercel, isProduction, vercelUrl, requestUrl } = getOAuthUrls(request, '/api/oauth/facebook/callback')
   
-  // Check multiple ways to detect Vercel
-  const isVercel = !!(
-    process.env.VERCEL || 
-    process.env.VERCEL_URL || 
-    requestUrl.host.includes('vercel.app') ||
-    requestUrl.host.includes('vercel.com')
-  )
-  const isProduction = process.env.NODE_ENV === 'production' || isVercel
-  
-  // Determine base URL dynamically - NEVER use localhost if we're on Vercel
-  // Priority: 1. NEXT_PUBLIC_APP_URL (user configured), 2. VERCEL_URL (auto), 3. request URL, 4. localhost (dev only)
-  const baseUrl = isVercel
-    ? (process.env.NEXT_PUBLIC_APP_URL || vercelUrl || `${requestUrl.protocol}//${requestUrl.host}`)
-    : isProduction
-    ? (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}`)
-    : (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}` || 'http://localhost:3000')
-  
-  // Build redirect URI - MUST match what was sent to Facebook
-  // Priority: 1. NEXT_PUBLIC_OAUTH_REDIRECT_URI, 2. FACEBOOK_REDIRECT_URI, 3. auto from baseUrl
-  const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
-                     process.env.FACEBOOK_REDIRECT_URI ||
-                     `${baseUrl}/api/oauth/facebook/callback`
-  
-  // Ensure HTTPS for production
-  const finalRedirectUri = isProduction 
-    ? redirectUri.replace(/^http:\/\//, 'https://')
-    : redirectUri
-  
-  console.log('[OAuth Callback] Production:', isProduction)
-  console.log('[OAuth Callback] Redirect URI:', finalRedirectUri)
-  console.log('[OAuth Callback] Base URL:', baseUrl)
+  // Debug log - EXTENSIVE logging
+  console.log('[OAuth Callback] ========== OAUTH CALLBACK ==========')
+  console.log('[OAuth Callback] VERCEL env:', process.env.VERCEL)
+  console.log('[OAuth Callback] VERCEL_URL env:', process.env.VERCEL_URL)
+  console.log('[OAuth Callback] NODE_ENV:', process.env.NODE_ENV)
+  console.log('[OAuth Callback] Request URL:', request.url)
   console.log('[OAuth Callback] Request Host:', requestUrl.host)
+  console.log('[OAuth Callback] isVercel:', isVercel)
+  console.log('[OAuth Callback] isProduction:', isProduction)
+  console.log('[OAuth Callback] Base URL:', baseUrl)
+  console.log('[OAuth Callback] Final Redirect URI (to Facebook API):', finalRedirectUri)
+  console.log('[OAuth Callback] NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL || 'NOT SET')
+  console.log('[OAuth Callback] NEXT_PUBLIC_OAUTH_REDIRECT_URI:', process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 'NOT SET')
+  console.log('[OAuth Callback] =====================================')
   
   if (error) {
     return NextResponse.redirect(
