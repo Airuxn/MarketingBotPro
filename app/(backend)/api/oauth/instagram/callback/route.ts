@@ -65,69 +65,94 @@ export async function GET(request: Request) {
   try {
     // Exchange code for access token
     // Instagram Business Login uses Facebook Graph API for token exchange
-    console.log('[Instagram Callback] Attempting token exchange with Facebook Graph API...')
+    console.log('[Instagram Callback] ========== TOKEN EXCHANGE START ==========')
+    console.log('[Instagram Callback] Code received:', code ? 'YES' : 'NO')
     console.log('[Instagram Callback] Using client_id:', clientId)
     console.log('[Instagram Callback] Using redirect_uri:', INSTAGRAM_REDIRECT_URI)
+    console.log('[Instagram Callback] Request URL:', `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${clientId}&client_secret=***&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}&code=${code}`)
     
-    let tokenResponse = await fetch(
-      `https://graph.facebook.com/v18.0/oauth/access_token?` +
+    const tokenExchangeUrl = `https://graph.facebook.com/v18.0/oauth/access_token?` +
       `client_id=${clientId}` +
       `&client_secret=${clientSecret}` +
       `&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}` +
-      `&code=${code}`,
-      { method: 'GET' }
-    )
+      `&code=${code}`
+    
+    console.log('[Instagram Callback] Calling Facebook Graph API...')
+    let tokenResponse = await fetch(tokenExchangeUrl, { method: 'GET' })
+    
+    const responseText = await tokenResponse.text()
+    let instagramResponseText: string | null = null
     
     console.log('[Instagram Callback] Facebook Graph API response status:', tokenResponse.status)
+    console.log('[Instagram Callback] Facebook Graph API response headers:', JSON.stringify(Object.fromEntries(tokenResponse.headers.entries())))
+    console.log('[Instagram Callback] Facebook Graph API response body:', responseText)
     
     // If that fails, try Instagram's own endpoint
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text()
       let errorData: any = {}
       try {
-        errorData = JSON.parse(errorText)
+        errorData = JSON.parse(responseText)
       } catch {
-        errorData = { raw: errorText }
+        errorData = { raw: responseText }
       }
       
-      console.log('[Instagram Callback] Facebook Graph API failed:')
+      console.log('[Instagram Callback] ========== FACEBOOK GRAPH API FAILED ==========')
       console.log('[Instagram Callback] Status:', tokenResponse.status)
       console.log('[Instagram Callback] Error data:', JSON.stringify(errorData, null, 2))
       console.log('[Instagram Callback] Redirect URI used:', INSTAGRAM_REDIRECT_URI)
-      console.log('[Instagram Callback] Client ID used:', INSTAGRAM_CLIENT_ID)
-      console.log('[Instagram Callback] Trying Instagram API endpoint...')
+      console.log('[Instagram Callback] Client ID used:', clientId)
+      console.log('[Instagram Callback] ================================================')
+      console.log('[Instagram Callback] Trying Instagram API endpoint as fallback...')
       
-      tokenResponse = await fetch(
-        `https://api.instagram.com/oauth/access_token`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: clientId!,
-            client_secret: clientSecret!,
-            grant_type: 'authorization_code',
-            redirect_uri: INSTAGRAM_REDIRECT_URI,
-            code: code,
-          }),
-        }
-      )
+      const instagramTokenUrl = `https://api.instagram.com/oauth/access_token`
+      const instagramBody = new URLSearchParams({
+        client_id: clientId!,
+        client_secret: clientSecret!,
+        grant_type: 'authorization_code',
+        redirect_uri: INSTAGRAM_REDIRECT_URI,
+        code: code,
+      })
       
-      const instagramErrorText = await tokenResponse.text()
+      console.log('[Instagram Callback] Instagram API URL:', instagramTokenUrl)
+      console.log('[Instagram Callback] Instagram API body:', instagramBody.toString().replace(/client_secret=[^&]+/, 'client_secret=***'))
+      
+      tokenResponse = await fetch(instagramTokenUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: instagramBody,
+      })
+      
+      instagramResponseText = await tokenResponse.text()
       let instagramErrorData: any = {}
       try {
-        instagramErrorData = JSON.parse(instagramErrorText)
+        instagramErrorData = JSON.parse(instagramResponseText)
       } catch {
-        instagramErrorData = { raw: instagramErrorText }
+        instagramErrorData = { raw: instagramResponseText }
       }
       
-      console.log('[Instagram Callback] Instagram API response status:', tokenResponse.status)
-      console.log('[Instagram Callback] Instagram API error data:', JSON.stringify(instagramErrorData, null, 2))
+      console.log('[Instagram Callback] ========== INSTAGRAM API RESPONSE ==========')
+      console.log('[Instagram Callback] Status:', tokenResponse.status)
+      console.log('[Instagram Callback] Response:', JSON.stringify(instagramErrorData, null, 2))
+      console.log('[Instagram Callback] =============================================')
     }
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text()
+      // Get error text - use instagramResponseText if we tried Instagram API, otherwise responseText
+      let errorText: string
+      try {
+        if (tokenResponse.status !== 200 && instagramResponseText) {
+          errorText = instagramResponseText
+        } else if (responseText) {
+          errorText = responseText
+        } else {
+          errorText = await tokenResponse.text()
+        }
+      } catch {
+        errorText = 'Failed to read error response'
+      }
+      
       let errorData: any = {}
       try {
         errorData = JSON.parse(errorText)
@@ -135,15 +160,40 @@ export async function GET(request: Request) {
         errorData = { raw: errorText, message: 'Failed to parse error response' }
       }
       
-      console.error('[Instagram Callback] Token exchange failed:')
-      console.error('[Instagram Callback] Status:', tokenResponse.status)
-      console.error('[Instagram Callback] Full error:', JSON.stringify(errorData, null, 2))
+      console.error('[Instagram Callback] ========== TOKEN EXCHANGE FAILED ==========')
+      console.error('[Instagram Callback] Final status:', tokenResponse.status)
+      console.error('[Instagram Callback] Final response text:', errorText)
+      console.error('[Instagram Callback] Final response parsed:', JSON.stringify(errorData, null, 2))
+      console.error('[Instagram Callback] Redirect URI used:', INSTAGRAM_REDIRECT_URI)
+      console.error('[Instagram Callback] Client ID used:', clientId)
+      console.error('[Instagram Callback] ============================================')
       
-      const errorMessage = errorData.error?.message || errorData.error?.error_user_msg || errorData.message || errorData.raw || 'Failed to exchange code for token'
+      // Extract detailed error message
+      const errorMessage = errorData.error?.message || 
+                          errorData.error?.error_user_msg || 
+                          errorData.error?.error_subcode ? 
+                            `${errorData.error.message} (subcode: ${errorData.error.error_subcode})` : 
+                            errorData.message || 
+                          errorData.raw || 
+                          `Failed to exchange code for token (status: ${tokenResponse.status})`
+      
       throw new Error(errorMessage)
     }
 
-    const tokenData = await tokenResponse.json()
+    // Parse successful response
+    let tokenData: any
+    try {
+      if (instagramResponseText && tokenResponse.status === 200) {
+        tokenData = JSON.parse(instagramResponseText)
+      } else if (responseText && tokenResponse.status === 200) {
+        tokenData = JSON.parse(responseText)
+      } else {
+        tokenData = await tokenResponse.json()
+      }
+    } catch (parseError: any) {
+      console.error('[Instagram Callback] Failed to parse token response:', parseError)
+      throw new Error(`Failed to parse token response: ${parseError.message}`)
+    }
     const accessToken = tokenData.access_token
     // Instagram Business Login token response might include user_id directly
     let userId: string | undefined = tokenData.user_id
