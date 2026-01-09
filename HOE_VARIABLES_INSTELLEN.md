@@ -80,6 +80,17 @@ Voor ELKE variable doe je dit:
    - **Environment:** Vink aan: ✅ **Production** (en optioneel ✅ Preview, ✅ Development)
 3. Klik **"Save"**
 
+### Variable 6: `FACEBOOK_REDIRECT_URI` (BELANGRIJK!)
+
+1. Klik op **"Add New"**
+2. Vul in:
+   - **Key:** `FACEBOOK_REDIRECT_URI`
+   - **Value:** `https://marketing-bot-pro.vercel.app/api/oauth/facebook/callback`
+   - **Environment:** Vink aan: ✅ **Production** (en optioneel ✅ Preview, ✅ Development)
+3. Klik **"Save"**
+
+**WAAROM:** Facebook gebruikt deze variable voor OAuth redirect. Deze MOET exact overeenkomen met wat in Facebook App Settings staat.
+
 ---
 
 ## ✅ Stap 4: Check of Alles Correct is

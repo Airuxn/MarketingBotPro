@@ -40,6 +40,12 @@
   4. Klik op **"Show"** naast App Secret
   5. Kopieer **App Secret**
 
+### 5. `FACEBOOK_REDIRECT_URI` ⚠️ BELANGRIJK!
+- **Name:** `FACEBOOK_REDIRECT_URI`
+- **Value:** `https://marketing-bot-pro.vercel.app/api/oauth/facebook/callback`
+- **Environment:** ✅ **Production** (en optioneel Preview, Development)
+- **Waarom:** Facebook gebruikt deze variable voor OAuth. MOET exact overeenkomen met Facebook App Settings.
+
 ---
 
 ## 🔧 OPTIONELE VARIABLES (alleen toevoegen als je ze nodig hebt):
