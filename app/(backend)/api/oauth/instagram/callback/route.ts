@@ -70,7 +70,6 @@ export async function GET(request: Request) {
     console.log('[Instagram Callback] Code received:', code ? 'YES' : 'NO')
     console.log('[Instagram Callback] Using client_id:', clientId)
     console.log('[Instagram Callback] Using redirect_uri:', INSTAGRAM_REDIRECT_URI)
-    console.log('[Instagram Callback] Base redirect URI:', baseRedirectUri)
     
     const tokenExchangeUrl = `https://graph.facebook.com/v18.0/oauth/access_token?` +
       `client_id=${clientId}` +
