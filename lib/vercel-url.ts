@@ -1,60 +1,74 @@
 /**
  * Helper function to get the correct base URL and redirect URI for OAuth
- * CRITICAL: This MUST use environment variables, not build-time values
+ * 
+ * CRITICAL FIX: On Vercel, ALWAYS use request URL, NEVER use NEXT_PUBLIC_* variables
+ * 
+ * Why? NEXT_PUBLIC_* variables are embedded at BUILD TIME. If the build was done
+ * with old environment variables, they will contain old values even after you update
+ * them in Vercel dashboard. The request URL is always correct because it's the
+ * actual domain where the request comes from.
  */
 export function getOAuthUrls(request: Request, callbackPath: string = '/api/oauth/facebook/callback') {
   const requestUrl = new URL(request.url)
   
-  // Simple check: are we on Vercel?
-  const isVercel = requestUrl.host.includes('vercel.app') || requestUrl.host.includes('vercel.com')
+  // Check if we're on Vercel
+  const isVercel = !!(
+    process.env.VERCEL || 
+    requestUrl.host.includes('vercel.app') || 
+    requestUrl.host.includes('vercel.com')
+  )
   
-  // CRITICAL: Read environment variables at RUNTIME, not build-time
-  // NEXT_PUBLIC_* variables are embedded at build time, but we need runtime values
-  const envAppUrl = process.env.NEXT_PUBLIC_APP_URL
-  const envRedirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI
-  
-  // EXTENSIVE debug logging
+  // Debug logging
   console.log('[getOAuthUrls] ========== START ==========')
-  console.log('[getOAuthUrls] envAppUrl:', envAppUrl || 'NOT SET')
-  console.log('[getOAuthUrls] envAppUrl type:', typeof envAppUrl)
-  console.log('[getOAuthUrls] envAppUrl length:', envAppUrl?.length)
-  console.log('[getOAuthUrls] envRedirectUri:', envRedirectUri || 'NOT SET')
-  console.log('[getOAuthUrls] envRedirectUri type:', typeof envRedirectUri)
-  console.log('[getOAuthUrls] isVercel:', isVercel)
   console.log('[getOAuthUrls] request.url:', request.url)
   console.log('[getOAuthUrls] requestUrl.host:', requestUrl.host)
+  console.log('[getOAuthUrls] requestUrl.protocol:', requestUrl.protocol)
+  console.log('[getOAuthUrls] isVercel:', isVercel)
+  console.log('[getOAuthUrls] VERCEL env:', process.env.VERCEL)
+  console.log('[getOAuthUrls] NEXT_PUBLIC_APP_URL:', process.env.NEXT_PUBLIC_APP_URL || 'NOT SET')
+  console.log('[getOAuthUrls] NEXT_PUBLIC_OAUTH_REDIRECT_URI:', process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 'NOT SET')
   
-  // FORCE use of environment variables - they MUST be set correctly
   let baseUrl: string
   let redirectUri: string
   
-  if (envAppUrl && envAppUrl.trim() !== '' && !envAppUrl.includes('[your-project]')) {
-    // Environment variable is set and correct - USE IT
-    baseUrl = envAppUrl.trim()
-    console.log('[getOAuthUrls] ✅ Using envAppUrl:', baseUrl)
-  } else if (isVercel) {
-    // On Vercel - use the request host (this is the actual domain)
-    baseUrl = `https://${requestUrl.host}`
-    console.log('[getOAuthUrls] ⚠️ Constructed from request URL:', baseUrl)
-    if (envAppUrl) {
-      console.log('[getOAuthUrls] ⚠️ WARNING: envAppUrl exists but contains old URL:', envAppUrl)
+  if (isVercel) {
+    // ON VERCEL: ALWAYS use request URL - it's always correct, no exceptions
+    // This completely avoids build cache issues with NEXT_PUBLIC_* variables
+    baseUrl = `${requestUrl.protocol}//${requestUrl.host}`
+    redirectUri = `${baseUrl}${callbackPath}`
+    
+    console.log('[getOAuthUrls] ✅ VERCEL: Using request URL (always correct)')
+    console.log('[getOAuthUrls] ✅ baseUrl from request:', baseUrl)
+    console.log('[getOAuthUrls] ✅ redirectUri from request:', redirectUri)
+    
+    // Log warning if env vars don't match (for debugging)
+    const envAppUrl = process.env.NEXT_PUBLIC_APP_URL
+    const envRedirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI
+    if (envAppUrl && envAppUrl !== baseUrl) {
+      console.log('[getOAuthUrls] ⚠️ NOTE: envAppUrl differs from request URL (this is OK, we use request URL):', envAppUrl)
+    }
+    if (envRedirectUri && envRedirectUri !== redirectUri) {
+      console.log('[getOAuthUrls] ⚠️ NOTE: envRedirectUri differs from request URL (this is OK, we use request URL):', envRedirectUri)
     }
   } else {
-    // Local development
-    baseUrl = 'http://localhost:3000'
-    console.log('[getOAuthUrls] Using localhost')
-  }
-  
-  if (envRedirectUri && envRedirectUri.trim() !== '' && !envRedirectUri.includes('[your-project]')) {
-    // Environment variable is set and correct - USE IT
-    redirectUri = envRedirectUri.trim()
-    console.log('[getOAuthUrls] ✅ Using envRedirectUri:', redirectUri)
-  } else {
-    // Construct from baseUrl
-    redirectUri = `${baseUrl}${callbackPath}`
-    console.log('[getOAuthUrls] ⚠️ Constructed redirectUri:', redirectUri)
-    if (envRedirectUri) {
-      console.log('[getOAuthUrls] ⚠️ WARNING: envRedirectUri exists but contains old URL:', envRedirectUri)
+    // LOCAL DEVELOPMENT: Use environment variables or localhost fallback
+    const envAppUrl = process.env.NEXT_PUBLIC_APP_URL
+    const envRedirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI
+    
+    if (envAppUrl && envAppUrl.trim() !== '') {
+      baseUrl = envAppUrl.trim()
+      console.log('[getOAuthUrls] ✅ LOCAL: Using envAppUrl:', baseUrl)
+    } else {
+      baseUrl = 'http://localhost:3000'
+      console.log('[getOAuthUrls] ✅ LOCAL: Using localhost fallback')
+    }
+    
+    if (envRedirectUri && envRedirectUri.trim() !== '') {
+      redirectUri = envRedirectUri.trim()
+      console.log('[getOAuthUrls] ✅ LOCAL: Using envRedirectUri:', redirectUri)
+    } else {
+      redirectUri = `${baseUrl}${callbackPath}`
+      console.log('[getOAuthUrls] ✅ LOCAL: Constructed redirectUri:', redirectUri)
     }
   }
   
