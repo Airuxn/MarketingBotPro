@@ -14,7 +14,6 @@ export async function GET(request: Request) {
   const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null
   const requestUrl = new URL(request.url)
   
-  // HARDCODE Vercel URL for production - no fallback to localhost
   // Check multiple ways to detect Vercel
   const isVercel = !!(
     process.env.VERCEL || 
@@ -24,22 +23,19 @@ export async function GET(request: Request) {
   )
   const isProduction = process.env.NODE_ENV === 'production' || isVercel
   
-  // NEVER use localhost if we're on Vercel
+  // Determine base URL dynamically - NEVER use localhost if we're on Vercel
+  // Priority: 1. NEXT_PUBLIC_APP_URL (user configured), 2. VERCEL_URL (auto), 3. request URL, 4. localhost (dev only)
   const baseUrl = isVercel
-    ? (process.env.NEXT_PUBLIC_APP_URL || vercelUrl || 'https://[your-project].vercel.app')
+    ? (process.env.NEXT_PUBLIC_APP_URL || vercelUrl || `${requestUrl.protocol}//${requestUrl.host}`)
     : isProduction
-    ? (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}` || 'https://[your-project].vercel.app')
+    ? (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}`)
     : (process.env.NEXT_PUBLIC_APP_URL || `${requestUrl.protocol}//${requestUrl.host}` || 'http://localhost:3000')
   
   // Build redirect URI - MUST match what was sent to Facebook
-  // HARDCODE for production to prevent localhost fallback
-  const redirectUri = isProduction
-    ? (process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
-       process.env.FACEBOOK_REDIRECT_URI ||
-       (vercelUrl ? `${vercelUrl}/api/oauth/facebook/callback` : 'https://[your-project].vercel.app/api/oauth/facebook/callback'))
-    : (process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
-       process.env.FACEBOOK_REDIRECT_URI ||
-       `${baseUrl}/api/oauth/facebook/callback`)
+  // Priority: 1. NEXT_PUBLIC_OAUTH_REDIRECT_URI, 2. FACEBOOK_REDIRECT_URI, 3. auto from baseUrl
+  const redirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 
+                     process.env.FACEBOOK_REDIRECT_URI ||
+                     `${baseUrl}/api/oauth/facebook/callback`
   
   // Ensure HTTPS for production
   const finalRedirectUri = isProduction 
