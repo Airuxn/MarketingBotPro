@@ -63,79 +63,60 @@ export async function GET(request: Request) {
 
   try {
     // Exchange code for access token
-    // Instagram Business Login uses Facebook Graph API for token exchange
-    // CRITICAL: redirect_uri must EXACTLY match what was sent to Facebook in the OAuth request
+    // Try Instagram API first (if using direct Instagram OAuth), then Facebook Graph API
     console.log('[Instagram Callback] ========== TOKEN EXCHANGE START ==========')
     console.log('[Instagram Callback] Code received:', code ? 'YES' : 'NO')
     console.log('[Instagram Callback] Using client_id:', clientId)
     console.log('[Instagram Callback] Using redirect_uri:', INSTAGRAM_REDIRECT_URI)
     
-    const tokenExchangeUrl = `https://graph.facebook.com/v18.0/oauth/access_token?` +
-      `client_id=${clientId}` +
-      `&client_secret=${clientSecret}` +
-      `&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}` +
-      `&code=${code}`
+    // Try Instagram API first (for direct Instagram OAuth)
+    const instagramTokenUrl = `https://api.instagram.com/oauth/access_token`
+    const instagramBody = new URLSearchParams({
+      client_id: clientId!,
+      client_secret: clientSecret!,
+      grant_type: 'authorization_code',
+      redirect_uri: INSTAGRAM_REDIRECT_URI,
+      code: code,
+    })
     
-    console.log('[Instagram Callback] Token exchange URL (without secret):', tokenExchangeUrl.replace(/client_secret=[^&]+/, 'client_secret=***'))
-    console.log('[Instagram Callback] Calling Facebook Graph API...')
-    let tokenResponse = await fetch(tokenExchangeUrl, { method: 'GET' })
+    console.log('[Instagram Callback] Trying Instagram API endpoint first...')
+    let tokenResponse = await fetch(instagramTokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: instagramBody,
+    })
     
-    const responseText = await tokenResponse.text()
-    let instagramResponseText: string | null = null
+    const instagramResponseText = await tokenResponse.text()
+    let instagramErrorData: any = {}
+    try {
+      instagramErrorData = JSON.parse(instagramResponseText)
+    } catch {
+      instagramErrorData = { raw: instagramResponseText }
+    }
     
-    console.log('[Instagram Callback] Facebook Graph API response status:', tokenResponse.status)
-    console.log('[Instagram Callback] Facebook Graph API response headers:', JSON.stringify(Object.fromEntries(tokenResponse.headers.entries())))
-    console.log('[Instagram Callback] Facebook Graph API response body:', responseText)
+    console.log('[Instagram Callback] Instagram API response status:', tokenResponse.status)
+    console.log('[Instagram Callback] Instagram API response:', JSON.stringify(instagramErrorData, null, 2))
     
-    // If that fails, try Instagram's own endpoint
+    // If Instagram API fails, try Facebook Graph API (for Facebook OAuth)
     if (!tokenResponse.ok) {
-      let errorData: any = {}
-      try {
-        errorData = JSON.parse(responseText)
-      } catch {
-        errorData = { raw: responseText }
-      }
+      console.log('[Instagram Callback] Instagram API failed, trying Facebook Graph API...')
       
-      console.log('[Instagram Callback] ========== FACEBOOK GRAPH API FAILED ==========')
-      console.log('[Instagram Callback] Status:', tokenResponse.status)
-      console.log('[Instagram Callback] Error data:', JSON.stringify(errorData, null, 2))
-      console.log('[Instagram Callback] Redirect URI used:', INSTAGRAM_REDIRECT_URI)
-      console.log('[Instagram Callback] Client ID used:', clientId)
-      console.log('[Instagram Callback] ================================================')
-      console.log('[Instagram Callback] Trying Instagram API endpoint as fallback...')
+      const tokenExchangeUrl = `https://graph.facebook.com/v18.0/oauth/access_token?` +
+        `client_id=${clientId}` +
+        `&client_secret=${clientSecret}` +
+        `&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}` +
+        `&code=${code}`
       
-      const instagramTokenUrl = `https://api.instagram.com/oauth/access_token`
-      const instagramBody = new URLSearchParams({
-        client_id: clientId!,
-        client_secret: clientSecret!,
-        grant_type: 'authorization_code',
-        redirect_uri: INSTAGRAM_REDIRECT_URI,
-        code: code,
-      })
+      console.log('[Instagram Callback] Token exchange URL (without secret):', tokenExchangeUrl.replace(/client_secret=[^&]+/, 'client_secret=***'))
+      console.log('[Instagram Callback] Calling Facebook Graph API...')
+      tokenResponse = await fetch(tokenExchangeUrl, { method: 'GET' })
+    
+      const responseText = await tokenResponse.text()
       
-      console.log('[Instagram Callback] Instagram API URL:', instagramTokenUrl)
-      console.log('[Instagram Callback] Instagram API body:', instagramBody.toString().replace(/client_secret=[^&]+/, 'client_secret=***'))
-      
-      tokenResponse = await fetch(instagramTokenUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: instagramBody,
-      })
-      
-      instagramResponseText = await tokenResponse.text()
-      let instagramErrorData: any = {}
-      try {
-        instagramErrorData = JSON.parse(instagramResponseText)
-      } catch {
-        instagramErrorData = { raw: instagramResponseText }
-      }
-      
-      console.log('[Instagram Callback] ========== INSTAGRAM API RESPONSE ==========')
-      console.log('[Instagram Callback] Status:', tokenResponse.status)
-      console.log('[Instagram Callback] Response:', JSON.stringify(instagramErrorData, null, 2))
-      console.log('[Instagram Callback] =============================================')
+      console.log('[Instagram Callback] Facebook Graph API response status:', tokenResponse.status)
+      console.log('[Instagram Callback] Facebook Graph API response body:', responseText)
     }
 
     if (!tokenResponse.ok) {
@@ -168,7 +149,7 @@ export async function GET(request: Request) {
       console.error('[Instagram Callback] Client ID used:', clientId)
       console.error('[Instagram Callback] ============================================')
       
-      // Extract detailed error message
+      // Extract detailed error message - show user exactly what Facebook says
       let errorMessage = errorData.error?.message || 
                         errorData.error?.error_user_msg || 
                         errorData.message || 
@@ -188,8 +169,17 @@ export async function GET(request: Request) {
         }
       }
       
+      // Common error messages with solutions
+      if (errorMessage.includes('redirect_uri') || errorMessage.includes('Redirect URI')) {
+        errorMessage += ` - Make sure ${INSTAGRAM_REDIRECT_URI} is in Facebook App Settings → Valid OAuth Redirect URIs`
+      }
+      if (errorMessage.includes('code') && (errorMessage.includes('invalid') || errorMessage.includes('expired'))) {
+        errorMessage += ' - Try the OAuth flow again (codes are single-use and expire quickly)'
+      }
+      
       // Log the full error for debugging
       console.error('[Instagram Callback] Full error object:', JSON.stringify(errorData, null, 2))
+      console.error('[Instagram Callback] Redirect URI that should be in Facebook settings:', INSTAGRAM_REDIRECT_URI)
       
       throw new Error(errorMessage)
     }
@@ -211,80 +201,83 @@ export async function GET(request: Request) {
     const accessToken = tokenData.access_token
     // Instagram Business Login token response might include user_id directly
     let userId: string | undefined = tokenData.user_id
+    
+    // Log token info for debugging
+    console.log('[Instagram Callback] Token received:', accessToken ? 'YES' : 'NO')
+    console.log('[Instagram Callback] Token type:', tokenData.token_type || 'unknown')
+    console.log('[Instagram Callback] Token expires in:', tokenData.expires_in || 'unknown', 'seconds')
+    console.log('[Instagram Callback] Full token response:', JSON.stringify({ ...tokenData, access_token: '***' }, null, 2))
 
     if (!accessToken) {
       throw new Error('No access token received')
     }
 
-    // If userId not in token response, try to get it from Instagram Graph API
+    // If userId not in token response, try to get it from Facebook Graph API
+    // Note: Instagram Graph API /me requires a message to be sent first, so we use Facebook API instead
     if (!userId) {
       try {
-        // Try Instagram Graph API /me endpoint first
-        const meResponse = await fetch(
-          `https://graph.instagram.com/me?fields=id,username&access_token=${accessToken}`
+        console.log('[Instagram Callback] Attempting to get Instagram Business Account ID from Facebook Pages...')
+        
+        // Use Facebook Graph API /me/accounts to get pages with Instagram connected
+        const pagesResponse = await fetch(
+          `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,instagram_business_account`
         )
         
-        if (meResponse.ok) {
-          const meData = await meResponse.json()
-          userId = meData.id
-          console.log(`Got Instagram Business Account ID from /me endpoint: ${userId}`)
-        } else {
-          // Fallback: try Facebook Graph API /me/accounts (if token works with Facebook API)
-          const pagesResponse = await fetch(
-            `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,instagram_business_account`
-          )
+        if (pagesResponse.ok) {
+          const pagesData = await pagesResponse.json()
+          const pages = pagesData.data || []
           
-          if (pagesResponse.ok) {
-            const pagesData = await pagesResponse.json()
-            const pages = pagesData.data || []
-            
-            console.log(`Found ${pages.length} Facebook pages`)
-            
-            // Try all pages to find one with Instagram connected
-            for (const page of pages) {
-              if (page.instagram_business_account?.id) {
-                userId = page.instagram_business_account.id
-                console.log(`Found Instagram Business Account ID: ${userId} for page: ${page.name || page.id}`)
-                break
-              }
+          console.log(`[Instagram Callback] Found ${pages.length} Facebook pages`)
+          
+          // Try all pages to find one with Instagram connected
+          for (const page of pages) {
+            if (page.instagram_business_account?.id) {
+              userId = page.instagram_business_account.id
+              console.log(`[Instagram Callback] Found Instagram Business Account ID: ${userId} for page: ${page.name || page.id}`)
+              break
             }
-            
-            // If not found in initial response, try fetching each page individually
-            if (!userId && pages.length > 0) {
-              console.log('Instagram Business Account ID not in initial response, trying individual page requests...')
-              for (const page of pages) {
-                try {
-                  const igAccountResponse = await fetch(
-                    `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account&access_token=${accessToken}`
-                  )
-                  if (igAccountResponse.ok) {
-                    const igData = await igAccountResponse.json()
-                    if (igData.instagram_business_account?.id) {
-                      userId = igData.instagram_business_account.id
-                      console.log(`Found Instagram Business Account ID: ${userId} for page: ${page.id}`)
-                      break
-                    }
+          }
+          
+          // If not found in initial response, try fetching each page individually
+          if (!userId && pages.length > 0) {
+            console.log('[Instagram Callback] Instagram Business Account ID not in initial response, trying individual page requests...')
+            for (const page of pages) {
+              try {
+                const igAccountResponse = await fetch(
+                  `https://graph.facebook.com/v18.0/${page.id}?fields=instagram_business_account&access_token=${accessToken}`
+                )
+                if (igAccountResponse.ok) {
+                  const igData = await igAccountResponse.json()
+                  if (igData.instagram_business_account?.id) {
+                    userId = igData.instagram_business_account.id
+                    console.log(`[Instagram Callback] Found Instagram Business Account ID: ${userId} for page: ${page.id}`)
+                    break
                   }
-                } catch (err) {
-                  console.error(`Error checking page ${page.id}:`, err)
-                  continue
                 }
+              } catch (err) {
+                console.error(`[Instagram Callback] Error checking page ${page.id}:`, err)
+                continue
               }
             }
           }
+        } else {
+          const errorData = await pagesResponse.json().catch(() => ({}))
+          console.warn('[Instagram Callback] Could not fetch Facebook pages:', errorData)
         }
         
         if (!userId) {
-          console.warn('No Instagram Business Account ID found. Make sure:')
-          console.warn('1. Your Instagram account is a Business or Creator account')
-          console.warn('2. Your Instagram account is connected to a Facebook Page')
-          console.warn('3. The access token has the required permissions')
+          console.warn('[Instagram Callback] No Instagram Business Account ID found. This is OK - the account will be connected but some features may require the ID.')
+          console.warn('[Instagram Callback] To get the ID later:')
+          console.warn('[Instagram Callback] 1. Make sure your Instagram account is a Business or Creator account')
+          console.warn('[Instagram Callback] 2. Make sure your Instagram account is connected to a Facebook Page')
+          console.warn('[Instagram Callback] 3. The ID will be retrieved automatically when needed')
         }
-      } catch (error) {
-        console.error('Error retrieving Instagram Business Account ID:', error)
+      } catch (error: any) {
+        console.warn('[Instagram Callback] Error retrieving Instagram Business Account ID (non-fatal):', error?.message || error)
+        // Don't throw - OAuth succeeded, we just don't have the userId yet
       }
     } else {
-      console.log(`Got Instagram Business Account ID from token response: ${userId}`)
+      console.log(`[Instagram Callback] Got Instagram Business Account ID from token response: ${userId}`)
     }
 
     // Store token temporarily
