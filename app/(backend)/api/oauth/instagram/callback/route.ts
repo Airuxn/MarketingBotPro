@@ -15,9 +15,13 @@ export async function GET(request: Request) {
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
   
-  // Get redirect URI using helper function - must match what was sent to Instagram
-  const { baseUrl, redirectUri: baseRedirectUri } = getOAuthUrls(request, '/api/oauth/facebook/callback')
-  const INSTAGRAM_REDIRECT_URI = baseRedirectUri.replace('/facebook/callback', '/instagram/callback')
+  // Get redirect URI - MUST use the exact same logic as the OAuth route
+  // Use the request URL to construct the redirect URI (same as OAuth route does)
+  const requestUrl = new URL(request.url)
+  const host = requestUrl.host
+  const protocol = requestUrl.protocol
+  const baseUrl = `${protocol}//${host}`
+  const INSTAGRAM_REDIRECT_URI = `${baseUrl}/api/oauth/instagram/callback`
   
   // Debug logging
   console.log('[Instagram Callback] ========== START ==========')
@@ -65,11 +69,13 @@ export async function GET(request: Request) {
   try {
     // Exchange code for access token
     // Instagram Business Login uses Facebook Graph API for token exchange
+    // CRITICAL: redirect_uri must EXACTLY match what was sent to Facebook in the OAuth request
     console.log('[Instagram Callback] ========== TOKEN EXCHANGE START ==========')
     console.log('[Instagram Callback] Code received:', code ? 'YES' : 'NO')
     console.log('[Instagram Callback] Using client_id:', clientId)
     console.log('[Instagram Callback] Using redirect_uri:', INSTAGRAM_REDIRECT_URI)
-    console.log('[Instagram Callback] Request URL:', `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${clientId}&client_secret=***&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}&code=${code}`)
+    console.log('[Instagram Callback] Request host:', host)
+    console.log('[Instagram Callback] Request protocol:', protocol)
     
     const tokenExchangeUrl = `https://graph.facebook.com/v18.0/oauth/access_token?` +
       `client_id=${clientId}` +
@@ -77,6 +83,7 @@ export async function GET(request: Request) {
       `&redirect_uri=${encodeURIComponent(INSTAGRAM_REDIRECT_URI)}` +
       `&code=${code}`
     
+    console.log('[Instagram Callback] Token exchange URL (without secret):', tokenExchangeUrl.replace(/client_secret=[^&]+/, 'client_secret=***'))
     console.log('[Instagram Callback] Calling Facebook Graph API...')
     let tokenResponse = await fetch(tokenExchangeUrl, { method: 'GET' })
     
