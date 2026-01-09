@@ -9,34 +9,28 @@
  * actual domain where the request comes from.
  */
 export function getOAuthUrls(request: Request, callbackPath: string = '/api/oauth/facebook/callback') {
+  // CRITICAL: Always use request URL - it's always correct
   const requestUrl = new URL(request.url)
   const host = requestUrl.host
   const protocol = requestUrl.protocol
   
-  // SIMPLE CHECK: If host contains vercel.app or vercel.com, we're on Vercel
-  const isVercel = host.includes('vercel.app') || host.includes('vercel.com')
+  // Check if we're on Vercel
+  const isVercel = host.includes('vercel.app') || host.includes('vercel.com') || !!process.env.VERCEL
   
-  // CRITICAL: On Vercel, ALWAYS use request URL - NO EXCEPTIONS, NO FALLBACKS
-  // The request URL is ALWAYS correct because it's the actual domain
-  let baseUrl: string
-  let redirectUri: string
+  // ALWAYS use request URL - no exceptions, no fallbacks, no environment variables
+  const baseUrl = `${protocol}//${host}`
+  const redirectUri = `${baseUrl}${callbackPath}`
   
-  if (isVercel) {
-    // VERCEL: Use request URL directly - this is ALWAYS correct
-    baseUrl = `${protocol}//${host}`
-    redirectUri = `${baseUrl}${callbackPath}`
-    
-    console.log('[getOAuthUrls] VERCEL DETECTED - Using request URL directly')
-    console.log('[getOAuthUrls] request.url:', request.url)
-    console.log('[getOAuthUrls] host:', host)
-    console.log('[getOAuthUrls] baseUrl:', baseUrl)
-    console.log('[getOAuthUrls] redirectUri:', redirectUri)
-  } else {
-    // LOCAL: Use localhost
-    baseUrl = 'http://localhost:3000'
-    redirectUri = `${baseUrl}${callbackPath}`
-    console.log('[getOAuthUrls] LOCAL - Using localhost')
-  }
+  // EXTENSIVE logging to debug
+  console.log('[getOAuthUrls] ========== START ==========')
+  console.log('[getOAuthUrls] request.url:', request.url)
+  console.log('[getOAuthUrls] host:', host)
+  console.log('[getOAuthUrls] protocol:', protocol)
+  console.log('[getOAuthUrls] isVercel:', isVercel)
+  console.log('[getOAuthUrls] VERCEL env:', process.env.VERCEL)
+  console.log('[getOAuthUrls] baseUrl (from request):', baseUrl)
+  console.log('[getOAuthUrls] redirectUri (from request):', redirectUri)
+  console.log('[getOAuthUrls] ========== END ==========')
   
   return {
     baseUrl,
