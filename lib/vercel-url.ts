@@ -6,7 +6,7 @@ export function getOAuthUrls(request: Request, callbackPath: string = '/api/oaut
   const requestUrl = new URL(request.url)
   
   // HARDCODED Vercel URL - if we're on vercel.app, use it directly
-  const HARDCODED_VERCEL_URL = 'https://[your-project].vercel.app'
+  const HARDCODED_VERCEL_URL = 'https://marketing-bot-pro.vercel.app'
   
   // Simple check: are we on Vercel?
   const isVercel = requestUrl.host.includes('vercel.app') || requestUrl.host.includes('vercel.com')
