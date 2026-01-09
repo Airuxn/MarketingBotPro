@@ -8,22 +8,53 @@ export function getOAuthUrls(request: Request, callbackPath: string = '/api/oaut
   // Simple check: are we on Vercel?
   const isVercel = requestUrl.host.includes('vercel.app') || requestUrl.host.includes('vercel.com')
   
-  // ALWAYS prioritize environment variables first (they are set correctly in Vercel)
-  // Force use of environment variables - they are set correctly in Vercel
+  // FORCE use of environment variables - they MUST be set in Vercel
   const envAppUrl = process.env.NEXT_PUBLIC_APP_URL
   const envRedirectUri = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI
   
-  // Debug logging
-  console.log('[getOAuthUrls] envAppUrl:', envAppUrl || 'NOT SET')
-  console.log('[getOAuthUrls] envRedirectUri:', envRedirectUri || 'NOT SET')
+  // Debug logging - EXTENSIVE
+  console.log('[getOAuthUrls] ========== START ==========')
+  console.log('[getOAuthUrls] envAppUrl (raw):', envAppUrl)
+  console.log('[getOAuthUrls] envAppUrl (type):', typeof envAppUrl)
+  console.log('[getOAuthUrls] envAppUrl (length):', envAppUrl?.length)
+  console.log('[getOAuthUrls] envRedirectUri (raw):', envRedirectUri)
+  console.log('[getOAuthUrls] envRedirectUri (type):', typeof envRedirectUri)
   console.log('[getOAuthUrls] isVercel:', isVercel)
+  console.log('[getOAuthUrls] request.url:', request.url)
+  console.log('[getOAuthUrls] requestUrl.host:', requestUrl.host)
   
-  // Use environment variables if set, otherwise fallback
-  const baseUrl = envAppUrl || (isVercel ? `https://marketing-bot-pro.vercel.app` : `http://localhost:3000`)
-  const redirectUri = envRedirectUri || `${baseUrl}${callbackPath}`
+  // CRITICAL: On Vercel, ALWAYS use environment variables if they exist
+  // If they don't exist, use the request URL to construct the base URL
+  let baseUrl: string
+  let redirectUri: string
+  
+  if (envAppUrl && envAppUrl.trim() !== '') {
+    // Environment variable is set - USE IT
+    baseUrl = envAppUrl.trim()
+    console.log('[getOAuthUrls] Using envAppUrl:', baseUrl)
+  } else if (isVercel) {
+    // On Vercel but no env var - construct from request
+    baseUrl = `https://${requestUrl.host}`
+    console.log('[getOAuthUrls] Constructed from request URL:', baseUrl)
+  } else {
+    // Local development
+    baseUrl = 'http://localhost:3000'
+    console.log('[getOAuthUrls] Using localhost')
+  }
+  
+  if (envRedirectUri && envRedirectUri.trim() !== '') {
+    // Environment variable is set - USE IT
+    redirectUri = envRedirectUri.trim()
+    console.log('[getOAuthUrls] Using envRedirectUri:', redirectUri)
+  } else {
+    // Construct from baseUrl
+    redirectUri = `${baseUrl}${callbackPath}`
+    console.log('[getOAuthUrls] Constructed redirectUri:', redirectUri)
+  }
   
   console.log('[getOAuthUrls] Final baseUrl:', baseUrl)
   console.log('[getOAuthUrls] Final redirectUri:', redirectUri)
+  console.log('[getOAuthUrls] ========== END ==========')
   
   return {
     baseUrl,
