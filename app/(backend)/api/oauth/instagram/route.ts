@@ -29,26 +29,33 @@ export async function GET(request: Request) {
     )
   }
 
-  // Use Instagram Basic Display API for regular Instagram accounts
-  // This works for ANY Instagram account (personal, business, creator - doesn't matter)
-  // Users don't need a professional account or Facebook Page
-  console.log('[Instagram OAuth] Using Instagram Basic Display API (works for all account types)')
+  // Instagram Business accounts must use Facebook Graph API OAuth
+  // Instagram Basic Display API doesn't work with Facebook App IDs
+  console.log('[Instagram OAuth] Using Facebook Graph API for Instagram Business')
   
-  // Instagram Basic Display API uses direct Instagram OAuth
-  // This works for regular accounts without requiring Business/Creator accounts
+  // Facebook Graph API OAuth for Instagram Business
   const scopes = [
-    'user_profile',           // Basic profile info
-    'user_media',             // Access to user's media
+    'instagram_basic',
+    'instagram_content_publish',
+    'pages_show_list',
+    'pages_read_engagement',
   ].join(',')
   
-  const authUrl = `https://api.instagram.com/oauth/authorize?` +
+  // Use Facebook OAuth endpoint, not Instagram Basic Display
+  let authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
     `client_id=${clientId}` +
     `&redirect_uri=${encodeURIComponent(instagramRedirectUri)}` +
     `&scope=${encodeURIComponent(scopes)}` +
     `&response_type=code` +
     `&state=instagram`
 
-  console.log('[Instagram OAuth] Redirecting to Facebook (for Instagram Business):', authUrl)
+  // If using Facebook Login Config ID (Consumer app), add config_id parameter
+  if (FACEBOOK_LOGIN_CONFIG_ID) {
+    authUrl += `&config_id=${FACEBOOK_LOGIN_CONFIG_ID}`
+    console.log('[Instagram OAuth] Using Facebook Login Config ID:', FACEBOOK_LOGIN_CONFIG_ID)
+  }
+
+  console.log('[Instagram OAuth] Redirecting to Facebook Graph API:', authUrl)
   console.log('[Instagram OAuth] ========== END ==========')
   
   return NextResponse.redirect(authUrl)

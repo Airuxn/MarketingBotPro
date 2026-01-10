@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap, X } from 'lucide-react'
+import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap, X, Search } from 'lucide-react'
 import { useStore, getStorageUsage, getStorageQuota } from '@/lib/store'
 import toast from 'react-hot-toast'
 import { useLanguage } from '@/lib/language-context'
@@ -46,6 +46,7 @@ export default function SettingsPage() {
   const [showManualToken, setShowManualToken] = useState<string | null>(null)
   const [manualAccessToken, setManualAccessToken] = useState('')
   const [manualUserId, setManualUserId] = useState('')
+  const [isValidatingToken, setIsValidatingToken] = useState(false)
 
   // Handle OAuth callback
   useEffect(() => {
@@ -134,6 +135,82 @@ export default function SettingsPage() {
     toast.success(`Disconnected from ${platformNames[platform as keyof typeof platformNames]}`)
   }
 
+  const handleValidateAndDetectId = async () => {
+    // If only ID is provided but no token, start OAuth flow to get token
+    if (manualUserId.trim() && !manualAccessToken.trim()) {
+      toast.loading('Redirecting to Instagram to get access token...', { duration: 2000 })
+      // Store the ID temporarily so we can use it after OAuth
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('instagram_manual_user_id', manualUserId.trim())
+      }
+      // Start OAuth flow
+      window.location.href = '/api/oauth/instagram'
+      return
+    }
+
+    // If token is provided, validate and auto-detect ID
+    if (!manualAccessToken.trim()) {
+      toast.error('Please enter either an Access Token or Instagram Business Account ID')
+      return
+    }
+
+    setIsValidatingToken(true)
+    try {
+      const validationResponse = await fetch('/api/validate-instagram-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accessToken: manualAccessToken.trim(),
+        }),
+      })
+
+      const validationData = await validationResponse.json()
+
+      if (!validationResponse.ok || !validationData.valid) {
+        const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
+        const errorType = validationData.errorType || 'unknown'
+        
+        if (errorType === 'OAuthException') {
+          toast.error(`Invalid or expired token: ${errorMessage}`)
+        } else if (errorMessage.includes('expired')) {
+          toast.error('This token has expired. Please generate a new access token.')
+        } else if (errorMessage.includes('permission')) {
+          toast.error('This token does not have the required permissions. Please ensure your token has access to Instagram Business Account data.')
+        } else {
+          toast.error(errorMessage || 'Token validation failed. Please check your access token.')
+        }
+        return
+      }
+
+      // Token is valid - auto-fill the ID field if empty, or validate if ID matches
+      if (manualUserId.trim()) {
+        // User provided ID - check if it matches
+        if (validationData.userId === manualUserId.trim()) {
+          toast.success(`Token validated! Account ID matches: ${validationData.userId}`)
+        } else if (validationData.userId) {
+          toast.error(`Token belongs to different account. Detected ID: ${validationData.userId}, but you entered: ${manualUserId.trim()}`)
+        }
+      } else if (validationData.userId) {
+        // No ID provided - auto-fill it
+        setManualUserId(validationData.userId)
+        if (validationData.username) {
+          toast.success(`Token validated! Found Instagram account: @${validationData.username} (ID: ${validationData.userId})`)
+        } else {
+          toast.success(`Token validated! Found Account ID: ${validationData.userId}`)
+        }
+      } else {
+        toast.error('Token is valid but could not detect Instagram Business Account ID. Please enter it manually.')
+      }
+    } catch (error: any) {
+      console.error('Validation error:', error)
+      toast.error(error.message || 'Failed to validate token. Please try again.')
+    } finally {
+      setIsValidatingToken(false)
+    }
+  }
+
   const handleManualTokenConnect = async (platform: string) => {
     if (!manualAccessToken.trim()) {
       toast.error('Please enter access token')
@@ -142,7 +219,8 @@ export default function SettingsPage() {
 
     setIsConnecting(platform)
     try {
-      let userId: string | undefined = manualUserId.trim() || undefined
+      let userId: string | undefined = undefined
+      const manualUserIdValue = manualUserId.trim()
 
       // For Instagram, validate the token using server-side endpoint
       if (platform === 'instagram') {
@@ -173,23 +251,29 @@ export default function SettingsPage() {
           }
         }
 
-        // Token is valid, use the returned userId
-        if (validationData.userId) {
+        // Token is valid - prioritize manually entered userId over auto-detected
+        if (manualUserIdValue) {
+          userId = manualUserIdValue
+          console.log(`Using manually provided Instagram Business Account ID: ${userId}`)
+          if (validationData.username) {
+            toast.success(`Token validated! Using provided Account ID: ${userId}`)
+          }
+        } else if (validationData.userId) {
           userId = validationData.userId
-          console.log(`Valid Instagram token - Account ID: ${userId}, Username: ${validationData.username || 'N/A'}, Source: ${validationData.source || 'unknown'}`)
+          console.log(`Valid Instagram token - Auto-detected Account ID: ${userId}, Username: ${validationData.username || 'N/A'}, Source: ${validationData.source || 'unknown'}`)
           
           if (validationData.username) {
-            toast.success(`Token validated! Found Instagram account: @${validationData.username}`)
+            toast.success(`Token validated! Found Instagram account: @${validationData.username} (ID: ${userId})`)
+          } else {
+            toast.success(`Token validated! Found Account ID: ${userId}`)
           }
         } else {
-          // If no userId returned but token is valid, user must provide it manually
-          if (!manualUserId.trim()) {
-            throw new Error('Could not detect Instagram Business Account ID. Please provide it manually.')
-          }
+          // If no userId returned and no manual entry, token might be valid but can't find Instagram account
+          throw new Error('Token is valid but could not detect Instagram Business Account ID. Please enter your Instagram Business Account ID manually.')
         }
       } else {
-        // For other platforms, you can add validation here later
-        // For now, we'll accept it (you should add validation)
+        // For other platforms, use manual userId if provided
+        userId = manualUserIdValue || undefined
       }
 
       const currentSocialAccounts = settings.socialAccounts || []
@@ -1462,10 +1546,11 @@ export default function SettingsPage() {
             }}
           >
             <div 
-              className="glass rounded-xl border-2 border-purple-500/30 p-6 max-w-md w-full shadow-glow-lg" 
+              className="glass rounded-xl border-2 border-purple-500/30 max-w-md w-full shadow-glow-lg max-h-[90vh] flex flex-col overflow-hidden" 
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-4">
+              {/* Header - Fixed */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-700/50 flex-shrink-0">
                 <div className="flex items-center space-x-2">
                   <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
                     <Instagram className="w-5 h-5 text-purple-400" />
@@ -1484,18 +1569,26 @@ export default function SettingsPage() {
                 </button>
               </div>
 
-              <div className="space-y-4">
+              {/* Content - Scrollable */}
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
                 <div>
                   <label className="block text-sm font-medium text-slate-200 mb-2">
-                    Instagram Access Token
+                    Instagram Access Token <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="password"
                     value={manualAccessToken}
                     onChange={(e) => setManualAccessToken(e.target.value)}
-                    placeholder="Enter your Instagram access token"
-                    className="w-full px-4 py-2.5 glass rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder:text-slate-400"
+                    placeholder="Enter your Instagram access token (required)"
+                    className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-white placeholder:text-slate-500 outline-none transition-all"
+                    autoFocus
                   />
+                  {!manualAccessToken.trim() && (
+                    <p className="text-xs text-yellow-400 mt-1 flex items-center gap-1">
+                      <span>⚠</span>
+                      <span>Access Token is required to connect</span>
+                    </p>
+                  )}
                   <p className="text-xs text-slate-400 mt-2">
                     Get your token from{' '}
                     <a
@@ -1522,47 +1615,92 @@ export default function SettingsPage() {
                   <label className="block text-sm font-medium text-slate-200 mb-2">
                     Instagram Business Account ID <span className="text-slate-400 font-normal">(Optional)</span>
                   </label>
-                  <input
-                    type="text"
-                    value={manualUserId}
-                    onChange={(e) => setManualUserId(e.target.value)}
-                    placeholder="Will be auto-detected if not provided"
-                    className="w-full px-4 py-2.5 glass rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder:text-slate-400"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={manualUserId}
+                      onChange={(e) => setManualUserId(e.target.value)}
+                      placeholder="Will be auto-detected if not provided"
+                      className="flex-1 px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-white placeholder:text-slate-500 outline-none transition-all"
+                    />
+                    <button
+                      onClick={handleValidateAndDetectId}
+                      disabled={(!manualAccessToken.trim() && !manualUserId.trim()) || isValidatingToken}
+                      className={`px-4 py-2.5 rounded-lg transition-all font-medium flex items-center justify-center gap-2 border whitespace-nowrap ${
+                        (!manualAccessToken.trim() && !manualUserId.trim()) || isValidatingToken
+                          ? 'bg-slate-700/30 text-slate-400 border-slate-700 cursor-not-allowed'
+                          : 'bg-purple-600 hover:bg-purple-500 text-white border-purple-500 hover:border-purple-400 cursor-pointer'
+                      }`}
+                      title={
+                        !manualAccessToken.trim() && !manualUserId.trim()
+                          ? "Please enter either an Access Token or Business Account ID first"
+                          : manualUserId.trim() && !manualAccessToken.trim()
+                          ? "Click to get Access Token via OAuth"
+                          : "Validate token and auto-detect Instagram Business Account ID"
+                      }
+                    >
+                      {isValidatingToken ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span className="hidden sm:inline">Validating...</span>
+                        </>
+                      ) : manualUserId.trim() && !manualAccessToken.trim() ? (
+                        <>
+                          <Key className="w-4 h-4" />
+                          <span className="hidden sm:inline">Get Token</span>
+                        </>
+                      ) : manualAccessToken.trim() ? (
+                        <>
+                          <Search className="w-4 h-4" />
+                          <span className="hidden sm:inline">Auto-detect ID</span>
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4" />
+                          <span className="hidden sm:inline">Auto-detect</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <p className="text-xs text-slate-400 mt-2">
-                    Your Instagram Business Account ID. We'll try to detect it automatically from your token.
+                    Enter your Access Token and click "Auto-detect ID" to find your Business Account ID, OR enter your Business Account ID first and click "Get Token" to authenticate via OAuth.
                   </p>
                 </div>
+              </div>
 
-                <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={() => handleManualTokenConnect('instagram')}
-                    disabled={isConnecting === 'instagram' || !manualAccessToken.trim()}
-                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 shadow-lg"
-                  >
-                    {isConnecting === 'instagram' ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Connecting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle className="w-4 h-4" />
-                        <span>Connect with Token</span>
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowManualToken(null)
-                      setManualAccessToken('')
-                      setManualUserId('')
-                    }}
-                    className="px-4 py-2.5 glass hover:bg-slate-700/50 rounded-lg transition-colors text-slate-300 font-medium"
-                  >
-                    Cancel
-                  </button>
-                </div>
+              {/* Footer with Buttons - Fixed */}
+              <div className="p-6 border-t border-slate-700/50 flex gap-3 flex-shrink-0">
+                <button
+                  onClick={() => handleManualTokenConnect('instagram')}
+                  disabled={isConnecting === 'instagram' || !manualAccessToken.trim()}
+                  className={`flex-1 px-4 py-2.5 rounded-lg transition-all font-medium flex items-center justify-center gap-2 shadow-lg ${
+                    isConnecting === 'instagram' || !manualAccessToken.trim()
+                      ? 'bg-slate-700/50 text-slate-500 cursor-not-allowed opacity-60'
+                      : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700'
+                  }`}
+                >
+                  {isConnecting === 'instagram' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Connect with Token</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManualToken(null)
+                    setManualAccessToken('')
+                    setManualUserId('')
+                  }}
+                  className="px-4 py-2.5 bg-slate-800/80 border border-slate-700 hover:bg-slate-700/50 rounded-lg transition-colors text-slate-300 font-medium"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>
