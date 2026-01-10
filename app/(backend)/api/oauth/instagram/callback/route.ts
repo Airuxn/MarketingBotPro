@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { getOAuthUrls } from '@/lib/vercel-url'
 
+// This route uses cookies, so it must be dynamic
+export const dynamic = 'force-dynamic'
+
 // Instagram Business Login uses Facebook OAuth
 // We use Facebook credentials because Instagram Business accounts are accessed through Facebook Pages
 const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID

@@ -3,6 +3,9 @@ import { cookies } from 'next/headers'
 import crypto from 'crypto'
 import { getOAuthUrls } from '@/lib/vercel-url'
 
+// This route uses cookies, so it must be dynamic
+export const dynamic = 'force-dynamic'
+
 const TWITTER_CLIENT_ID = process.env.TWITTER_CLIENT_ID
 const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET
 
