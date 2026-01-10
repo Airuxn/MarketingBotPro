@@ -351,6 +351,42 @@ export default function SettingsPage() {
           // If no userId returned and no manual entry, token might be valid but can't find Instagram account
           throw new Error('Token is valid but could not detect Instagram Business Account ID. Please enter your Instagram Business Account ID manually.')
         }
+      } else if (platform === 'facebook') {
+        // Validate Facebook token by making a test API call
+        try {
+          const meResponse = await fetch(
+            `https://graph.facebook.com/v18.0/me?access_token=${manualAccessToken.trim()}&fields=id,name`
+          )
+          
+          if (!meResponse.ok) {
+            const errorData = await meResponse.json()
+            const errorMessage = errorData.error?.message || 'Invalid token'
+            
+            if (errorMessage.includes('expired') || errorMessage.includes('Invalid OAuth')) {
+              throw new Error('This token has expired. Please generate a new access token.')
+            } else if (errorMessage.includes('permission') || errorMessage.includes('scope')) {
+              throw new Error('This token does not have the required permissions. Please ensure your token has the necessary Facebook permissions.')
+            } else {
+              throw new Error(`Invalid token: ${errorMessage}`)
+            }
+          }
+          
+          const meData = await meResponse.json()
+          
+          // Token is valid - use manually entered userId if provided, otherwise use detected user ID
+          if (manualUserIdValue) {
+            userId = manualUserIdValue
+            console.log(`Using manually provided Facebook User ID: ${userId}`)
+            toast.success(`Token validated! Using provided User ID: ${userId}`)
+          } else {
+            userId = meData.id
+            console.log(`Valid Facebook token - Auto-detected User ID: ${userId}, Name: ${meData.name || 'N/A'}`)
+            toast.success(`Token validated! Found Facebook account: ${meData.name || 'Unknown'} (ID: ${userId})`)
+          }
+        } catch (error: any) {
+          console.error('Facebook token validation error:', error)
+          throw new Error(error.message || 'Facebook token validation failed. Please check your access token.')
+        }
       } else {
         // For other platforms, use manual userId if provided
         userId = manualUserIdValue || undefined
@@ -660,7 +696,7 @@ export default function SettingsPage() {
                             </>
                           ) : (
                             <>
-                              {platform === 'instagram' && (
+                              {(platform === 'instagram' || platform === 'facebook') && (
                                 <button
                                   onClick={() => setShowManualToken(showManualToken === platform ? null : platform)}
                                   className="px-1.5 py-0.5 text-xs glass hover:bg-slate-700/50 rounded transition-colors text-slate-300"
@@ -1760,6 +1796,137 @@ export default function SettingsPage() {
                   }`}
                 >
                   {isConnecting === 'instagram' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Connect with Token</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManualToken(null)
+                    setManualAccessToken('')
+                    setManualUserId('')
+                  }}
+                  className="px-4 py-2.5 bg-slate-800/80 border border-slate-700 hover:bg-slate-700/50 rounded-lg transition-colors text-slate-300 font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Facebook Token Connection Modal */}
+        {showManualToken === 'facebook' && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+            onClick={() => {
+              setShowManualToken(null)
+              setManualAccessToken('')
+              setManualUserId('')
+            }}
+          >
+            <div 
+              className="glass rounded-xl border-2 border-blue-500/30 max-w-md w-full shadow-glow-lg max-h-[90vh] flex flex-col overflow-hidden" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header - Fixed */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-700/50 flex-shrink-0">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30">
+                    <Facebook className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-white">Connect Facebook with Token</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowManualToken(null)
+                    setManualAccessToken('')
+                    setManualUserId('')
+                  }}
+                  className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              {/* Content - Scrollable */}
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    Facebook Access Token <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={manualAccessToken}
+                    onChange={(e) => setManualAccessToken(e.target.value)}
+                    placeholder="Enter your Facebook access token (required)"
+                    className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder:text-slate-500 outline-none transition-all"
+                    autoFocus
+                  />
+                  {!manualAccessToken.trim() && (
+                    <p className="text-xs text-yellow-400 mt-1 flex items-center gap-1">
+                      <span>⚠</span>
+                      <span>Access Token is required to connect</span>
+                    </p>
+                  )}
+                  <p className="text-xs text-slate-400 mt-2">
+                    Get your token from{' '}
+                    <a
+                      href="https://developers.facebook.com/tools/explorer/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline"
+                    >
+                      Facebook Graph API Explorer
+                    </a>
+                    {' '}or{' '}
+                    <a
+                      href="https://www.facebook.com/settings?tab=business_tools"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline"
+                    >
+                      Business Settings
+                    </a>
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    Facebook User ID <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={manualUserId}
+                    onChange={(e) => setManualUserId(e.target.value)}
+                    placeholder="Will be auto-detected if not provided"
+                    className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder:text-slate-500 outline-none transition-all"
+                  />
+                  <p className="text-xs text-slate-400 mt-2">
+                    Your Facebook User ID. We'll automatically detect it from your token if not provided. You can also connect via OAuth using the "Social" button above.
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer with Buttons - Fixed */}
+              <div className="p-6 border-t border-slate-700/50 flex gap-3 flex-shrink-0">
+                <button
+                  onClick={() => handleManualTokenConnect('facebook')}
+                  disabled={isConnecting === 'facebook' || !manualAccessToken.trim()}
+                  className={`flex-1 px-4 py-2.5 rounded-lg transition-all font-medium flex items-center justify-center gap-2 shadow-lg ${
+                    isConnecting === 'facebook' || !manualAccessToken.trim()
+                      ? 'bg-slate-700/50 text-slate-500 cursor-not-allowed opacity-60'
+                      : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
+                  }`}
+                >
+                  {isConnecting === 'facebook' ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
                       <span>Connecting...</span>
