@@ -208,13 +208,26 @@ export const useStore = create<Store>()(
       },
       settings: {},
       addPost: (post) =>
-        set((state) => ({
-          posts: [...state.posts, post],
-          stats: {
-            ...state.stats,
-            postsCreated: state.stats.postsCreated + 1,
-          },
-        })),
+        set((state) => {
+          const updatedPosts = [...state.posts, post]
+          // Limit to last 100 posts (keep posted/scheduled, remove oldest drafts first)
+          let trimmedPosts = updatedPosts
+          if (updatedPosts.length > 100) {
+            const sorted = [...updatedPosts].sort((a, b) => {
+              if (a.status === 'draft' && b.status !== 'draft') return 1
+              if (a.status !== 'draft' && b.status === 'draft') return -1
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            })
+            trimmedPosts = sorted.slice(0, 100)
+          }
+          return {
+            posts: trimmedPosts,
+            stats: {
+              ...state.stats,
+              postsCreated: state.stats.postsCreated + 1,
+            },
+          }
+        }),
       updatePost: (id, post) =>
         set((state) => ({
           posts: state.posts.map((p) => (p.id === id ? { ...p, ...post } : p)),
@@ -224,13 +237,18 @@ export const useStore = create<Store>()(
           posts: state.posts.filter((p) => p.id !== id),
         })),
       addLead: (lead) =>
-        set((state) => ({
-          leads: [...state.leads, lead],
-          stats: {
-            ...state.stats,
-            leadsCaptured: state.stats.leadsCaptured + 1,
-          },
-        })),
+        set((state) => {
+          const updatedLeads = [...state.leads, lead]
+          // Limit to last 200 leads (small data, ~0.5KB each)
+          const trimmedLeads = updatedLeads.length > 200 ? updatedLeads.slice(-200) : updatedLeads
+          return {
+            leads: trimmedLeads,
+            stats: {
+              ...state.stats,
+              leadsCaptured: state.stats.leadsCaptured + 1,
+            },
+          }
+        }),
       updateLead: (id, lead) =>
         set((state) => ({
           leads: state.leads.map((l) => (l.id === id ? { ...l, ...lead } : l)),
@@ -240,9 +258,14 @@ export const useStore = create<Store>()(
           leads: state.leads.filter((l) => l.id !== id),
         })),
       addContactList: (list) =>
-        set((state) => ({
-          contactLists: [...state.contactLists, list],
-        })),
+        set((state) => {
+          const updatedLists = [...state.contactLists, list]
+          // Limit to 100 contact lists (can contain many leads, ~5KB each = ~500KB max)
+          const trimmedLists = updatedLists.length > 100 ? updatedLists.slice(-100) : updatedLists
+          return {
+            contactLists: trimmedLists,
+          }
+        }),
       updateContactList: (id, list) =>
         set((state) => ({
           contactLists: state.contactLists.map((l) =>
@@ -284,13 +307,18 @@ export const useStore = create<Store>()(
           ),
         })),
       addEmailCampaign: (campaign) =>
-        set((state) => ({
-          emailCampaigns: [...state.emailCampaigns, campaign],
-          stats: {
-            ...state.stats,
-            emailsSent: state.stats.emailsSent + campaign.recipients.length,
-          },
-        })),
+        set((state) => {
+          const updatedCampaigns = [...state.emailCampaigns, campaign]
+          // Limit to last 50 email campaigns (~3KB each)
+          const trimmedCampaigns = updatedCampaigns.length > 50 ? updatedCampaigns.slice(-50) : updatedCampaigns
+          return {
+            emailCampaigns: trimmedCampaigns,
+            stats: {
+              ...state.stats,
+              emailsSent: state.stats.emailsSent + campaign.recipients.length,
+            },
+          }
+        }),
       updateEmailCampaign: (id, campaign) =>
         set((state) => ({
           emailCampaigns: state.emailCampaigns.map((c) =>
@@ -324,23 +352,195 @@ export const useStore = create<Store>()(
         const storage = localStorage
         // Create automatic backup on every save (but debounced)
         let backupTimeout: NodeJS.Timeout | null = null
+        // Track last toast time to prevent spam
+        let lastToastTime = 0
+        const TOAST_DEBOUNCE_MS = 60000 // Only show toast once per minute max
+        // Track if we're in hydration phase (first load) - check if data exists but hasn't been modified yet
+        let isInitialLoad = true
+        let pageLoadTime = typeof window !== 'undefined' ? Date.now() : 0
+        // Set initial load flag to false after hydration window (first 5 seconds after page load)
+        if (typeof window !== 'undefined') {
+          setTimeout(() => {
+            isInitialLoad = false
+          }, 5000) // Don't show toasts in first 5 seconds (hydration + initial load period)
+        }
+        
         const originalSetItem = storage.setItem.bind(storage)
         storage.setItem = function(key: string, value: string) {
-          originalSetItem(key, value)
-          // Debounce backup creation (only backup every 30 seconds max)
-          if (key === 'marketing-bot-storage' && backupTimeout === null) {
-            backupTimeout = setTimeout(() => {
-              backupTimeout = null
-              if (typeof window !== 'undefined') {
-                import('./backup').then(({ createAutomaticBackup }) => {
-                  try {
-                    createAutomaticBackup()
-                  } catch (e) {
-                    // Silently fail - backup is optional
-                  }
-                }).catch(() => {})
+          try {
+            originalSetItem(key, value)
+            // Debounce backup creation (only backup every 30 seconds max)
+            if (key === 'marketing-bot-storage' && backupTimeout === null) {
+              backupTimeout = setTimeout(() => {
+                backupTimeout = null
+                if (typeof window !== 'undefined') {
+                  import('./backup').then(({ createAutomaticBackup }) => {
+                    try {
+                      createAutomaticBackup()
+                    } catch (e) {
+                      // Silently fail - backup is optional
+                    }
+                  }).catch(() => {})
+                }
+              }, 30000) // 30 second debounce
+            }
+          } catch (error: any) {
+            // Handle QuotaExceededError by cleaning up old data
+            // Only show toast if not initial load and not spamming
+            const now = Date.now()
+            const timeSincePageLoad = now - pageLoadTime
+            // Don't show toast if it's within first 5 seconds of page load (hydration period)
+            // or if we've shown a toast in the last minute
+            const shouldShowToast = !isInitialLoad && timeSincePageLoad > 5000 && (now - lastToastTime) > TOAST_DEBOUNCE_MS
+            
+            if (error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014) {
+              // Always attempt cleanup, but only show toast if not during initial load
+              if (isInitialLoad || timeSincePageLoad < 5000) {
+                console.warn('[Store] Storage quota exceeded during initial load - cleaning up quietly (no toast)')
+              } else {
+                console.warn('[Store] Storage quota exceeded, attempting cleanup...')
               }
-            }, 30000) // 30 second debounce
+              
+              try {
+                // Get current state and clean it up
+                const currentData = storage.getItem('marketing-bot-storage')
+                if (currentData) {
+                  const parsed = JSON.parse(currentData)
+                  const state = parsed.state
+                  
+                  // Clean up old data
+                  if (state?.settings?.contentPreferences) {
+                    const prefs = state.settings.contentPreferences
+                    
+                    // Reduce scanned posts to last 25 (remove images from old ones to save space)
+                    if (prefs.scannedPosts && prefs.scannedPosts.length > 25) {
+                      const sorted = [...prefs.scannedPosts]
+                        .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                      const kept = sorted.slice(0, 25)
+                      // Remove images from older posts to save space (keep images for newest 10)
+                      const cleaned = kept.map((post: any, idx: number) => 
+                        idx < 10 ? post : { ...post, images: undefined }
+                      )
+                      prefs.scannedPosts = cleaned
+                    }
+                    
+                    // Ensure limits are enforced (healthy limits for localStorage)
+                    if (prefs.acceptedContent && prefs.acceptedContent.length > 50) {
+                      prefs.acceptedContent = prefs.acceptedContent.slice(-50)
+                    }
+                    if (prefs.edits && prefs.edits.length > 30) {
+                      prefs.edits = prefs.edits.slice(-30)
+                    }
+                    if (prefs.rejectedContent && prefs.rejectedContent.length > 20) {
+                      prefs.rejectedContent = prefs.rejectedContent.slice(-20)
+                    }
+                  }
+                  
+                  // Limit brand images to last 50 (compressed for library preview, ~100-200KB each = ~5-10MB max)
+                  if (state?.settings?.brandImages && state.settings.brandImages.length > 50) {
+                    state.settings.brandImages = state.settings.brandImages.slice(-50)
+                  }
+                  
+                  // Limit posts to last 100 (important user content, but can grow large)
+                  if (state?.posts && state.posts.length > 100) {
+                    // Keep posted/scheduled posts, remove oldest drafts first
+                    const sorted = [...state.posts].sort((a, b) => {
+                      if (a.status === 'draft' && b.status !== 'draft') return 1
+                      if (a.status !== 'draft' && b.status === 'draft') return -1
+                      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    })
+                    state.posts = sorted.slice(0, 100)
+                  }
+                  
+                  // Limit leads to last 200 (small but can accumulate)
+                  if (state?.leads && state.leads.length > 200) {
+                    state.leads = state.leads.slice(-200)
+                  }
+                  
+                  // Limit contact lists to 100 (can contain many leads, ~5KB each)
+                  if (state?.contactLists && state.contactLists.length > 100) {
+                    state.contactLists = state.contactLists.slice(-100)
+                  }
+                  
+                  // Limit email campaigns to 50
+                  if (state?.emailCampaigns && state.emailCampaigns.length > 50) {
+                    state.emailCampaigns = state.emailCampaigns.slice(-50)
+                  }
+                  
+                  // Try saving again with cleaned data
+                  const cleanedData = JSON.stringify({ ...parsed, state })
+                  try {
+                    originalSetItem(key, cleanedData)
+                    console.log('[Store] Cleanup successful, storage reduced')
+                    
+                    // Show user-friendly notification only if not initial load and not spamming
+                    // shouldShowToast already checks: !isInitialLoad && timeSincePageLoad > 5000 && debounce
+                    if (shouldShowToast && typeof window !== 'undefined') {
+                      lastToastTime = now
+                      import('react-hot-toast').then(({ default: toast }) => {
+                        toast.error('Storage was full. Cleaned up old data to make room for new content.', { duration: 6000 })
+                      }).catch(() => {})
+                    } else {
+                      // Log quietly during initial load or if toast was recently shown - no toast
+                      console.log('[Store] Cleanup completed silently (initial load or recent toast)')
+                    }
+                  } catch (retryError: any) {
+                    // If it still fails after cleanup, the new data itself might be too large
+                    console.warn('[Store] Storage still full after cleanup - new data might be too large')
+                    // Don't throw - let it fall through to final cleanup
+                    throw retryError
+                  }
+                }
+              } catch (cleanupError) {
+                console.error('[Store] Cleanup failed:', cleanupError)
+                // Last resort: clear all data except essential settings
+                try {
+                  const currentData = storage.getItem('marketing-bot-storage')
+                  if (currentData) {
+                    const parsed = JSON.parse(currentData)
+                    const essentialSettings = {
+                      geminiApiKey: parsed.state?.settings?.geminiApiKey,
+                      businessName: parsed.state?.settings?.businessName,
+                      businessType: parsed.state?.settings?.businessType,
+                      targetAudience: parsed.state?.settings?.targetAudience,
+                      socialAccounts: parsed.state?.settings?.socialAccounts,
+                      adAccounts: parsed.state?.settings?.adAccounts,
+                      contentPreferences: {
+                        learnedStyle: parsed.state?.settings?.contentPreferences?.learnedStyle,
+                      },
+                    }
+                    const minimalData = JSON.stringify({
+                      ...parsed,
+                      state: {
+                        ...parsed.state,
+                        settings: essentialSettings,
+                        posts: [],
+                        leads: [],
+                        contactLists: [],
+                        emailCampaigns: [],
+                      },
+                    })
+                    originalSetItem(key, minimalData)
+                    // Show user-friendly notification only if not initial load and not spamming
+                    // shouldShowToast already checks: !isInitialLoad && timeSincePageLoad > 5000 && debounce
+                    if (shouldShowToast && typeof window !== 'undefined') {
+                      lastToastTime = now
+                      import('react-hot-toast').then(({ default: toast }) => {
+                        toast.error('Storage was full. Cleared old data to free up space.', { duration: 7000 })
+                      }).catch(() => {})
+                    } else {
+                      // Log quietly during initial load or if toast was recently shown - no toast
+                      console.log('[Store] Final cleanup completed silently (initial load or recent toast)')
+                    }
+                  }
+                } catch (finalError) {
+                  console.error('[Store] Final cleanup attempt failed:', finalError)
+                  throw error // Re-throw original error if all cleanup fails
+                }
+              }
+            } else {
+              throw error // Re-throw if it's not a quota error
+            }
           }
         }
         return storage
@@ -362,4 +562,348 @@ export function useStoreHydrated() {
   }, [])
   
   return hydrated
+}
+
+// Detect browser and get localStorage quota information
+function detectBrowserAndQuota() {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return { browser: 'Unknown', localStorageLimitMB: 5, method: 'estimated' }
+  }
+
+  const ua = navigator.userAgent.toLowerCase()
+  let browser = 'Unknown'
+  let localStorageLimitMB = 5 // localStorage limit per origin (conservative estimate)
+  let method = 'estimated'
+
+  // Detect browser - localStorage limits are typically 5-10MB per origin
+  // But total storage quota (IndexedDB + Cache API) can be much higher (GB+)
+  // Check for Brave first (Brave uses Chrome User Agent but has navigator.brave)
+  if (typeof (navigator as any).brave !== 'undefined' && (navigator as any).brave.isBrave) {
+    browser = 'Brave'
+    localStorageLimitMB = 10 // Brave localStorage: ~10MB per origin (same as Chrome)
+  } else if (ua.includes('chrome') && !ua.includes('edg') && !ua.includes('brave')) {
+    browser = 'Chrome'
+    localStorageLimitMB = 10 // Chrome localStorage: ~10MB per origin
+  } else if (ua.includes('brave')) {
+    browser = 'Brave'
+    localStorageLimitMB = 10 // Brave localStorage: ~10MB per origin
+  } else if (ua.includes('firefox')) {
+    browser = 'Firefox'
+    localStorageLimitMB = 10 // Firefox localStorage: ~10MB per origin
+  } else if (ua.includes('safari') && !ua.includes('chrome')) {
+    browser = 'Safari'
+    localStorageLimitMB = 5 // Safari localStorage: ~5MB per origin
+  } else if (ua.includes('edg')) {
+    browser = 'Edge'
+    localStorageLimitMB = 10 // Edge localStorage: ~10MB per origin
+  } else if (ua.includes('opera') || ua.includes('opr')) {
+    browser = 'Opera'
+    localStorageLimitMB = 10 // Opera localStorage: ~10MB per origin
+  } else if (ua.includes('samsung')) {
+    browser = 'Samsung Internet'
+    localStorageLimitMB = 5 // Samsung Internet localStorage: ~5MB per origin
+  }
+
+  return { browser, localStorageLimitMB, method }
+}
+
+// Test localStorage limit by trying to write progressively larger data
+// Returns the approximate limit in bytes, or null if test fails
+async function testLocalStorageLimit(): Promise<number | null> {
+  if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+    return null
+  }
+
+  const testKey = '__localStorage_limit_test__'
+  let lastWorkingSize = 0
+  
+  try {
+    // Clean up any previous test
+    try {
+      localStorage.removeItem(testKey)
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+
+    // Binary search approach: start with estimated limit and narrow down
+    // Most browsers have 5-10MB for localStorage per origin
+    // We'll test in smaller increments to find the exact limit more accurately
+    const maxTestSize = 15 * 1024 * 1024 // Don't test beyond 15MB
+    let low = 5 * 1024 * 1024  // Start at 5MB (conservative minimum)
+    let high = maxTestSize
+    let bestGuess = 10 * 1024 * 1024 // Default to 10MB
+
+    // Quick test: try the estimated limit first
+    try {
+      const estimatedSize = 10 * 1024 * 1024
+      const testString = 'x'.repeat(estimatedSize - 2000) // Leave some buffer
+      localStorage.setItem(testKey, testString)
+      localStorage.removeItem(testKey)
+      lastWorkingSize = estimatedSize
+      
+      // If 10MB works, try slightly larger
+      for (let size = 11 * 1024 * 1024; size <= 12 * 1024 * 1024; size += 500 * 1024) {
+        try {
+          const testStr = 'x'.repeat(size - 2000)
+          localStorage.setItem(testKey, testStr)
+          localStorage.removeItem(testKey)
+          lastWorkingSize = size
+        } catch (error: any) {
+          if (error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014) {
+            // Found the limit - return previous working size with buffer
+            return Math.max(lastWorkingSize - 500 * 1024, 5 * 1024 * 1024)
+          }
+          break
+        }
+      }
+      
+      return Math.max(lastWorkingSize - 500 * 1024, 5 * 1024 * 1024)
+    } catch (error: any) {
+      // If 10MB doesn't work, try smaller
+      if (error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014) {
+        for (let size = 8 * 1024 * 1024; size >= 5 * 1024 * 1024; size -= 500 * 1024) {
+          try {
+            const testStr = 'x'.repeat(size - 2000)
+            localStorage.setItem(testKey, testStr)
+            localStorage.removeItem(testKey)
+            return Math.max(size - 500 * 1024, 5 * 1024 * 1024)
+          } catch (e: any) {
+            if (e.name !== 'QuotaExceededError' && e.code !== 22 && e.code !== 1014) {
+              break
+            }
+            continue
+          }
+        }
+      }
+    }
+
+    // If we got here, return best guess based on what we found
+    return lastWorkingSize > 0 ? Math.max(lastWorkingSize - 500 * 1024, 5 * 1024 * 1024) : null
+  } catch (error) {
+    console.error('Error testing localStorage limit:', error)
+    return null
+  } finally {
+    // Clean up test key
+    try {
+      localStorage.removeItem(testKey)
+    } catch (e) {
+      // Ignore cleanup errors
+    }
+  }
+}
+
+// Get actual quota asynchronously (if StorageManager API is available)
+export async function getStorageQuota(): Promise<{ 
+  totalQuota: number; 
+  totalQuotaMB: number;
+  localStorageLimitMB: number;
+  appUsage: number; 
+  appUsageMB: number; 
+  available: number; 
+  availableMB: number; 
+  browser?: string;
+  method?: string;
+} | null> {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return null
+  }
+
+  const detected = detectBrowserAndQuota()
+  let totalQuota = 0
+  let totalUsage = 0
+  let method = 'estimated'
+  let appUsage = 0
+  let localStorageLimitMB = detected.localStorageLimitMB
+  let localStorageLimitMethod = 'estimated'
+
+  try {
+    // Use StorageManager API if available (modern browsers)
+    // NOTE: This gives TOTAL storage quota (localStorage + IndexedDB + Cache API)
+    // This can be 2GB+ but localStorage itself is limited to ~5-10MB per origin
+    if ('storage' in navigator && 'estimate' in navigator.storage) {
+      const estimate = await navigator.storage.estimate()
+      if (estimate.quota !== undefined && estimate.usage !== undefined) {
+        totalQuota = estimate.quota
+        totalUsage = estimate.usage // Total usage across all storage APIs
+        method = 'detected'
+      }
+    }
+  } catch (error) {
+    console.error('Error getting storage quota:', error)
+    // Fallback to estimated
+  }
+
+  // Try to test actual localStorage limit (this should always be attempted)
+  let testAttempted = false
+  let testedLimit: number | null = null
+  try {
+    testedLimit = await testLocalStorageLimit()
+    testAttempted = true
+    if (testedLimit !== null && testedLimit > 0) {
+      localStorageLimitMB = testedLimit / (1024 * 1024)
+      localStorageLimitMethod = 'tested'
+    } else {
+      // Test was attempted but returned null (possibly failed or blocked)
+      console.warn('[Storage] localStorage limit test returned null - may be blocked by browser')
+    }
+  } catch (error) {
+    testAttempted = true
+    console.error('[Storage] Error testing localStorage limit:', error)
+    // Keep estimated value, but note that test was attempted
+    localStorageLimitMethod = 'test_failed'
+  }
+
+  // Calculate usage from our app's localStorage (this is what matters for us)
+  try {
+    const data = localStorage.getItem('marketing-bot-storage')
+    if (data) {
+      appUsage = new Blob([data]).size
+    }
+  } catch (error) {
+    // Ignore errors calculating usage
+  }
+
+  // Available space is limited by localStorage limit, not total quota
+  // Since we use localStorage, the practical limit is the localStorage limit
+  const localStorageLimit = localStorageLimitMB * 1024 * 1024
+  const available = Math.max(0, localStorageLimit - appUsage)
+
+  // Determine method string - prioritize tested, then show what was actually done
+  let methodString: string
+  if (localStorageLimitMethod === 'tested') {
+    // Test succeeded - show actual tested limit
+    methodString = `tested (${localStorageLimitMB.toFixed(1)} MB actual limit)`
+  } else if (testAttempted && testedLimit === null && localStorageLimitMethod !== 'test_failed') {
+    // Test was attempted but returned null (blocked or not supported by browser)
+    // Show that test was attempted but blocked, and what we're using instead
+    if (method === 'detected') {
+      methodString = `test blocked by browser - using ${detected.browser} estimate (${localStorageLimitMB} MB)`
+    } else {
+      methodString = `test blocked by browser - using ${detected.browser} estimate (${localStorageLimitMB} MB)`
+    }
+  } else if (localStorageLimitMethod === 'test_failed') {
+    // Test was attempted but threw an error
+    methodString = `test attempted but failed - using ${detected.browser} estimate (${localStorageLimitMB} MB)`
+  } else if (method === 'detected' && !testAttempted) {
+    // StorageManager API available but test was not attempted (shouldn't happen, but handle it)
+    methodString = `StorageManager API available (${localStorageLimitMB} MB localStorage limit estimated)`
+  } else {
+    // Fallback to estimated
+    methodString = `estimated (${localStorageLimitMB} MB typical for ${detected.browser})`
+  }
+
+  return {
+    totalQuota, // Total storage quota (can be 2GB+, but not all usable for localStorage)
+    totalQuotaMB: totalQuota / (1024 * 1024),
+    localStorageLimitMB, // Actual or tested localStorage limit
+    appUsage, // Our app's localStorage usage
+    appUsageMB: appUsage / (1024 * 1024),
+    available, // Available in localStorage (limited by localStorage limit)
+    availableMB: available / (1024 * 1024),
+    browser: detected.browser,
+    method: methodString,
+  }
+}
+
+// Utility function to get storage usage information
+export function getStorageUsage() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+  
+  try {
+    const data = localStorage.getItem('marketing-bot-storage')
+    const detected = detectBrowserAndQuota()
+    
+    if (!data) {
+      return {
+        totalSize: 0,
+        totalSizeMB: 0,
+        breakdown: {},
+        items: {
+          posts: 0,
+          leads: 0,
+          contactLists: 0,
+          emailCampaigns: 0,
+          brandImages: 0,
+          scannedPosts: 0,
+          acceptedContent: 0,
+          edits: 0,
+          rejectedContent: 0,
+        },
+        browser: detected.browser,
+        localStorageLimitMB: detected.localStorageLimitMB,
+        method: detected.method,
+      }
+    }
+    
+    const sizeInBytes = new Blob([data]).size
+    const sizeInMB = sizeInBytes / (1024 * 1024)
+    
+    const parsed = JSON.parse(data)
+    const state = parsed.state || {}
+    
+    // Calculate size per category
+    const breakdown: Record<string, number> = {}
+    
+    if (state.posts) {
+      breakdown.posts = new Blob([JSON.stringify(state.posts)]).size
+    }
+    if (state.leads) {
+      breakdown.leads = new Blob([JSON.stringify(state.leads)]).size
+    }
+    if (state.contactLists) {
+      breakdown.contactLists = new Blob([JSON.stringify(state.contactLists)]).size
+    }
+    if (state.emailCampaigns) {
+      breakdown.emailCampaigns = new Blob([JSON.stringify(state.emailCampaigns)]).size
+    }
+    if (state.settings) {
+      const settingsStr = JSON.stringify(state.settings)
+      breakdown.settings = new Blob([settingsStr]).size
+      
+      // Break down settings further
+      if (state.settings.brandImages) {
+        breakdown.brandImages = new Blob([JSON.stringify(state.settings.brandImages)]).size
+      }
+      if (state.settings.contentPreferences) {
+        const prefs = state.settings.contentPreferences
+        if (prefs.scannedPosts) {
+          breakdown.scannedPosts = new Blob([JSON.stringify(prefs.scannedPosts)]).size
+        }
+        if (prefs.acceptedContent) {
+          breakdown.acceptedContent = new Blob([JSON.stringify(prefs.acceptedContent)]).size
+        }
+        if (prefs.edits) {
+          breakdown.edits = new Blob([JSON.stringify(prefs.edits)]).size
+        }
+        if (prefs.rejectedContent) {
+          breakdown.rejectedContent = new Blob([JSON.stringify(prefs.rejectedContent)]).size
+        }
+      }
+    }
+    
+    return {
+      totalSize: sizeInBytes,
+      totalSizeMB: sizeInMB,
+      breakdown,
+      items: {
+        posts: state.posts?.length || 0,
+        leads: state.leads?.length || 0,
+        contactLists: state.contactLists?.length || 0,
+        emailCampaigns: state.emailCampaigns?.length || 0,
+        brandImages: state.settings?.brandImages?.length || 0,
+        scannedPosts: state.settings?.contentPreferences?.scannedPosts?.length || 0,
+        acceptedContent: state.settings?.contentPreferences?.acceptedContent?.length || 0,
+        edits: state.settings?.contentPreferences?.edits?.length || 0,
+        rejectedContent: state.settings?.contentPreferences?.rejectedContent?.length || 0,
+      },
+      browser: detected.browser,
+      localStorageLimitMB: detected.localStorageLimitMB,
+      method: detected.method,
+    }
+  } catch (error) {
+    console.error('Error calculating storage usage:', error)
+    return null
+  }
 }

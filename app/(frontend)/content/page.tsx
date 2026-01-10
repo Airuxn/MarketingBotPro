@@ -212,10 +212,12 @@ export default function ContentPage() {
             idx === self.findIndex(p => p.id === post.id && p.platform === post.platform)
           )
           
-          // Sort by date (newest first) and keep last 50
+          // Sort by date (newest first) and keep last 30
+          // Remove images from older posts (keep images only for newest 15) to save storage space
           const sortedScannedPosts = uniqueScannedPosts
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 50)
+            .slice(0, 30)
+            .map((post, idx) => idx < 15 ? post : { ...post, images: undefined })
           
           // IMPORTANT: Learn from scanned posts! This is the PRIMARY source for new users
           const { combineAllLearningSources } = await import('@/lib/content-learner')
@@ -300,8 +302,8 @@ export default function ContentPage() {
             }
           })
           
-          // Flatten back to array
-          const finalImages = Object.values(platformGroups).flat()
+          // Flatten back to array and limit total to 50 images max (compressed for library, ~100-200KB each)
+          const finalImages = Object.values(platformGroups).flat().slice(-50)
           
           updateSettings({ brandImages: finalImages })
         }
@@ -695,6 +697,69 @@ export default function ContentPage() {
     })
   }
 
+  // Smart compression for storage: high quality (90-95%) but optimized size
+  // Original quality is preserved for direct posting (using File object in memory)
+  const compressForStorage = (file: File, maxWidth: number = 4096, quality: number = 0.92): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      // For videos or very small images, use original
+      if (!file.type.startsWith('image/') || file.size < 500000) {
+        convertMediaToBase64(file).then(resolve).catch(reject)
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          let width = img.width
+          let height = img.height
+          const maxHeight = Math.round((maxWidth / width) * height)
+          
+          // Only resize if exceeds max dimensions (preserve quality for smaller images)
+          if (width > maxWidth || height > maxHeight) {
+            const aspectRatio = width / height
+            if (width > height) {
+              width = maxWidth
+              height = Math.round(maxWidth / aspectRatio)
+            } else {
+              height = maxHeight
+              width = Math.round(maxHeight * aspectRatio)
+            }
+          }
+          
+          const canvas = document.createElement('canvas')
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d', { 
+            alpha: false, 
+            imageSmoothingEnabled: true, 
+            imageSmoothingQuality: 'high' 
+          })
+          
+          if (!ctx) {
+            reject(new Error('Could not get canvas context'))
+            return
+          }
+          
+          ctx.imageSmoothingQuality = 'high'
+          ctx.drawImage(img, 0, 0, width, height)
+          
+          const fileType = file.type.toLowerCase()
+          const mimeType = fileType.includes('png') ? 'image/png' : 'image/jpeg'
+          const compressed = canvas.toDataURL(
+            mimeType, 
+            fileType.includes('png') ? undefined : quality // 92% quality - excellent for posting, smaller for storage
+          )
+          resolve(compressed)
+        }
+        img.onerror = () => reject(new Error('Failed to load image'))
+        img.src = e.target?.result as string
+      }
+      reader.onerror = () => reject(new Error('Failed to read file'))
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handleSave = async (content?: string) => {
     const contentToSave = content || (isEditing ? editedContent : generatedContent)
     if (!contentToSave) return
@@ -727,9 +792,13 @@ export default function ContentPage() {
       }
     } else if (selectedMedia) {
       try {
-        const base64 = await convertMediaToBase64(selectedMedia.file)
+        // Smart approach: compress for storage efficiency but maintain excellent quality (92%)
+        // Original File object is kept in memory for direct posting (100% quality)
+        // When saving as draft/scheduled, we use compressed version for storage
+        // When posting directly, we can use original File object from selectedMedia
+        const base64 = await compressForStorage(selectedMedia.file) // 92% quality, max 4096px - excellent for posting, efficient for storage
         mediaData = {
-          file: base64,
+          file: base64, // High quality compressed (92%) - excellent for posting, efficient for storage
           type: selectedMedia.type,
           width: selectedMedia.width,
           height: selectedMedia.height,
@@ -858,11 +927,11 @@ export default function ContentPage() {
       </div>
 
         {/* Main Content Grid - Everything on one screen */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ height: 'calc(100vh - 220px)' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start" style={{ maxHeight: 'calc(100vh - 220px)' }}>
           {/* Left Column - Type/Platform & Prompt */}
-          <div className="lg:col-span-1 flex flex-col space-y-1.5 h-full overflow-hidden">
+          <div className="lg:col-span-1 flex flex-col space-y-1.5" style={{ height: '503px' }}>
             {/* Combined Type & Platform */}
-            <div className="glass rounded-xl p-3 border border-slate-700/50">
+            <div className="glass rounded-xl p-3 border border-slate-700/50 flex-1 flex flex-col">
               <label className="text-xs font-semibold text-slate-300 mb-2 block">Type & Platform</label>
               <div className="space-y-2">
                 {/* Content Type */}
@@ -909,8 +978,8 @@ export default function ContentPage() {
             </div>
 
             {/* Prompt Input - Same width as Type/Platform */}
-            <div className="glass rounded-xl p-4 border border-slate-700/50">
-              <div className="flex items-center justify-between mb-2">
+            <div className="glass rounded-xl p-4 border border-slate-700/50 flex-1 flex flex-col">
+              <div className="flex items-center justify-between mb-2 flex-shrink-0">
                 <label className="text-sm font-semibold text-white flex items-center space-x-2">
                   <Sparkles className="w-4 h-4 text-purple-400" />
                   <span>{t('whatDoYouWantToCreate')}</span>
@@ -919,17 +988,16 @@ export default function ContentPage() {
                   <div className="flex items-center space-x-1 text-xs text-purple-400">
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                     <span className="font-medium">Ready!</span>
-                        </div>
-                    )}
                   </div>
-            <textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              placeholder={t('placeholder')}
-                className="w-full px-4 py-3 bg-slate-800/50 border-2 border-slate-700 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none text-white placeholder:text-slate-500 text-sm transition-all"
-              rows={4}
-            />
-          </div>
+                )}
+              </div>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder={t('placeholder')}
+                className="w-full flex-1 px-4 py-3 bg-slate-800/50 border-2 border-slate-700 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none text-white placeholder:text-slate-500 text-sm transition-all min-h-[100px]"
+              />
+            </div>
 
             {/* Connected Social Accounts Status */}
             {(contentType === 'post' || contentType === 'ad') && (() => {
@@ -1018,7 +1086,7 @@ export default function ContentPage() {
 
           {/* Middle Column - Media */}
           {(contentType === 'post' || contentType === 'ad') && (
-            <div className="lg:col-span-1 flex flex-col h-full overflow-hidden">
+            <div className="lg:col-span-1 flex flex-col" style={{ height: '503px' }}>
               <div className="glass rounded-xl p-4 border border-slate-700/50 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-3 flex-shrink-0">
                   <label className="text-sm font-semibold text-white">Media</label>
@@ -1032,32 +1100,11 @@ export default function ContentPage() {
                           const file = (e.target as HTMLInputElement).files?.[0]
                           if (!file) return
                           
-                          // Create MediaFile and add to brandImages if image
-                          if (file.type.startsWith('image/')) {
-                            const reader = new FileReader()
-                            reader.onload = (event) => {
-                              const imageUrl = event.target?.result as string
-                              const newImage = {
-                                id: Date.now().toString() + Math.random(),
-                                url: imageUrl,
-                                sourceUrl: 'uploaded',
-                                platform: contentType === 'ad' ? adPlatform : platform,
-                                extractedAt: new Date().toISOString(),
-                              }
-                              
-                              const { updateSettings } = useStore.getState()
-                              const currentImages = settings.brandImages || []
-                              updateSettings({
-                                brandImages: [...currentImages, newImage],
-                              })
-                            }
-                            reader.readAsDataURL(file)
-                          }
-                          
-                          // Create preview and select media
+                          // Use ORIGINAL quality for posting (100% quality preserved)
+                          // Image is NOT automatically added to library (user can do that manually if needed)
                           const objectUrl = URL.createObjectURL(file)
                           const mediaFile: MediaFile = {
-                            file,
+                            file, // Original File object - 100% quality for posting
                             preview: objectUrl,
                             type: file.type.startsWith('image/') ? 'image' : 'video',
                             size: file.size,
@@ -1065,6 +1112,7 @@ export default function ContentPage() {
                           }
                           setSelectedMedia(mediaFile)
                           setSelectedBrandImage(null)
+                          toast.success('Image loaded with original quality for posting')
                         }
                         fileInput.click()
                       }}
@@ -1095,18 +1143,18 @@ export default function ContentPage() {
                     </button>
                   </div>
                 </div>
-                <div className="border border-dashed border-slate-700 rounded-lg p-3 flex-1 flex flex-col min-h-0 overflow-hidden">
+                <div className="border border-dashed border-slate-700 rounded-lg p-3 flex-1 flex items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '200px' }}>
                   {selectedMedia && !selectedBrandImage ? (
-                    <div className="flex-1 flex items-center justify-center relative w-full h-full min-h-0">
+                    <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
                       {selectedMedia.type === 'image' ? (
-                        <Image
-                          src={selectedMedia.preview}
-                          alt="Selected media"
-                          width={500}
-                          height={500}
-                          className="max-w-full max-h-full w-auto h-auto object-contain rounded"
-                          unoptimized
-                        />
+                        <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
+                          <img
+                            src={selectedMedia.preview}
+                            alt="Selected media"
+                            className="max-w-full max-h-full w-auto h-auto object-contain rounded"
+                            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                          />
+                        </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
                           <Video className="w-12 h-12" />
@@ -1121,15 +1169,15 @@ export default function ContentPage() {
                     </button>
                   </div>
                   ) : selectedBrandImage ? (
-                    <div className="flex-1 flex items-center justify-center relative w-full h-full min-h-0">
-                      <Image
-                        src={selectedBrandImage}
-                        width={500}
-                        height={500}
-                        unoptimized
-                        alt="Selected brand image"
-                        className="max-w-full max-h-full w-auto h-auto object-contain rounded"
-                      />
+                    <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
+                      <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
+                        <img
+                          src={selectedBrandImage}
+                          alt="Selected brand image"
+                          className="max-w-full max-h-full w-auto h-auto object-contain rounded"
+                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                        />
+                      </div>
                       <button
                         onClick={() => setSelectedBrandImage(null)}
                         className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
@@ -1138,7 +1186,7 @@ export default function ContentPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center text-slate-500">
+                    <div className="flex items-center justify-center text-slate-500" style={{ minHeight: '150px' }}>
                       <p className="text-xs text-center">No media selected</p>
                 </div>
               )}
@@ -1148,7 +1196,7 @@ export default function ContentPage() {
           )}
 
           {/* Right Column - Generated Content Preview */}
-          <div className="lg:col-span-1 flex flex-col space-y-3 h-full overflow-hidden">
+          <div className="lg:col-span-1 flex flex-col space-y-1.5" style={{ height: '503px' }}>
             {/* Generate Button - Above content area */}
           <button
             onClick={() => handleGenerate()}
@@ -1171,7 +1219,7 @@ export default function ContentPage() {
           </button>
           
             {/* Preview with inline editing */}
-            <div className="glass rounded-xl border border-slate-700/50 flex-1 flex flex-col min-h-0 overflow-hidden relative">
+            <div className="glass rounded-xl border border-slate-700/50 flex-1 flex flex-col overflow-hidden relative">
               {/* Header - Fixed position, z-index to stay on top */}
               <div className="flex items-center justify-between px-3 pt-3 pb-3 border-b border-slate-700/50 flex-shrink-0 bg-slate-800/50 backdrop-blur-sm relative z-10" style={{ minHeight: '45px' }}>
                 <h3 className="text-xs font-bold text-white flex items-center space-x-2">
@@ -1230,7 +1278,7 @@ export default function ContentPage() {
                 )}
               </div>
               {/* Content - Starts AFTER header, scrollable */}
-              <div className="flex-1 min-h-0 overflow-auto px-3 py-4 relative" style={{ paddingTop: '12px' }}>
+              <div className="flex-1 overflow-y-auto px-3 py-4 relative" style={{ paddingTop: '12px' }}>
                 <div className="w-full flex items-start justify-center">
                   <div className="w-full flex items-start justify-center" style={{ maxWidth: '100%' }}>
                     <div style={{ 

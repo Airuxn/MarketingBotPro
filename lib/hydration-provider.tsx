@@ -2,12 +2,16 @@
 
 import { useEffect, useState } from 'react'
 import { useStore } from './store'
+import { toast } from 'react-hot-toast'
 
 export function HydrationProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Clear any old toasts from previous page loads
+      toast.dismiss()
+      
       // Rehydrate store - but don't wait too long
       const rehydratePromise = useStore.persist.rehydrate()
       

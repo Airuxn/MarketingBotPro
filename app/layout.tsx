@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { Toaster } from 'react-hot-toast'
+import { Toaster, toast as toastManager } from 'react-hot-toast'
 import { LanguageProvider } from '@/lib/language-context'
 import { HydrationProvider } from '@/lib/hydration-provider'
 import { Navigation } from '@/components/Navigation'
@@ -114,6 +114,7 @@ export default function RootLayout({
             {children}
             <Toaster 
               position="top-center"
+              containerClassName="toast-container"
               toastOptions={{
                 duration: 6000, // 6 seconds - longer so users can read the messages
                 success: {
@@ -124,7 +125,7 @@ export default function RootLayout({
                   },
                 },
                 error: {
-                  duration: 8000, // 8 seconds for error messages (most important to read)
+                  duration: 6000, // 6 seconds for error messages
                   iconTheme: {
                     primary: '#ef4444',
                     secondary: '#fff',
