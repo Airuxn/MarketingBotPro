@@ -116,7 +116,7 @@ export default function RootLayout({
               position="top-center"
               containerClassName="toast-container"
               toastOptions={{
-                duration: 6000, // 6 seconds - longer so users can read the messages
+                duration: 6000, // 6 seconds default duration
                 success: {
                   duration: 7000, // 7 seconds for success messages
                   iconTheme: {
