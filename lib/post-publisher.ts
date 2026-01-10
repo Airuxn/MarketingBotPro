@@ -14,6 +14,7 @@ interface SocialAccount {
 
 /**
  * Post to Twitter/X
+ * Uses server-side API to avoid CORS issues (Twitter API doesn't allow browser requests)
  */
 async function postToTwitter(
   content: string,
@@ -21,38 +22,61 @@ async function postToTwitter(
   mediaUrl?: string
 ): Promise<{ success: boolean; postId?: string; error?: string }> {
   try {
-    // Twitter API v2 endpoint
-    const apiUrl = 'https://api.twitter.com/2/tweets'
+    console.log('[Post Publisher] Publishing to Twitter via server-side API')
     
-    const payload: any = {
-      text: content,
-    }
-
-    // If media is provided, upload it first
-    if (mediaUrl) {
-      // Note: Media upload requires separate endpoint
-      // For now, we'll post text-only or with media URL if supported
-      // Full media upload implementation would require additional steps
-    }
-
-    const response = await fetch(apiUrl, {
+    // Use server-side API route to proxy Twitter API calls (avoids CORS issues)
+    // Twitter API doesn't allow browser requests, so we need to go through our server
+    const response = await fetch('/api/publish-twitter', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        accessToken,
+        content,
+        mediaUrl,
+      }),
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.detail || 'Failed to post to Twitter')
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage = errorData.error || `HTTP ${response.status}`
+      const errorStatus = errorData.status || response.status
+      
+      console.error(`[Post Publisher] Server API Error (${errorStatus}):`, errorMessage)
+      console.error(`[Post Publisher] Error details:`, errorData.details || errorData)
+      
+      // Common issues:
+      if (errorStatus === 403) {
+        return { 
+          success: false, 
+          error: '403 Forbidden - Token may not have tweet.write permission, or app does not have "Read and write" permissions enabled' 
+        }
+      } else if (errorStatus === 401) {
+        return { 
+          success: false, 
+          error: '401 Unauthorized - Token might be expired or invalid. Please reconnect your Twitter account.' 
+        }
+      } else if (errorStatus === 429) {
+        return { 
+          success: false, 
+          error: '429 Rate Limit - Too many requests. Free tier allows limited posts per day. Please wait before trying again.' 
+        }
+      }
+      
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
-    return { success: true, postId: data.data?.id }
+
+    if (!data.success) {
+      return { success: false, error: data.error || 'Failed to post to Twitter' }
+    }
+
+    console.log('[Post Publisher] Successfully published tweet:', data.postId)
+    return { success: true, postId: data.postId || data.tweetId }
   } catch (error: any) {
-    console.error('Twitter post error:', error)
+    console.error('[Post Publisher] Twitter post error:', error)
     return { success: false, error: error.message || 'Failed to post to Twitter' }
   }
 }
