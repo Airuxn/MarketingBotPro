@@ -144,19 +144,52 @@ export default function SettingsPage() {
     try {
       let userId: string | undefined = manualUserId.trim() || undefined
 
-      // For Instagram, try to validate and get user ID from token
-      if (platform === 'instagram' && !userId) {
-        try {
-          const response = await fetch(
-            `https://graph.facebook.com/v18.0/me?access_token=${manualAccessToken}&fields=id`
-          )
-          if (response.ok) {
-            const data = await response.json()
-            userId = data.id
+      // For Instagram, validate the token using server-side endpoint
+      if (platform === 'instagram') {
+        const validationResponse = await fetch('/api/validate-instagram-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accessToken: manualAccessToken.trim(),
+          }),
+        })
+
+        const validationData = await validationResponse.json()
+
+        if (!validationResponse.ok || !validationData.valid) {
+          const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
+          const errorType = validationData.errorType || 'unknown'
+          
+          if (errorType === 'OAuthException') {
+            throw new Error(`Invalid or expired token: ${errorMessage}`)
+          } else if (errorMessage.includes('expired')) {
+            throw new Error('This token has expired. Please generate a new access token.')
+          } else if (errorMessage.includes('permission')) {
+            throw new Error('This token does not have the required permissions. Please ensure your token has access to Instagram Business Account data.')
+          } else {
+            throw new Error(errorMessage || 'Token validation failed. Please check your access token.')
           }
-        } catch (error) {
-          console.error('Error validating token:', error)
         }
+
+        // Token is valid, use the returned userId
+        if (validationData.userId) {
+          userId = validationData.userId
+          console.log(`Valid Instagram token - Account ID: ${userId}, Username: ${validationData.username || 'N/A'}, Source: ${validationData.source || 'unknown'}`)
+          
+          if (validationData.username) {
+            toast.success(`Token validated! Found Instagram account: @${validationData.username}`)
+          }
+        } else {
+          // If no userId returned but token is valid, user must provide it manually
+          if (!manualUserId.trim()) {
+            throw new Error('Could not detect Instagram Business Account ID. Please provide it manually.')
+          }
+        }
+      } else {
+        // For other platforms, you can add validation here later
+        // For now, we'll accept it (you should add validation)
       }
 
       const currentSocialAccounts = settings.socialAccounts || []
@@ -174,12 +207,13 @@ export default function SettingsPage() {
       ]
 
       updateSettings({ socialAccounts: updated })
-      toast.success(`Connected to ${platformNames[platform as keyof typeof platformNames]}!`)
+      toast.success(`Successfully connected to ${platformNames[platform as keyof typeof platformNames]}!`)
       setShowManualToken(null)
       setManualAccessToken('')
       setManualUserId('')
     } catch (error: any) {
-      toast.error(`Connection failed: ${error.message || 'Invalid token'}`)
+      console.error('Connection error:', error)
+      toast.error(error.message || `Connection failed: Invalid token. Please check your access token and try again.`)
     } finally {
       setIsConnecting(null)
     }
