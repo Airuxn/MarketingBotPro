@@ -173,45 +173,48 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
   try {
     // Validate userId - Twitter User ID should not be 'me' or empty
     if (!userId || userId === 'me' || userId.trim() === '') {
-      console.error('Twitter scan error: Invalid userId. Twitter requires a specific User ID, not "me".')
-      console.error('Current userId:', userId)
-      console.error('Please ensure the Twitter account was connected properly via OAuth and userId was retrieved.')
+      console.error('[Twitter Scan] Invalid userId. Twitter requires a specific User ID, not "me".')
+      console.error('[Twitter Scan] Current userId:', userId)
+      console.error('[Twitter Scan] Please ensure the Twitter account was connected properly via OAuth and userId was retrieved.')
       return []
     }
 
     console.log(`[Twitter Scan] Starting scan for userId: ${userId}`)
+    console.log(`[Twitter Scan] Using server-side API to avoid CORS issues`)
 
-    // Twitter API v2 - get user tweets
-    // Note: Using userId from the connected account (not 'me' endpoint)
-    const apiUrl = `https://api.twitter.com/2/users/${userId}/tweets?max_results=100&tweet.fields=created_at,text,public_metrics,attachments&expansions=attachments.media_keys&media.fields=url,preview_image_url,type&exclude=replies,retweets`
-    
-    console.log(`[Twitter Scan] Calling API: ${apiUrl.replace(userId, 'USER_ID')}`)
-    
-    const response = await fetch(apiUrl, {
+    // Use server-side API route to proxy Twitter API calls (avoids CORS issues)
+    // Twitter API doesn't allow browser requests, so we need to go through our server
+    const response = await fetch('/api/scan-twitter', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        accessToken,
+        userId,
+      }),
     })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      const errorMessage = errorData.errors?.[0]?.detail || errorData.title || `HTTP ${response.status}`
-      const errorType = errorData.errors?.[0]?.type || 'unknown'
+      const errorMessage = errorData.error || `HTTP ${response.status}`
+      const errorStatus = errorData.status || response.status
       
-      console.error(`[Twitter Scan] API Error (${response.status}):`, errorMessage)
-      console.error(`[Twitter Scan] Error type:`, errorType)
-      console.error(`[Twitter Scan] Full error data:`, JSON.stringify(errorData, null, 2))
+      console.error(`[Twitter Scan] Server API Error (${errorStatus}):`, errorMessage)
+      console.error(`[Twitter Scan] Error details:`, errorData.details || errorData)
       
       // Common issues:
-      if (response.status === 403) {
+      if (errorStatus === 403) {
         console.error('[Twitter Scan] 403 Forbidden - This usually means:')
         console.error('1. The token does not have tweet.read permission')
         console.error('2. The app does not have "Read and write" permissions enabled')
         console.error('3. The userId might be incorrect or not accessible with this token')
-      } else if (response.status === 401) {
+      } else if (errorStatus === 401) {
         console.error('[Twitter Scan] 401 Unauthorized - Token might be expired or invalid')
-      } else if (response.status === 404) {
+      } else if (errorStatus === 404) {
         console.error('[Twitter Scan] 404 Not Found - User ID might be incorrect or user does not exist')
+      } else if (errorStatus === 429) {
+        console.error('[Twitter Scan] 429 Rate Limit - Too many requests. Free tier allows 1 request per 15 minutes.')
       }
       
       throw new Error(`Twitter API error: ${errorMessage}`)
@@ -219,46 +222,16 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
 
     const data = await response.json()
 
-    if (data.errors && data.errors.length > 0) {
-      const errorDetail = data.errors[0].detail || data.errors[0].title || 'Unknown error'
-      console.error('[Twitter Scan] API returned errors:', JSON.stringify(data.errors, null, 2))
-      throw new Error(`Twitter API error: ${errorDetail}`)
-    }
-
-    if (!data.data || data.data.length === 0) {
+    if (!data.tweets || data.tweets.length === 0) {
       console.log('[Twitter Scan] No tweets found for this user (user might have no tweets, or all are replies/retweets)')
       return []
     }
 
-    console.log(`[Twitter Scan] Found ${data.data.length} tweets`)
+    console.log(`[Twitter Scan] Found ${data.tweets.length} tweets from server API`)
 
     const scanned: ScannedContent[] = []
-    const mediaMap = new Map()
 
-    // Map media (only images, not videos)
-    if (data.includes?.media) {
-      console.log(`[Twitter Scan] Found ${data.includes.media.length} media items`)
-      for (const media of data.includes.media) {
-        // Only include images, skip videos
-        if (media.type === 'photo' && (media.url || media.preview_image_url)) {
-          mediaMap.set(media.media_key, media.url || media.preview_image_url)
-        }
-      }
-    }
-
-    for (const tweet of data.data) {
-      const images: string[] = []
-      
-      // Extract images from attachments
-      if (tweet.attachments?.media_keys) {
-        for (const key of tweet.attachments.media_keys) {
-          const mediaUrl = mediaMap.get(key)
-          if (mediaUrl) {
-            images.push(mediaUrl)
-          }
-        }
-      }
-
+    for (const tweet of data.tweets) {
       // Analyze content style
       let styleAnalysis: StyleAnalysis | undefined
       if (tweet.text && tweet.text.trim().length > 0) {
@@ -269,13 +242,9 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
         id: tweet.id,
         platform: 'twitter',
         content: tweet.text || '',
-        images,
-        createdAt: tweet.created_at,
-        engagement: {
-          likes: tweet.public_metrics?.like_count,
-          comments: tweet.public_metrics?.reply_count,
-          shares: tweet.public_metrics?.retweet_count,
-        },
+        images: tweet.images || [],
+        createdAt: tweet.createdAt,
+        engagement: tweet.engagement,
         styleAnalysis,
       })
     }
