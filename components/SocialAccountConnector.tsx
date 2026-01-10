@@ -72,6 +72,14 @@ export function SocialAccountConnector() {
             const data = await response.json()
             const { accessToken, userId, platform } = data
 
+            console.log('[SocialAccountConnector] OAuth token retrieved:', {
+              platform,
+              hasAccessToken: !!accessToken,
+              hasUserId: !!userId,
+              userId: userId || 'NOT SET',
+              accessTokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'NONE',
+            })
+
             if (!accessToken || !platform) {
               throw new Error('Invalid token data')
             }
@@ -92,6 +100,14 @@ export function SocialAccountConnector() {
               connectedAt: new Date().toISOString(),
             }
 
+            console.log('[SocialAccountConnector] New account to save:', {
+              platform: newAccount.platform,
+              hasAccessToken: !!newAccount.accessToken,
+              hasUserId: !!newAccount.userId,
+              userId: newAccount.userId || 'NOT SET',
+              connected: newAccount.connected,
+            })
+
             // Filter out any existing account with the same platform, then add the new one
             // This allows Facebook and Instagram to coexist even though they use the same OAuth
             const existingOtherPlatforms = currentSocialAccounts.filter((acc) => acc.platform !== platform)
@@ -100,13 +116,32 @@ export function SocialAccountConnector() {
               newAccount,
             ]
 
-            console.log('Updating social accounts:', { 
+            console.log('[SocialAccountConnector] Updating social accounts:', { 
               platform, 
               existingCount: currentSocialAccounts.length,
               updatedCount: updated.length,
-              existingPlatforms: currentSocialAccounts.map(acc => acc.platform),
-              newPlatforms: updated.map(acc => acc.platform)
+              existingPlatforms: currentSocialAccounts.map(acc => `${acc.platform} (userId: ${acc.userId || 'none'})`),
+              newPlatforms: updated.map(acc => `${acc.platform} (userId: ${acc.userId || 'none'})`),
             })
+
+            // Debug: Check if Twitter account has userId
+            if (platform === 'twitter') {
+              const twitterAccount = updated.find(acc => acc.platform === 'twitter')
+              if (twitterAccount) {
+                console.log('[SocialAccountConnector] Twitter account details:', {
+                  platform: twitterAccount.platform,
+                  connected: twitterAccount.connected,
+                  hasAccessToken: !!twitterAccount.accessToken,
+                  hasUserId: !!twitterAccount.userId,
+                  userId: twitterAccount.userId || 'MISSING - THIS IS THE PROBLEM!',
+                })
+                if (!twitterAccount.userId || twitterAccount.userId === 'me') {
+                  console.error('[SocialAccountConnector] ERROR: Twitter account missing userId!')
+                  console.error('[SocialAccountConnector] This means the OAuth callback failed to retrieve the User ID.')
+                  console.error('[SocialAccountConnector] Check Vercel logs for Twitter OAuth callback errors.')
+                }
+              }
+            }
 
             updateSettings({ socialAccounts: updated })
             toast.success(`Connected to ${platformNames[platform as keyof typeof platformNames]}!`)

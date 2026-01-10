@@ -164,7 +164,33 @@ export default function ContentPage() {
       const connectedAdAccounts = adAccounts.filter(acc => acc.connected && acc.accessToken)
       const connectedSocialAccounts = socialAccounts.filter(acc => acc.connected && acc.accessToken)
       
-      if (connectedAdAccounts.length === 0 && connectedSocialAccounts.length === 0) return
+      console.log('[Content Page] Scanning accounts:', {
+        totalAdAccounts: adAccounts.length,
+        totalSocialAccounts: socialAccounts.length,
+        connectedAdAccounts: connectedAdAccounts.map(acc => ({ platform: acc.platform, hasToken: !!acc.accessToken, accountId: acc.accountId })),
+        connectedSocialAccounts: connectedSocialAccounts.map(acc => ({ platform: acc.platform, hasToken: !!acc.accessToken, userId: acc.userId || 'MISSING' })),
+      })
+      
+      // Debug: Check Twitter account specifically
+      const twitterAccount = connectedSocialAccounts.find(acc => acc.platform === 'twitter')
+      if (twitterAccount) {
+        console.log('[Content Page] Twitter account found:', {
+          platform: twitterAccount.platform,
+          connected: twitterAccount.connected,
+          hasAccessToken: !!twitterAccount.accessToken,
+          hasUserId: !!twitterAccount.userId,
+          userId: twitterAccount.userId || 'MISSING - THIS WILL CAUSE SCAN TO FAIL!',
+        })
+        if (!twitterAccount.userId || twitterAccount.userId === 'me') {
+          console.error('[Content Page] ERROR: Twitter account missing userId!')
+          console.error('[Content Page] The scanner will skip this account because userId is required.')
+        }
+      }
+      
+      if (connectedAdAccounts.length === 0 && connectedSocialAccounts.length === 0) {
+        console.log('[Content Page] No connected accounts found, skipping scan')
+        return
+      }
 
       // Check if we should scan: only if accounts changed or it's been >1 hour
       const scanKey = JSON.stringify([connectedAdAccounts.map(a => a.accountId || ''), connectedSocialAccounts.map(a => a.userId || '')])
