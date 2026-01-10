@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { getOAuthUrls } from '@/lib/vercel-url'
 
 const TWITTER_CLIENT_ID = process.env.TWITTER_CLIENT_ID
 const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET
-const REDIRECT_URI = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 'http://localhost:3000/api/oauth/twitter/callback'
 
 export async function GET(request: Request) {
+  const { baseUrl, redirectUri: finalRedirectUri } = getOAuthUrls(request, '/api/oauth/twitter/callback')
+
   if (!TWITTER_CLIENT_ID) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     return NextResponse.redirect(
       `${baseUrl}/settings?oauth_error=${encodeURIComponent('Twitter OAuth not configured. Please set TWITTER_CLIENT_ID in environment variables. See docs/OAUTH_SETUP.md for setup instructions.')}`
     )
@@ -29,14 +30,13 @@ export async function GET(request: Request) {
     maxAge: 600, // 10 minutes
   })
 
+  // Request scopes for reading and creating posts
   const scopes = ['tweet.read', 'tweet.write', 'users.read', 'offline.access'].join(' ')
-  
-  const twitterRedirectUri = `${REDIRECT_URI.replace('/facebook/callback', '/twitter/callback')}`
   
   const authUrl = `https://twitter.com/i/oauth2/authorize?` +
     `response_type=code` +
     `&client_id=${TWITTER_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(twitterRedirectUri)}` +
+    `&redirect_uri=${encodeURIComponent(finalRedirectUri)}` +
     `&scope=${encodeURIComponent(scopes)}` +
     `&state=social_post` +
     `&code_challenge=${codeChallenge}` +

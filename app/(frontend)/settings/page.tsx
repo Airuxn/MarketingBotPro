@@ -216,8 +216,11 @@ export default function SettingsPage() {
   }
 
   const handleValidateAndDetectId = async () => {
-    // If only ID is provided but no token, start OAuth flow to get token
-    if (manualUserId.trim() && !manualAccessToken.trim()) {
+    // Determine which platform we're validating for based on the currently shown modal
+    const currentPlatform = showManualToken
+
+    // If only ID is provided but no token, start OAuth flow to get token (Instagram only for now)
+    if (currentPlatform === 'instagram' && manualUserId.trim() && !manualAccessToken.trim()) {
       toast.loading('Redirecting to Instagram to get access token...', { duration: 2000 })
       // Store the ID temporarily so we can use it after OAuth
       if (typeof window !== 'undefined') {
@@ -230,58 +233,114 @@ export default function SettingsPage() {
 
     // If token is provided, validate and auto-detect ID
     if (!manualAccessToken.trim()) {
-      toast.error('Please enter either an Access Token or Instagram Business Account ID')
+      toast.error(`Please enter an Access Token${currentPlatform === 'instagram' ? ' or Instagram Business Account ID' : ''}`)
       return
     }
 
     setIsValidatingToken(true)
     try {
-      const validationResponse = await fetch('/api/validate-instagram-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          accessToken: manualAccessToken.trim(),
-        }),
-      })
+      let validationResponse: Response
+      let validationData: any
 
-      const validationData = await validationResponse.json()
+      if (currentPlatform === 'instagram') {
+        validationResponse = await fetch('/api/validate-instagram-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accessToken: manualAccessToken.trim(),
+          }),
+        })
+        validationData = await validationResponse.json()
 
-      if (!validationResponse.ok || !validationData.valid) {
-        const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
-        const errorType = validationData.errorType || 'unknown'
-        
-        if (errorType === 'OAuthException') {
-          toast.error(`Invalid or expired token: ${errorMessage}`)
-        } else if (errorMessage.includes('expired')) {
-          toast.error('This token has expired. Please generate a new access token.')
-        } else if (errorMessage.includes('permission')) {
-          toast.error('This token does not have the required permissions. Please ensure your token has access to Instagram Business Account data.')
-        } else {
-          toast.error(errorMessage || 'Token validation failed. Please check your access token.')
+        if (!validationResponse.ok || !validationData.valid) {
+          const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
+          const errorType = validationData.errorType || 'unknown'
+          
+          if (errorType === 'OAuthException') {
+            toast.error(`Invalid or expired token: ${errorMessage}`)
+          } else if (errorMessage.includes('expired')) {
+            toast.error('This token has expired. Please generate a new access token.')
+          } else if (errorMessage.includes('permission')) {
+            toast.error('This token does not have the required permissions. Please ensure your token has access to Instagram Business Account data.')
+          } else {
+            toast.error(errorMessage || 'Token validation failed. Please check your access token.')
+          }
+          return
         }
-        return
-      }
 
-      // Token is valid - auto-fill the ID field if empty, or validate if ID matches
-      if (manualUserId.trim()) {
-        // User provided ID - check if it matches
-        if (validationData.userId === manualUserId.trim()) {
-          toast.success(`Token validated! Account ID matches: ${validationData.userId}`)
+        // Token is valid - auto-fill the ID field if empty, or validate if ID matches
+        if (manualUserId.trim()) {
+          // User provided ID - check if it matches
+          if (validationData.userId === manualUserId.trim()) {
+            toast.success(`Token validated! Account ID matches: ${validationData.userId}`)
+          } else if (validationData.userId) {
+            toast.error(`Token belongs to different account. Detected ID: ${validationData.userId}, but you entered: ${manualUserId.trim()}`)
+          }
         } else if (validationData.userId) {
-          toast.error(`Token belongs to different account. Detected ID: ${validationData.userId}, but you entered: ${manualUserId.trim()}`)
-        }
-      } else if (validationData.userId) {
-        // No ID provided - auto-fill it
-        setManualUserId(validationData.userId)
-        if (validationData.username) {
-          toast.success(`Token validated! Found Instagram account: @${validationData.username} (ID: ${validationData.userId})`)
+          // No ID provided - auto-fill it
+          setManualUserId(validationData.userId)
+          if (validationData.username) {
+            toast.success(`Token validated! Found Instagram account: @${validationData.username} (ID: ${validationData.userId})`)
+          } else {
+            toast.success(`Token validated! Found Account ID: ${validationData.userId}`)
+          }
         } else {
-          toast.success(`Token validated! Found Account ID: ${validationData.userId}`)
+          toast.error('Token is valid but could not detect Instagram Business Account ID. Please enter it manually.')
         }
+      } else if (currentPlatform === 'twitter') {
+        validationResponse = await fetch('/api/validate-twitter-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accessToken: manualAccessToken.trim(),
+          }),
+        })
+        validationData = await validationResponse.json()
+
+        if (!validationResponse.ok || !validationData.valid) {
+          const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
+          const errorType = validationData.errorType || 'unknown'
+          
+          if (errorMessage.includes('expired') || errorMessage.includes('Invalid')) {
+            toast.error('This token has expired or is invalid. Please generate a new access token.')
+          } else if (errorMessage.includes('permission') || errorMessage.includes('scope')) {
+            toast.error('This token does not have the required permissions. Please ensure your token has tweet.read and tweet.write permissions.')
+          } else {
+            toast.error(errorMessage || 'Token validation failed. Please check your access token.')
+          }
+          return
+        }
+
+        // Token is valid - auto-fill the ID field if empty, or validate if ID matches
+        if (manualUserId.trim()) {
+          // User provided ID - check if it matches
+          if (validationData.userId === manualUserId.trim()) {
+            toast.success(`Token validated! User ID matches: ${validationData.userId}`)
+          } else if (validationData.userId) {
+            toast.error(`Token belongs to different account. Detected ID: ${validationData.userId}, but you entered: ${manualUserId.trim()}`)
+          }
+        } else if (validationData.userId) {
+          // No ID provided - auto-fill it
+          setManualUserId(validationData.userId)
+          if (validationData.username) {
+            toast.success(`Token validated! Found Twitter account: @${validationData.username} (ID: ${validationData.userId})`)
+          } else {
+            toast.success(`Token validated! Found User ID: ${validationData.userId}`)
+          }
+        } else {
+          toast.error('Token is valid but could not detect Twitter User ID. Please enter it manually.')
+        }
+      } else if (currentPlatform === 'facebook') {
+        // Facebook validation is handled directly in handleManualTokenConnect
+        toast.error('Please use the Connect button to validate Facebook tokens.')
+        return
       } else {
-        toast.error('Token is valid but could not detect Instagram Business Account ID. Please enter it manually.')
+        toast.error('Platform not supported for token validation.')
+        return
       }
     } catch (error: any) {
       console.error('Validation error:', error)
@@ -386,6 +445,53 @@ export default function SettingsPage() {
         } catch (error: any) {
           console.error('Facebook token validation error:', error)
           throw new Error(error.message || 'Facebook token validation failed. Please check your access token.')
+        }
+      } else if (platform === 'twitter') {
+        // Validate Twitter token using server-side endpoint
+        const validationResponse = await fetch('/api/validate-twitter-token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            accessToken: manualAccessToken.trim(),
+          }),
+        })
+
+        const validationData = await validationResponse.json()
+
+        if (!validationResponse.ok || !validationData.valid) {
+          const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
+          const errorType = validationData.errorType || 'unknown'
+          
+          if (errorMessage.includes('expired') || errorMessage.includes('Invalid')) {
+            throw new Error('This token has expired or is invalid. Please generate a new access token.')
+          } else if (errorMessage.includes('permission') || errorMessage.includes('scope')) {
+            throw new Error('This token does not have the required permissions. Please ensure your token has tweet.read and tweet.write permissions.')
+          } else {
+            throw new Error(errorMessage || 'Token validation failed. Please check your access token.')
+          }
+        }
+
+        // Token is valid - prioritize manually entered userId over auto-detected
+        if (manualUserIdValue) {
+          userId = manualUserIdValue
+          console.log(`Using manually provided Twitter User ID: ${userId}`)
+          if (validationData.username) {
+            toast.success(`Token validated! Using provided User ID: ${userId}`)
+          }
+        } else if (validationData.userId) {
+          userId = validationData.userId
+          console.log(`Valid Twitter token - Auto-detected User ID: ${userId}, Username: ${validationData.username || 'N/A'}, Name: ${validationData.name || 'N/A'}`)
+          
+          if (validationData.username) {
+            toast.success(`Token validated! Found Twitter account: @${validationData.username} (ID: ${userId})`)
+          } else {
+            toast.success(`Token validated! Found Account ID: ${userId}`)
+          }
+        } else {
+          // If no userId returned and no manual entry, token might be valid but can't find Twitter account
+          throw new Error('Token is valid but could not detect Twitter User ID. Please enter your Twitter User ID manually.')
         }
       } else {
         // For other platforms, use manual userId if provided
@@ -696,7 +802,7 @@ export default function SettingsPage() {
                             </>
                           ) : (
                             <>
-                              {(platform === 'instagram' || platform === 'facebook') && (
+                              {(platform === 'instagram' || platform === 'facebook' || platform === 'twitter') && (
                                 <button
                                   onClick={() => setShowManualToken(showManualToken === platform ? null : platform)}
                                   className="px-1.5 py-0.5 text-xs glass hover:bg-slate-700/50 rounded transition-colors text-slate-300"
@@ -1935,6 +2041,145 @@ export default function SettingsPage() {
                     <>
                       <CheckCircle className="w-4 h-4" />
                       <span>Connect with Token</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowManualToken(null)
+                    setManualAccessToken('')
+                    setManualUserId('')
+                  }}
+                  className="px-4 py-2.5 bg-slate-800/80 border border-slate-700 hover:bg-slate-700/50 rounded-lg transition-colors text-slate-300 font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Twitter Token Connection Modal */}
+        {showManualToken === 'twitter' && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+            onClick={() => {
+              setShowManualToken(null)
+              setManualAccessToken('')
+              setManualUserId('')
+            }}
+          >
+            <div 
+              className="glass rounded-xl border-2 border-blue-500/30 max-w-md w-full shadow-glow-lg max-h-[90vh] flex flex-col overflow-hidden" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header - Fixed */}
+              <div className="flex items-center justify-between p-6 border-b border-slate-700/50 flex-shrink-0">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-500/30">
+                    <Twitter className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-white">Connect Twitter/X with Token</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowManualToken(null)
+                    setManualAccessToken('')
+                    setManualUserId('')
+                  }}
+                  className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              {/* Content - Scrollable */}
+              <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    Twitter/X Access Token <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    value={manualAccessToken}
+                    onChange={(e) => setManualAccessToken(e.target.value)}
+                    placeholder="Enter your Twitter/X access token (required)"
+                    className="w-full px-3 py-2 glass rounded-lg border border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder:text-slate-400"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Enter a valid Twitter/X OAuth 2.0 access token with tweet.read and tweet.write permissions.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    Twitter/X User ID <span className="text-slate-400">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={manualUserId}
+                    onChange={(e) => setManualUserId(e.target.value)}
+                    placeholder="Enter your Twitter/X User ID (auto-detected if not provided)"
+                    className="w-full px-3 py-2 glass rounded-lg border border-slate-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder:text-slate-400"
+                  />
+                  <p className="mt-1 text-xs text-slate-400">
+                    Your Twitter User ID will be auto-detected from the token if not provided.
+                  </p>
+                </div>
+
+                <div className="p-3 glass border border-blue-500/30 rounded-lg bg-blue-500/10">
+                  <p className="text-xs text-blue-200">
+                    <strong className="text-blue-300">How to get a Twitter/X token:</strong>
+                  </p>
+                  <ol className="mt-2 space-y-1 text-xs text-blue-200/90 list-decimal list-inside">
+                    <li>Go to <a href="https://developer.twitter.com/en/portal/dashboard" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-100">Twitter Developer Portal</a></li>
+                    <li>Create a new app or use an existing one</li>
+                    <li>Enable OAuth 2.0 in app settings</li>
+                    <li>Generate an access token with tweet.read and tweet.write scopes</li>
+                    <li>Copy the token and paste it here</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 glass border border-amber-500/30 rounded-lg bg-amber-500/10">
+                  <p className="text-xs text-amber-200">
+                    <strong className="text-amber-300">Note:</strong> The token will be validated before connecting. Make sure it has the necessary permissions for reading and creating posts.
+                  </p>
+                </div>
+              </div>
+
+              {/* Footer - Fixed */}
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-700/50 flex-shrink-0">
+                <button
+                  onClick={handleValidateAndDetectId}
+                  disabled={isValidatingToken || !manualAccessToken.trim()}
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-white font-medium flex items-center gap-2"
+                >
+                  {isValidatingToken ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      Validate Token
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleManualTokenConnect('twitter')}
+                  disabled={isConnecting === 'twitter' || !manualAccessToken.trim()}
+                  className="px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors text-white font-medium flex items-center gap-2"
+                >
+                  {isConnecting === 'twitter' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      Connect
                     </>
                   )}
                 </button>

@@ -1,26 +1,32 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import crypto from 'crypto'
+import { getOAuthUrls } from '@/lib/vercel-url'
 
 const TWITTER_CLIENT_ID = process.env.TWITTER_CLIENT_ID
 const TWITTER_CLIENT_SECRET = process.env.TWITTER_CLIENT_SECRET
-const REDIRECT_URI = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 'http://localhost:3000/api/oauth/facebook/callback'
-const TWITTER_REDIRECT_URI = REDIRECT_URI.replace('/facebook/callback', '/twitter/callback')
 
 export async function GET(request: Request) {
+  const { baseUrl, redirectUri: finalRedirectUri } = getOAuthUrls(request, '/api/oauth/twitter/callback')
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
 
   if (error) {
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_error=${encodeURIComponent(error)}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent(error)}`
     )
   }
 
   if (!code) {
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_error=no_code`
+      `${baseUrl}/settings?oauth_error=no_code`
+    )
+  }
+
+  if (!TWITTER_CLIENT_ID || !TWITTER_CLIENT_SECRET) {
+    return NextResponse.redirect(
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent('Twitter OAuth not configured. Please set TWITTER_CLIENT_ID and TWITTER_CLIENT_SECRET in environment variables.')}`
     )
   }
 
@@ -44,8 +50,8 @@ export async function GET(request: Request) {
       body: new URLSearchParams({
         code,
         grant_type: 'authorization_code',
-        client_id: TWITTER_CLIENT_ID!,
-        redirect_uri: TWITTER_REDIRECT_URI,
+        client_id: TWITTER_CLIENT_ID,
+        redirect_uri: finalRedirectUri,
         code_verifier: codeVerifier,
       }),
     })
@@ -53,8 +59,8 @@ export async function GET(request: Request) {
     cookieStore.delete('twitter_code_verifier')
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.json()
-      throw new Error(errorData.error_description || 'Failed to exchange code for token')
+      const errorData = await tokenResponse.json().catch(() => ({}))
+      throw new Error(errorData.error_description || errorData.error || 'Failed to exchange code for token')
     }
 
     const tokenData = await tokenResponse.json()
@@ -72,9 +78,11 @@ export async function GET(request: Request) {
     })
     
     let userId: string | undefined
+    let username: string | undefined
     if (userResponse.ok) {
       const userData = await userResponse.json()
       userId = userData.data?.id
+      username = userData.data?.username
     }
 
     // Store token temporarily
@@ -102,12 +110,12 @@ export async function GET(request: Request) {
     })
 
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_success=twitter`
+      `${baseUrl}/settings?oauth_success=twitter`
     )
   } catch (error: any) {
     console.error('Twitter OAuth error:', error)
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_error=${encodeURIComponent(error.message || 'oauth_failed')}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent(error.message || 'oauth_failed')}`
     )
   }
 }
