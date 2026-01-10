@@ -100,7 +100,10 @@ export async function GET(request: Request) {
     console.log('[Instagram Callback] Instagram API response:', JSON.stringify(instagramErrorData, null, 2))
     
     // If Instagram API fails, try Facebook Graph API (for Facebook OAuth)
-    let responseText: string | undefined
+    let usedFacebookAPI = false
+    let finalTokenResponse = tokenResponse
+    let finalResponseText: string | undefined = instagramResponseText
+    
     if (!tokenResponse.ok) {
       console.log('[Instagram Callback] Instagram API failed, trying Facebook Graph API...')
       
@@ -112,24 +115,26 @@ export async function GET(request: Request) {
       
       console.log('[Instagram Callback] Token exchange URL (without secret):', tokenExchangeUrl.replace(/client_secret=[^&]+/, 'client_secret=***'))
       console.log('[Instagram Callback] Calling Facebook Graph API...')
-      tokenResponse = await fetch(tokenExchangeUrl, { method: 'GET' })
+      finalTokenResponse = await fetch(tokenExchangeUrl, { method: 'GET' })
+      usedFacebookAPI = true
     
-      responseText = await tokenResponse.text()
+      finalResponseText = await finalTokenResponse.text()
       
-      console.log('[Instagram Callback] Facebook Graph API response status:', tokenResponse.status)
-      console.log('[Instagram Callback] Facebook Graph API response body:', responseText)
+      console.log('[Instagram Callback] Facebook Graph API response status:', finalTokenResponse.status)
+      console.log('[Instagram Callback] Facebook Graph API response body:', finalResponseText)
+    } else {
+      // Instagram API succeeded
+      finalResponseText = instagramResponseText
     }
 
-    if (!tokenResponse.ok) {
-      // Get error text - use instagramResponseText if we tried Instagram API, otherwise responseText
+    if (!finalTokenResponse.ok) {
+      // Get error text from the appropriate response
       let errorText: string
       try {
-        if (tokenResponse.status !== 200 && instagramResponseText) {
-          errorText = instagramResponseText
-        } else if (responseText) {
-          errorText = responseText
+        if (finalResponseText) {
+          errorText = finalResponseText
         } else {
-          errorText = await tokenResponse.text()
+          errorText = await finalTokenResponse.text()
         }
       } catch {
         errorText = 'Failed to read error response'
@@ -143,11 +148,12 @@ export async function GET(request: Request) {
       }
       
       console.error('[Instagram Callback] ========== TOKEN EXCHANGE FAILED ==========')
-      console.error('[Instagram Callback] Final status:', tokenResponse.status)
+      console.error('[Instagram Callback] Final status:', finalTokenResponse.status)
       console.error('[Instagram Callback] Final response text:', errorText)
       console.error('[Instagram Callback] Final response parsed:', JSON.stringify(errorData, null, 2))
       console.error('[Instagram Callback] Redirect URI used:', INSTAGRAM_REDIRECT_URI)
       console.error('[Instagram Callback] Client ID used:', clientId)
+      console.error('[Instagram Callback] Used Facebook API:', usedFacebookAPI)
       console.error('[Instagram Callback] ============================================')
       
       // Extract detailed error message - show user exactly what Facebook says
@@ -155,7 +161,7 @@ export async function GET(request: Request) {
                         errorData.error?.error_user_msg || 
                         errorData.message || 
                         errorData.raw || 
-                        `Failed to exchange code for token (status: ${tokenResponse.status})`
+                        `Failed to exchange code for token (status: ${finalTokenResponse.status})`
       
       // Add error code and subcode if available
       if (errorData.error) {
@@ -185,18 +191,26 @@ export async function GET(request: Request) {
       throw new Error(errorMessage)
     }
 
-    // Parse successful response
+    // Parse successful response - use the correct response text
     let tokenData: any
     try {
-      if (instagramResponseText && tokenResponse.status === 200) {
-        tokenData = JSON.parse(instagramResponseText)
-      } else if (responseText && tokenResponse.status === 200) {
-        tokenData = JSON.parse(responseText)
+      if (finalTokenResponse.ok && finalTokenResponse.status === 200 && finalResponseText) {
+        // Parse the response text (either Facebook or Instagram API)
+        tokenData = JSON.parse(finalResponseText)
+        console.log('[Instagram Callback] Parsed token response successfully')
+        console.log('[Instagram Callback] Used Facebook API:', usedFacebookAPI)
+        console.log('[Instagram Callback] Response has access_token:', !!tokenData.access_token)
       } else {
-        tokenData = await tokenResponse.json()
+        // Fallback: try to read from response stream
+        console.log('[Instagram Callback] Falling back to reading from response stream')
+        tokenData = await finalTokenResponse.json()
+        console.log('[Instagram Callback] Parsed token response from stream')
       }
     } catch (parseError: any) {
       console.error('[Instagram Callback] Failed to parse token response:', parseError)
+      console.error('[Instagram Callback] Response status:', finalTokenResponse.status)
+      console.error('[Instagram Callback] Used Facebook API:', usedFacebookAPI)
+      console.error('[Instagram Callback] Response text:', finalResponseText || instagramResponseText || 'N/A')
       throw new Error(`Failed to parse token response: ${parseError.message}`)
     }
     const accessToken = tokenData.access_token
