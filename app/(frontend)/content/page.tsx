@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import NextImage from 'next/image'
 import { Sparkles, Copy, Check, Loader2, Twitter, Linkedin, Facebook, Instagram, X, Search, CheckCircle, AlertCircle, RefreshCw, Edit2, Save, Video, ArrowDown, Zap, Trophy, Star, Upload } from 'lucide-react'
 import { generateContent, generateMultipleVariations } from '@/lib/ai'
 import { useStore } from '@/lib/store'
@@ -730,11 +730,13 @@ export default function ContentPage() {
           const canvas = document.createElement('canvas')
           canvas.width = width
           canvas.height = height
-          const ctx = canvas.getContext('2d', { 
-            alpha: false, 
-            imageSmoothingEnabled: true, 
-            imageSmoothingQuality: 'high' 
-          })
+          const ctx = canvas.getContext('2d')
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'))
+            return
+          }
+          ctx.imageSmoothingEnabled = true
+          ctx.imageSmoothingQuality = 'high'
           
           if (!ctx) {
             reject(new Error('Could not get canvas context'))

@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   
   // Debug logging
   console.log('[Instagram OAuth] ========== START ==========')
-  console.log('[Instagram OAuth] baseRedirectUri:', baseRedirectUri)
+  console.log('[Instagram OAuth] baseUrl:', baseUrl)
   console.log('[Instagram OAuth] instagramRedirectUri:', instagramRedirectUri)
   console.log('[Instagram OAuth] FACEBOOK_CLIENT_ID:', FACEBOOK_CLIENT_ID ? 'SET' : 'NOT SET')
   console.log('[Instagram OAuth] FACEBOOK_LOGIN_CONFIG_ID:', FACEBOOK_LOGIN_CONFIG_ID ? 'SET' : 'NOT SET')

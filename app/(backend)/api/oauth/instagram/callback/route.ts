@@ -100,6 +100,7 @@ export async function GET(request: Request) {
     console.log('[Instagram Callback] Instagram API response:', JSON.stringify(instagramErrorData, null, 2))
     
     // If Instagram API fails, try Facebook Graph API (for Facebook OAuth)
+    let responseText: string | undefined
     if (!tokenResponse.ok) {
       console.log('[Instagram Callback] Instagram API failed, trying Facebook Graph API...')
       
@@ -113,7 +114,7 @@ export async function GET(request: Request) {
       console.log('[Instagram Callback] Calling Facebook Graph API...')
       tokenResponse = await fetch(tokenExchangeUrl, { method: 'GET' })
     
-      const responseText = await tokenResponse.text()
+      responseText = await tokenResponse.text()
       
       console.log('[Instagram Callback] Facebook Graph API response status:', tokenResponse.status)
       console.log('[Instagram Callback] Facebook Graph API response body:', responseText)
