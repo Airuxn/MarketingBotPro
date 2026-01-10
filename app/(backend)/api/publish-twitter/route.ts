@@ -14,6 +14,35 @@ export async function POST(request: Request) {
     console.log('[Publish Twitter API] Publishing tweet:', {
       contentLength: content.length,
       hasMedia: !!mediaUrl,
+      accessTokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'MISSING',
+      accessTokenLength: accessToken?.length || 0,
+    })
+
+    // First, verify the token is valid and can access user info (confirms it's User Context, not Application-Only)
+    console.log('[Publish Twitter API] Verifying token is User Context (not Application-Only)...')
+    const verifyResponse = await fetch('https://api.twitter.com/2/users/me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    })
+
+    if (!verifyResponse.ok) {
+      const verifyError = await verifyResponse.json().catch(() => ({}))
+      console.error('[Publish Twitter API] Token verification failed:', verifyResponse.status, verifyError)
+      return NextResponse.json(
+        {
+          error: `Token verification failed: ${verifyError.errors?.[0]?.detail || verifyError.title || 'Token is invalid or not User Context'}`,
+          status: verifyResponse.status,
+          details: verifyError,
+        },
+        { status: verifyResponse.status }
+      )
+    }
+
+    const verifyData = await verifyResponse.json()
+    console.log('[Publish Twitter API] Token is valid User Context token:', {
+      userId: verifyData.data?.id,
+      username: verifyData.data?.username,
     })
 
     // Twitter API v2 endpoint for creating tweets
@@ -35,7 +64,7 @@ export async function POST(request: Request) {
       // For now, we'll post text-only
     }
 
-    console.log('[Publish Twitter API] Calling Twitter API to create tweet')
+    console.log('[Publish Twitter API] Calling Twitter API to create tweet with User Context token')
     
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -48,23 +77,66 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      const errorMessage = errorData.errors?.[0]?.detail || errorData.title || `HTTP ${response.status}`
+      const errorMessage = errorData.errors?.[0]?.detail || errorData.errors?.[0]?.message || errorData.title || `HTTP ${response.status}`
       const errorType = errorData.errors?.[0]?.type || 'unknown'
+      const errorCode = errorData.errors?.[0]?.code || null
       
       console.error(`[Publish Twitter API] Twitter API Error (${response.status}):`, errorMessage)
       console.error(`[Publish Twitter API] Error type:`, errorType)
+      console.error(`[Publish Twitter API] Error code:`, errorCode)
       console.error(`[Publish Twitter API] Full error data:`, JSON.stringify(errorData, null, 2))
       
       // Common issues:
       if (response.status === 403) {
-        return NextResponse.json(
-          {
-            error: '403 Forbidden - Token may not have tweet.write permission, or app does not have "Read and write" permissions enabled',
-            status: 403,
-            details: errorMessage,
-          },
-          { status: 403 }
-        )
+        // Check if it's the Application-Only error (this means token is wrong type)
+        const isApplicationOnlyError = errorMessage.toLowerCase().includes('application-only') ||
+                                       errorMessage.toLowerCase().includes('oauth 2.0 application-only')
+        
+        if (isApplicationOnlyError) {
+          return NextResponse.json(
+            {
+              error: '403 Forbidden - Token is Application-Only (not User Context). This means the token was not obtained through the OAuth popup flow. Please disconnect and reconnect Twitter using the "Social" button (OAuth popup), not the "Token" button (manual token). OAuth popup flow is required for posting tweets.',
+              status: 403,
+              details: errorMessage,
+              errorType,
+              errorCode,
+              solution: 'In Settings, disconnect Twitter, then click "Social" → "Connect" to use OAuth popup flow. Do NOT use the "Token" button for posting (only for reading). OAuth popup is required to get User Context token with write permission.',
+            },
+            { status: 403 }
+          )
+        }
+        
+        // Check if it's a permissions issue or tier restriction
+        const isPermissionsIssue = errorMessage.toLowerCase().includes('permission') || 
+                                   errorMessage.toLowerCase().includes('scope') ||
+                                   errorMessage.toLowerCase().includes('forbidden') ||
+                                   errorType === 'forbidden'
+        
+        if (isPermissionsIssue) {
+          return NextResponse.json(
+            {
+              error: '403 Forbidden - Token does not have tweet.write permission. This is NOT a free tier limitation (free tier allows posting). Please ensure: 1) Your Twitter app has "Read and write" permissions enabled (not just "Read") in Twitter Developer Portal → App Settings, 2) Disconnect and reconnect Twitter using OAuth popup ("Social" button) in Settings to get a new token with write permission',
+              status: 403,
+              details: errorMessage,
+              errorType,
+              errorCode,
+              solution: 'Go to Twitter Developer Portal → Your App → App Settings → User authentication settings → Enable "Read and write" permissions (not "Read" only), then disconnect and reconnect Twitter using OAuth popup ("Social" button) in Settings',
+            },
+            { status: 403 }
+          )
+        } else {
+          // Other 403 reasons (might be tier-related for some endpoints, but not for posting)
+          return NextResponse.json(
+            {
+              error: `403 Forbidden - ${errorMessage}. Free tier DOES support posting tweets (up to 50 per day). This might be a permissions issue - please check your app settings and ensure you're using OAuth popup flow, not manual token.`,
+              status: 403,
+              details: errorMessage,
+              errorType,
+              errorCode,
+            },
+            { status: 403 }
+          )
+        }
       } else if (response.status === 401) {
         return NextResponse.json(
           {

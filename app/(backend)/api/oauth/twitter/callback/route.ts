@@ -65,9 +65,32 @@ export async function GET(request: Request) {
 
     const tokenData = await tokenResponse.json()
     const accessToken = tokenData.access_token
+    const tokenType = tokenData.token_type || 'bearer'
+    const scope = tokenData.scope || 'unknown'
+
+    console.log('[Twitter OAuth Callback] Token exchange successful:', {
+      hasAccessToken: !!accessToken,
+      tokenType: tokenType,
+      scope: scope,
+      expiresIn: tokenData.expires_in || 'unknown',
+    })
 
     if (!accessToken) {
       throw new Error('No access token received')
+    }
+
+    // Verify token type is correct (should be 'bearer' for User Context)
+    if (tokenType.toLowerCase() !== 'bearer') {
+      console.warn(`[Twitter OAuth Callback] Unexpected token type: ${tokenType}, expected 'bearer'`)
+    }
+
+    // Verify scopes include tweet.write
+    if (scope && !scope.includes('tweet.write')) {
+      console.error('[Twitter OAuth Callback] WARNING: Token does not have tweet.write scope!')
+      console.error('[Twitter OAuth Callback] Token scopes:', scope)
+      console.error('[Twitter OAuth Callback] This will cause posting to fail. Please disconnect and reconnect Twitter.')
+    } else {
+      console.log('[Twitter OAuth Callback] Token has tweet.write scope:', scope)
     }
 
     // Get user info
