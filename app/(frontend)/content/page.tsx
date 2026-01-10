@@ -208,7 +208,7 @@ export default function ContentPage() {
         if (timeSinceLastTwitterScan < twitterRateLimitMs) {
           const minutesLeft = Math.ceil((twitterRateLimitMs - timeSinceLastTwitterScan) / 60000)
           console.log(`[Content Page] Twitter rate limit: Skipping scan (free tier allows 1 request per 15 minutes). Wait ${minutesLeft} more minute(s).`)
-          toast.info(`Twitter: Rate limit active. Wait ${minutesLeft} minute(s) before next scan.`, { duration: 4000 })
+          toast(`Twitter: Rate limit active. Wait ${minutesLeft} minute(s) before next scan.`, { duration: 4000, icon: '⏱️' })
           return
         }
         // If we have cached data from less than 24 hours ago, use it instead of scanning
@@ -388,9 +388,9 @@ export default function ContentPage() {
             const existingPosts = settings.contentPreferences?.scannedPosts || []
             const twitterPosts = existingPosts.filter(p => p.platform === 'twitter')
             if (twitterPosts.length > 0) {
-              toast.info(`Twitter rate limit reached. Using cached data (${twitterPosts.length} posts). Wait ${waitMinutes} minute(s) for next scan. Free tier: 1 request per 15 minutes.`, { duration: 7000 })
+              toast(`Twitter rate limit reached. Using cached data (${twitterPosts.length} posts). Wait ${waitMinutes} minute(s) for next scan. Free tier: 1 request per 15 minutes.`, { duration: 7000, icon: '⏱️' })
             } else {
-              toast.warning(`Twitter rate limit reached. Wait ${waitMinutes} minute(s) before scanning again. Free tier allows 1 request per 15 minutes.`, { duration: 7000 })
+              toast(`Twitter rate limit reached. Wait ${waitMinutes} minute(s) before scanning again. Free tier allows 1 request per 15 minutes.`, { duration: 7000, icon: '⚠️' })
             }
             // Don't fail the entire scan - other platforms may have scanned successfully
             return
@@ -398,11 +398,9 @@ export default function ContentPage() {
         }
         
         // Show error to user if scanning fails (for non-rate-limit errors)
-        const adAccounts = settings.adAccounts || []
-        const socialAccounts = settings.socialAccounts || []
-        const connectedAdAccounts = adAccounts.filter(acc => acc.connected && acc.accessToken)
-        const connectedSocialAccounts = socialAccounts.filter(acc => acc.connected && acc.accessToken)
-        if (connectedAdAccounts.length > 0 || connectedSocialAccounts.length > 0) {
+        // Note: connectedAdAccounts and connectedSocialAccounts are already defined in the outer scope (line 164-165)
+        const hasConnectedAccounts = connectedAdAccounts.length > 0 || connectedSocialAccounts.length > 0
+        if (hasConnectedAccounts) {
           toast.error(`Scanning failed: ${error.message || 'Unknown error. Check browser console for details.'}`, { duration: 5000 })
         }
       } finally {
