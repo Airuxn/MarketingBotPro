@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap } from 'lucide-react'
+import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap, X } from 'lucide-react'
 import { useStore, getStorageUsage, getStorageQuota } from '@/lib/store'
 import toast from 'react-hot-toast'
 import { useLanguage } from '@/lib/language-context'
@@ -484,68 +484,6 @@ export default function SettingsPage() {
                           )}
                         </div>
 
-                        {/* Instagram Social Token Form */}
-                        {showManualToken === platform && platform === 'instagram' && !socialAccount && (
-                          <div className="mt-2 pt-2 border-t border-slate-700/50 flex flex-col gap-2">
-                            <div>
-                              <label className="block text-[10px] font-medium text-slate-300 mb-1">
-                                Instagram Access Token
-                              </label>
-                              <input
-                                type="password"
-                                value={manualAccessToken}
-                                onChange={(e) => setManualAccessToken(e.target.value)}
-                                placeholder="Enter your Instagram access token"
-                                className="w-full px-2 py-1 text-xs glass rounded focus:ring-1 focus:ring-purple-500 text-white placeholder:text-slate-400"
-                              />
-                              <p className="text-[9px] text-slate-500 mt-1">
-                                Get your token from{' '}
-                                <a
-                                  href="https://developers.facebook.com/tools/explorer/"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-400 hover:text-blue-300 underline"
-                                >
-                                  Facebook Graph API Explorer
-                                </a>
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-[10px] font-medium text-slate-300 mb-1">
-                                Instagram Business Account ID (Optional)
-                              </label>
-                              <input
-                                type="text"
-                                value={manualUserId}
-                                onChange={(e) => setManualUserId(e.target.value)}
-                                placeholder="Will be auto-detected if not provided"
-                                className="w-full px-2 py-1 text-xs glass rounded focus:ring-1 focus:ring-purple-500 text-white placeholder:text-slate-400"
-                              />
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleManualTokenConnect(platform)}
-                                disabled={isConnecting === platform || !manualAccessToken.trim()}
-                                className="flex-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
-                              >
-                                {isConnecting === platform ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : null}
-                                <span>Connect with Token</span>
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setShowManualToken(null)
-                                  setManualAccessToken('')
-                                  setManualUserId('')
-                                }}
-                                className="px-2 py-1 text-xs glass hover:bg-slate-700/50 rounded transition-colors text-slate-300"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        )}
 
                         {/* Ad Account */}
                         <div className="flex items-center gap-1">
@@ -1475,6 +1413,123 @@ export default function SettingsPage() {
                   </div>
                 )
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Instagram Token Connection Modal */}
+        {showManualToken === 'instagram' && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" 
+            onClick={() => {
+              setShowManualToken(null)
+              setManualAccessToken('')
+              setManualUserId('')
+            }}
+          >
+            <div 
+              className="glass rounded-xl border-2 border-purple-500/30 p-6 max-w-md w-full shadow-glow-lg" 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30">
+                    <Instagram className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <h2 className="text-lg font-bold text-white">Connect Instagram with Token</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowManualToken(null)
+                    setManualAccessToken('')
+                    setManualUserId('')
+                  }}
+                  className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    Instagram Access Token
+                  </label>
+                  <input
+                    type="password"
+                    value={manualAccessToken}
+                    onChange={(e) => setManualAccessToken(e.target.value)}
+                    placeholder="Enter your Instagram access token"
+                    className="w-full px-4 py-2.5 glass rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder:text-slate-400"
+                  />
+                  <p className="text-xs text-slate-400 mt-2">
+                    Get your token from{' '}
+                    <a
+                      href="https://developers.facebook.com/tools/explorer/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline"
+                    >
+                      Facebook Graph API Explorer
+                    </a>
+                    {' '}or{' '}
+                    <a
+                      href="https://www.facebook.com/settings?tab=business_tools"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline"
+                    >
+                      Business Settings
+                    </a>
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-200 mb-2">
+                    Instagram Business Account ID <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={manualUserId}
+                    onChange={(e) => setManualUserId(e.target.value)}
+                    placeholder="Will be auto-detected if not provided"
+                    className="w-full px-4 py-2.5 glass rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder:text-slate-400"
+                  />
+                  <p className="text-xs text-slate-400 mt-2">
+                    Your Instagram Business Account ID. We'll try to detect it automatically from your token.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => handleManualTokenConnect('instagram')}
+                    disabled={isConnecting === 'instagram' || !manualAccessToken.trim()}
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2 shadow-lg"
+                  >
+                    {isConnecting === 'instagram' ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Connecting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Connect with Token</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowManualToken(null)
+                      setManualAccessToken('')
+                      setManualUserId('')
+                    }}
+                    className="px-4 py-2.5 glass hover:bg-slate-700/50 rounded-lg transition-colors text-slate-300 font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
