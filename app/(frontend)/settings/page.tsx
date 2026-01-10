@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles } from 'lucide-react'
+import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap } from 'lucide-react'
 import { useStore, getStorageUsage, getStorageQuota } from '@/lib/store'
 import toast from 'react-hot-toast'
 import { useLanguage } from '@/lib/language-context'
@@ -39,7 +39,7 @@ export default function SettingsPage() {
   })
   const [isConnecting, setIsConnecting] = useState<string | null>(null)
   const [hasHandledCallback, setHasHandledCallback] = useState(false)
-  const [activeHistoryTab, setActiveHistoryTab] = useState<'overview' | 'accepted' | 'edits' | 'rejected' | 'scanned'>('overview')
+  const [activeHistoryTab, setActiveHistoryTab] = useState<'overview' | 'accepted' | 'edits' | 'rejected' | 'scanned' | 'storage'>('overview')
   const [showAllItems, setShowAllItems] = useState<Record<string, boolean>>({})
   const [storageInfo, setStorageInfo] = useState<ReturnType<typeof getStorageUsage> | null>(null)
   const [storageQuota, setStorageQuota] = useState<Awaited<ReturnType<typeof getStorageQuota>> | null>(null)
@@ -281,84 +281,84 @@ export default function SettingsPage() {
           <div className="lg:col-span-1" style={{ height: '503px' }}>
             <div className="glass rounded-xl p-3 h-full flex flex-col">
               <div className="flex-1 space-y-2.5 overflow-y-auto">
-              {/* API Key */}
-              <div>
+          {/* API Key */}
+          <div>
                 <div className="flex items-center space-x-1.5 mb-1">
                   <Key className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <label className="text-xs font-medium text-slate-200">
-                    {t('geminiApiKey')}
-                  </label>
-                </div>
-                <input
-                  type="password"
-                  value={formData.geminiApiKey}
-                  onChange={(e) => setFormData({ ...formData, geminiApiKey: e.target.value })}
-                  placeholder="AIza..."
+                {t('geminiApiKey')}
+              </label>
+            </div>
+            <input
+              type="password"
+              value={formData.geminiApiKey}
+              onChange={(e) => setFormData({ ...formData, geminiApiKey: e.target.value })}
+              placeholder="AIza..."
                   className="w-full px-3 py-1.5 text-xs glass rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder:text-slate-400"
-                />
+            />
                 <p className="mt-1 text-xs text-slate-400 leading-tight">
                   Required for AI. Get key at{' '}
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:text-blue-300 hover:underline"
-                  >
-                    aistudio.google.com
-                  </a>
-                </p>
-              </div>
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:text-blue-300 hover:underline"
+              >
+                aistudio.google.com
+              </a>
+            </p>
+          </div>
 
               {/* Business Name */}
-              <div>
+          <div>
                 <div className="flex items-center space-x-1.5 mb-1">
                   <Building className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <label className="text-xs font-medium text-slate-200">
-                    {t('businessName')}
-                  </label>
-                </div>
-                <input
-                  type="text"
-                  value={formData.businessName}
-                  onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                  placeholder={t('businessName')}
+                {t('businessName')}
+              </label>
+            </div>
+            <input
+              type="text"
+              value={formData.businessName}
+              onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+              placeholder={t('businessName')}
                   className="w-full px-3 py-1.5 text-xs glass rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder:text-slate-400"
-                />
-              </div>
+            />
+          </div>
 
               {/* Business Type */}
-              <div>
+          <div>
                 <label className="block text-xs font-medium text-slate-200 mb-1">
-                  {t('businessType')}
-                </label>
-                <input
-                  type="text"
-                  value={formData.businessType}
-                  onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
+              {t('businessType')}
+            </label>
+            <input
+              type="text"
+              value={formData.businessType}
+              onChange={(e) => setFormData({ ...formData, businessType: e.target.value })}
                   placeholder="E.g., E-commerce, Consulting, SaaS..."
                   className="w-full px-3 py-1.5 text-xs glass rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-white placeholder:text-slate-400"
-                />
-              </div>
+            />
+          </div>
 
-              {/* Target Audience */}
-              <div>
+          {/* Target Audience */}
+          <div>
                 <div className="flex items-center space-x-1.5 mb-1">
                   <Target className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <label className="text-xs font-medium text-slate-200">
-                    {t('targetAudience')}
-                  </label>
-                </div>
-                <textarea
-                  value={formData.targetAudience}
-                  onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                  placeholder="E.g., Small business owners, Tech enthusiasts..."
+                {t('targetAudience')}
+              </label>
+            </div>
+            <textarea
+              value={formData.targetAudience}
+              onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
+              placeholder="E.g., Small business owners, Tech enthusiasts..."
                   rows={2}
                   className="w-full px-3 py-1.5 text-xs glass rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-white placeholder:text-slate-400 leading-snug"
-                />
+            />
                 <p className="mt-1 text-xs text-slate-400 leading-tight">
                   Describe your ideal customers
-                </p>
-              </div>
+            </p>
+          </div>
               </div>
               {/* Save Button */}
               <div className="pt-2 border-t border-slate-700/50 flex-shrink-0 mt-auto">
@@ -491,176 +491,19 @@ export default function SettingsPage() {
                   )
                 })}
               </div>
-              
-              {/* Auto-scanning info */}
+
+          {/* Auto-scanning info */}
               <div className="mt-auto pt-3 border-t border-slate-700/50 flex-shrink-0">
-                <div className="glass border border-blue-500/30 rounded-lg p-4 bg-blue-500/10">
-                  <h4 className="text-sm font-medium text-blue-300 mb-2">✨ Automatic Scanning</h4>
-                  <p className="text-xs text-blue-200 mb-2">
+          <div className="glass border border-blue-500/30 rounded-lg p-4 bg-blue-500/10">
+            <h4 className="text-sm font-medium text-blue-300 mb-2">✨ Automatic Scanning</h4>
+            <p className="text-xs text-blue-200 mb-2">
                     The app automatically scans your connected social media accounts to extract posts, analyze style, collect images, and learn patterns.
                   </p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Storage Usage Info */}
-        {storageInfo && (
-          <div className="glass rounded-xl p-4 border border-slate-700/50">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
-                <span>💾</span>
-                <span>Storage Usage</span>
-              </h3>
-              <button
-                onClick={async () => {
-                  const info = getStorageUsage()
-                  setStorageInfo(info)
-                  try {
-                    const quota = await getStorageQuota()
-                    if (quota) {
-                      setStorageQuota(quota)
-                    }
-                  } catch (err) {
-                    console.error('Error refreshing quota:', err)
-                  }
-                }}
-                className="text-xs text-blue-400 hover:text-blue-300 font-medium transition-colors"
-              >
-                Refresh
-              </button>
-            </div>
-            <div className="space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-slate-400">Total Size:</span>
-                <span className="text-white font-semibold">
-                  {storageInfo.totalSizeMB.toFixed(2)} MB 
-                  <span className="text-slate-400 ml-1">({(storageInfo.totalSize / 1024).toFixed(0)} KB)</span>
-                </span>
-              </div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-400">localStorage Limit:</span>
-                <span className="text-white font-semibold">
-                  {storageQuota 
-                    ? `${storageQuota.localStorageLimitMB.toFixed(1)} MB` 
-                    : storageInfo?.localStorageLimitMB 
-                      ? `${storageInfo.localStorageLimitMB} MB`
-                      : '5-10 MB'}
-                  <span className="text-slate-400 ml-1 text-[10px]">
-                    {storageQuota?.method?.includes('tested') 
-                      ? '(tested - actual limit)' 
-                      : storageQuota?.method?.includes('estimated')
-                        ? '(estimated)'
-                        : '(this app uses localStorage)'}
-                  </span>
-                </span>
-              </div>
-              {storageQuota && (
-                <>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-slate-400">Available (localStorage):</span>
-                    <span className={`font-semibold ${
-                      storageQuota.availableMB < 1 ? 'text-red-400' : 
-                      storageQuota.availableMB < 2 ? 'text-yellow-400' : 
-                      'text-green-400'
-                    }`}>
-                      {storageQuota.availableMB.toFixed(2)} MB
-                    </span>
-                  </div>
-                  <div className="mb-2 pt-2 border-t border-slate-700/30">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-slate-400 text-[10px]">Total Storage Quota:</span>
-                      <span className="text-slate-300 text-[10px] font-medium">
-                        {storageQuota.totalQuotaMB.toFixed(0)} MB
-                      </span>
-                    </div>
-                    <p className="text-slate-500 text-[9px] leading-tight mt-1">
-                      (Total quota for all storage APIs - IndexedDB can use this, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB}MB limit per origin)
-                    </p>
-                  </div>
-                </>
-              )}
-              <div className="mb-3 pt-2 border-t border-slate-700/50">
-                <p className="text-slate-400 text-[10px] leading-relaxed">
-                  <strong className="text-slate-300">Browser:</strong> {storageInfo?.browser || 'Unknown'}<br/>
-                  <strong className="text-slate-300">Storage Location:</strong> Browser localStorage (local on your device)<br/>
-                  <strong className="text-slate-300">localStorage Limit:</strong> {
-                    storageQuota 
-                      ? `${storageQuota.localStorageLimitMB.toFixed(1)} MB ${
-                          storageQuota.method?.includes('tested') 
-                            ? '(tested - actual limit)' 
-                            : storageQuota.method?.includes('estimated')
-                              ? `(estimated for ${storageQuota.browser})`
-                              : `(${storageQuota.method})`
-                        }` 
-                      : storageInfo?.localStorageLimitMB 
-                        ? `${storageInfo.localStorageLimitMB} MB (estimated based on ${storageInfo.browser})`
-                        : '5-10 MB (browser dependent)'
-                  }<br/>
-                  <strong className="text-slate-300">Note:</strong> Data is stored locally and not synced across devices. If you need more space, we could switch to IndexedDB.
-                </p>
-              </div>
-              <div className="pt-2 border-t border-slate-700/50 space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Posts:</span>
-                  <span className="text-white">{storageInfo.items.posts} items</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Leads:</span>
-                  <span className="text-white">{storageInfo.items.leads} items</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Brand Images:</span>
-                  <span className="text-white">{storageInfo.items.brandImages} images</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Scanned Posts:</span>
-                  <span className="text-white">{storageInfo.items.scannedPosts} posts</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Accepted Content:</span>
-                  <span className="text-white">{storageInfo.items.acceptedContent} items</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Edits:</span>
-                  <span className="text-white">{storageInfo.items.edits} edits</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Rejected Content:</span>
-                  <span className="text-white">{storageInfo.items.rejectedContent} items</span>
-                </div>
-              </div>
-              {(() => {
-                const localStorageLimitMB = storageQuota?.localStorageLimitMB || storageInfo?.localStorageLimitMB || 5
-                const usagePercentage = storageInfo 
-                  ? (storageInfo.totalSizeMB / localStorageLimitMB) * 100
-                  : 0
-                
-                if (usagePercentage > 80 || storageInfo?.totalSizeMB > localStorageLimitMB * 0.8) {
-                  return (
-                    <div className="mt-2 pt-2 border-t border-red-500/30 bg-red-500/10 rounded p-2">
-                      <p className="text-red-300 text-xs">
-                        ⚠️ localStorage is getting full ({storageInfo?.totalSizeMB.toFixed(2) || 0} MB / {localStorageLimitMB} MB localStorage limit - {usagePercentage.toFixed(0)}% used). 
-                        Consider clearing old data.
-                      </p>
-                    </div>
-                  )
-                } else if (usagePercentage > 50 || storageInfo?.totalSizeMB > localStorageLimitMB * 0.5) {
-                  return (
-                    <div className="mt-2 pt-2 border-t border-amber-500/30 bg-amber-500/10 rounded p-2">
-                      <p className="text-amber-300 text-xs">
-                        ⚠️ localStorage is getting full ({storageInfo?.totalSizeMB.toFixed(2) || 0} MB / {localStorageLimitMB} MB localStorage limit - {usagePercentage.toFixed(0)}% used). 
-                        Consider clearing old data.
-                      </p>
-                    </div>
-                  )
-                }
-                return null
-              })()}
-            </div>
           </div>
-        )}
 
         {/* History - AI Learning History */}
         {/* Always show history section - will display empty state if no data exists */}
@@ -691,11 +534,12 @@ export default function SettingsPage() {
                 title="Clear all learning data"
               >
               Clear All
-            </button>
-          </div>
-
+              </button>
+            </div>
+            
           {/* Tabs */}
-          <div className="flex flex-wrap gap-2 mb-4 border-b border-slate-700/50 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-slate-700/50 pb-2">
+            <div className="flex flex-wrap gap-2">
               {(['overview', 'accepted', 'edits', 'rejected', 'scanned'] as const).map((tab) => {
                 const counts = {
                   overview: 0,
@@ -724,7 +568,18 @@ export default function SettingsPage() {
                     {labels[tab]} {counts[tab] > 0 && `(${counts[tab]})`}
                   </button>
                 )
-            })}
+              })}
+            </div>
+            <button
+              onClick={() => setActiveHistoryTab('storage')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                activeHistoryTab === 'storage'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Storage
+            </button>
           </div>
 
           {/* Tab Content */}
@@ -734,28 +589,28 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   {/* Learning Summary - Compact */}
                   <div className="p-3 glass rounded-lg border border-blue-500/30 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
-                    <div className="flex items-center space-x-2 mb-3">
+              <div className="flex items-center space-x-2 mb-3">
                       <Brain className="w-4 h-4 text-blue-400" />
                       <h4 className="text-xs font-semibold text-white">Current Learned Preferences</h4>
-                    </div>
+              </div>
                     {settings.contentPreferences?.learnedStyle && Object.keys(settings.contentPreferences.learnedStyle).length > 0 ? (
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        {settings.contentPreferences.learnedStyle.tone && settings.contentPreferences.learnedStyle.tone.length > 0 && (
+                    {settings.contentPreferences.learnedStyle.tone && settings.contentPreferences.learnedStyle.tone.length > 0 && (
                           <div className="text-slate-300">
                             <span className="text-slate-400">Tone:</span> {settings.contentPreferences.learnedStyle.tone.slice(0, 3).join(', ')}
                           </div>
-                        )}
-                        {settings.contentPreferences.learnedStyle.length && (
+                    )}
+                    {settings.contentPreferences.learnedStyle.length && (
                           <div className="text-slate-300">
                             <span className="text-slate-400">Length:</span> {settings.contentPreferences.learnedStyle.length}
                           </div>
-                        )}
-                        {settings.contentPreferences.learnedStyle.hashtagUsage && (
+                    )}
+                    {settings.contentPreferences.learnedStyle.hashtagUsage && (
                           <div className="text-slate-300">
                             <span className="text-slate-400">Hashtags:</span> {settings.contentPreferences.learnedStyle.hashtagUsage}
                           </div>
-                        )}
-                        {settings.contentPreferences.learnedStyle.emojiUsage && (
+                    )}
+                    {settings.contentPreferences.learnedStyle.emojiUsage && (
                           <div className="text-slate-300">
                             <span className="text-slate-400">Emojis:</span> {settings.contentPreferences.learnedStyle.emojiUsage}
                           </div>
@@ -771,11 +626,11 @@ export default function SettingsPage() {
                     <div className="glass rounded p-2 border border-green-500/30 text-center">
                       <div className="text-lg font-bold text-green-400">{settings.contentPreferences?.acceptedContent?.length || 0}</div>
                       <div className="text-[10px] text-slate-300 mt-0.5">Accepted</div>
-                    </div>
+                </div>
                     <div className="glass rounded p-2 border border-purple-500/30 text-center">
                       <div className="text-lg font-bold text-purple-400">{settings.contentPreferences?.edits?.length || 0}</div>
                       <div className="text-[10px] text-slate-300 mt-0.5">Edits</div>
-                    </div>
+            </div>
                     <div className="glass rounded p-2 border border-red-500/30 text-center">
                       <div className="text-lg font-bold text-red-400">{settings.contentPreferences?.rejectedContent?.length || 0}</div>
                       <div className="text-[10px] text-slate-300 mt-0.5">Rejected</div>
@@ -797,22 +652,22 @@ export default function SettingsPage() {
                         <CheckCircle className="w-3.5 h-3.5 text-green-400" />
                         <span>Accepted Content ({settings.contentPreferences.acceptedContent.length})</span>
                       </h4>
-                      <button
-                        onClick={() => {
-                          const { updateSettings } = useStore.getState()
-                          updateSettings({
-                            contentPreferences: {
-                              ...settings.contentPreferences,
-                              acceptedContent: [],
-                            },
-                          })
-                          toast.success('Accepted content history cleared. Learned preferences preserved from edits.')
-                        }}
+                        <button
+                          onClick={() => {
+                            const { updateSettings } = useStore.getState()
+                            updateSettings({
+                              contentPreferences: {
+                                ...settings.contentPreferences,
+                                acceptedContent: [],
+                              },
+                            })
+                            toast.success('Accepted content history cleared. Learned preferences preserved from edits.')
+                          }}
                         className="text-[10px] text-red-400 hover:text-red-300 font-medium transition-colors px-2 py-1 border border-red-500/30 rounded hover:bg-red-500/10"
-                      >
+                        >
                         Clear
-                      </button>
-                    </div>
+                        </button>
+                      </div>
                     <div className="space-y-2 max-h-[450px] overflow-y-auto">
                       {(settings.contentPreferences?.acceptedContent || [])
                         .slice()
@@ -904,25 +759,25 @@ export default function SettingsPage() {
                         <Eye className="w-3.5 h-3.5 text-purple-400" />
                         <span>Recent Edits ({settings.contentPreferences.edits.length})</span>
                       </h4>
-                      <button
-                        onClick={() => {
-                          const { updateSettings } = useStore.getState()
+                        <button
+                          onClick={() => {
+                            const { updateSettings } = useStore.getState()
                           const currentSettings = useStore.getState().settings
-                          updateSettings({
-                            contentPreferences: {
+                            updateSettings({
+                              contentPreferences: {
                               ...(currentSettings.contentPreferences || {}),
                               acceptedContent: currentSettings.contentPreferences?.acceptedContent || [],
                               rejectedContent: currentSettings.contentPreferences?.rejectedContent || [],
-                              edits: [],
-                            },
-                          })
-                          toast.success('Edit history cleared')
-                        }}
+                                edits: [],
+                              },
+                            })
+                            toast.success('Edit history cleared')
+                          }}
                         className="text-[10px] text-red-400 hover:text-red-300 font-medium transition-colors px-2 py-1 border border-red-500/30 rounded hover:bg-red-500/10"
-                        title="Clear edit history"
-                      >
+                          title="Clear edit history"
+                        >
                         Clear
-                      </button>
+                        </button>
                     </div>
                     <div className="space-y-2 max-h-[450px] overflow-y-auto">
                       {(settings.contentPreferences?.edits || [])
@@ -1274,7 +1129,226 @@ export default function SettingsPage() {
                   </div>
                 )
               )}
-          </div>
+
+              {/* Storage Tab */}
+              {activeHistoryTab === 'storage' && (
+                storageInfo ? (
+                  <div className="space-y-2.5">
+                    {(() => {
+                      const localStorageLimitMB = storageQuota?.localStorageLimitMB || storageInfo?.localStorageLimitMB || 5
+                      const usagePercentage = storageInfo 
+                        ? (storageInfo.totalSizeMB / localStorageLimitMB) * 100
+                        : 0
+                      const availableMB = storageQuota?.availableMB ?? (localStorageLimitMB - storageInfo.totalSizeMB)
+                      
+                      return (
+                        <>
+                          {/* Two Column Layout - Swapped */}
+                          <div className="grid grid-cols-2 gap-3">
+                            {/* Storage Details Card - Now on Left */}
+                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30">
+                              <h5 className="text-xs font-semibold text-white mb-2.5 flex items-center space-x-1.5">
+                                <div className="p-1 rounded bg-purple-500/20 border border-purple-500/30">
+                                  <Database className="w-2.5 h-2.5 text-purple-400" />
+                                </div>
+                                <span>Storage Details</span>
+                              </h5>
+                              <div className="space-y-1.5 text-xs">
+                                <div className="flex items-center justify-between py-1 px-2 rounded bg-slate-800/30 border border-slate-700/30">
+                                  <span className="text-slate-400">Browser</span>
+                                  <span className="text-white font-medium">{storageInfo?.browser || 'Unknown'}</span>
+                                </div>
+                                <div className="flex items-center justify-between py-1 px-2 rounded bg-slate-800/30 border border-slate-700/30">
+                                  <span className="text-slate-400">Storage Location</span>
+                                  <span className="text-white font-medium text-right max-w-[65%]">localStorage (browser storage, not cache)</span>
+                                </div>
+                                <div className="flex items-center justify-between py-1 px-2 rounded bg-slate-800/30 border border-slate-700/30">
+                                  <span className="text-slate-400">localStorage Limit</span>
+                                  <span className="text-white font-medium text-right max-w-[60%]">
+                                    {storageQuota 
+                                      ? `${storageQuota.localStorageLimitMB.toFixed(1)} MB ${
+                                          storageQuota.method?.includes('tested') 
+                                            ? '(tested)' 
+                                            : storageQuota.method?.includes('estimated')
+                                              ? '(estimated)'
+                                              : ''
+                                        }` 
+                                      : storageInfo?.localStorageLimitMB 
+                                        ? `${storageInfo.localStorageLimitMB} MB (estimated)`
+                                        : '5-10 MB'
+                                    }
+                                  </span>
+                                </div>
+                                {storageQuota && storageQuota.totalQuotaMB > 1000 && (
+                                  <div className="flex items-center justify-between py-1 px-2 rounded bg-slate-800/30 border border-slate-700/30">
+                                    <span className="text-slate-400">Total Quota</span>
+                                    <span className="text-white font-medium">
+                                      {storageQuota.totalQuotaMB.toFixed(0)} MB
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="pt-2 mt-2 border-t border-slate-700/30 text-xs text-slate-400 leading-relaxed">
+                                  <strong className="text-slate-300 font-medium">Note:</strong> Data is stored locally in your browser (localStorage). 
+                                  {storageQuota?.totalQuotaMB && storageQuota.totalQuotaMB > 1000 && (
+                                    <> Your browser has {storageQuota.totalQuotaMB.toFixed(0)} MB total storage available, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB.toFixed(1)} MB limit per origin.</>
+                                  )}
+                                  {!storageQuota?.totalQuotaMB || storageQuota.totalQuotaMB <= 1000 ? (
+                                    <> Data is not synced across devices.</>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Main Storage Card - Combined Stats & Progress - Now on Right */}
+                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center space-x-2">
+                                  <div className="p-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30">
+                                    <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
+                                  </div>
+                                  <h4 className="text-sm font-semibold text-white">Storage Usage</h4>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    const info = getStorageUsage()
+                                    setStorageInfo(info)
+                                    try {
+                                      const quota = await getStorageQuota()
+                                      if (quota) {
+                                        setStorageQuota(quota)
+                                      }
+                                    } catch (err) {
+                                      console.error('Error refreshing quota:', err)
+                                    }
+                                  }}
+                                  className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors text-cyan-400 hover:text-cyan-300 border border-slate-700/50"
+                                  title="Refresh"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              {/* Stats Row */}
+                              <div className="grid grid-cols-2 gap-2 mb-3 p-2 rounded-lg bg-slate-800/30 border border-slate-700/30">
+                                <div>
+                                  <div className="text-[10px] text-slate-400 mb-0.5">Used</div>
+                                  <div className="text-sm font-bold text-blue-400">
+                                    {storageInfo.totalSizeMB.toFixed(2)} <span className="text-xs text-blue-300">MB</span>
+                                  </div>
+                                  <div className="text-[9px] text-slate-500 mt-0.5">
+                                    {(storageInfo.totalSize / 1024).toFixed(0)} KB
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-[10px] text-slate-400 mb-0.5">Available</div>
+                                  <div className={`text-sm font-bold ${
+                                    availableMB < 1 ? 'text-red-400' : 
+                                    availableMB < 2 ? 'text-yellow-400' : 
+                                    'text-green-400'
+                                  }`}>
+                                    {availableMB.toFixed(2)} <span className={`text-xs ${
+                                      availableMB < 1 ? 'text-red-300' : 
+                                      availableMB < 2 ? 'text-yellow-300' : 
+                                      'text-green-300'
+                                    }`}>MB</span>
+                                  </div>
+                                  <div className={`text-[9px] mt-0.5 ${
+                                    availableMB < 1 ? 'text-red-400/70' : 
+                                    availableMB < 2 ? 'text-yellow-400/70' : 
+                                    'text-green-400/70'
+                                  }`}>
+                                    {((availableMB / localStorageLimitMB) * 100).toFixed(0)}% of limit
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Progress Bar */}
+                              <div className="mb-2">
+                                <div className="flex items-center justify-between mb-1.5 text-xs">
+                                  <span className="text-slate-400 font-medium">localStorage Usage</span>
+                                  <span className={`font-bold ${
+                                    usagePercentage > 80 ? 'text-red-400' : 
+                                    usagePercentage > 50 ? 'text-yellow-400' : 
+                                    'text-green-400'
+                                  }`}>
+                                    {usagePercentage.toFixed(1)}%
+                                  </span>
+                                </div>
+                                <div className="relative w-full h-2 bg-slate-700/50 rounded-full overflow-hidden border border-slate-600/30">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${
+                                      usagePercentage > 80 
+                                        ? 'bg-gradient-to-r from-red-500 to-red-600' 
+                                        : usagePercentage > 50
+                                          ? 'bg-gradient-to-r from-yellow-500 to-amber-500'
+                                          : 'bg-gradient-to-r from-green-500 to-emerald-500'
+                                    }`}
+                                    style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Limit Info */}
+                              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-700/30">
+                                <span>
+                                  {storageQuota 
+                                    ? `${storageQuota.localStorageLimitMB.toFixed(1)} MB ${
+                                        storageQuota.method?.includes('tested') 
+                                          ? '(tested)' 
+                                          : storageQuota.method?.includes('estimated')
+                                            ? '(estimated)'
+                                            : ''
+                                      }`
+                                    : `${localStorageLimitMB} MB (estimated)`
+                                  }
+                                </span>
+                                <span className="flex items-center space-x-1">
+                                  <Database className="w-3 h-3" />
+                                  <span>{storageInfo?.browser || 'Unknown'}</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Warning Message if needed - Full Width */}
+                          {usagePercentage > 80 || storageInfo?.totalSizeMB > localStorageLimitMB * 0.8 ? (
+                            <div className="p-2.5 rounded-lg border border-red-500/30 bg-gradient-to-br from-red-500/10 to-red-600/5">
+                              <div className="flex items-start space-x-2">
+                                <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-xs font-semibold text-red-300 mb-0.5">Storage Almost Full</p>
+                                  <p className="text-[10px] text-red-200/80 leading-tight">
+                                    {usagePercentage.toFixed(0)}% used ({storageInfo?.totalSizeMB.toFixed(2) || 0} MB / {localStorageLimitMB.toFixed(1)} MB). 
+                                    Consider clearing old data.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : usagePercentage > 50 || storageInfo?.totalSizeMB > localStorageLimitMB * 0.5 ? (
+                            <div className="p-2.5 rounded-lg border border-yellow-500/30 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5">
+                              <div className="flex items-start space-x-2">
+                                <AlertCircle className="w-3.5 h-3.5 text-yellow-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1">
+                                  <p className="text-xs font-semibold text-yellow-300 mb-0.5">Storage Getting Full</p>
+                                  <p className="text-[10px] text-yellow-200/80 leading-tight">
+                                    {usagePercentage.toFixed(0)}% used. {availableMB.toFixed(1)} MB remaining.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : null}
+                        </>
+                      )
+                    })()}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-400">
+                    <HardDrive className="w-8 h-8 mx-auto mb-2 text-slate-500" />
+                    <p className="text-xs">Loading storage information...</p>
+                  </div>
+                )
+              )}
+            </div>
           </div>
         )}
       </main>
