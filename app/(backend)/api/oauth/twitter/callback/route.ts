@@ -71,7 +71,8 @@ export async function GET(request: Request) {
     }
 
     // Get user info
-    const userResponse = await fetch('https://api.twitter.com/2/users/me', {
+    console.log('[Twitter OAuth Callback] Fetching user info from Twitter API...')
+    const userResponse = await fetch('https://api.twitter.com/2/users/me?user.fields=id,username', {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
       },
@@ -79,10 +80,24 @@ export async function GET(request: Request) {
     
     let userId: string | undefined
     let username: string | undefined
-    if (userResponse.ok) {
+    
+    if (!userResponse.ok) {
+      const errorData = await userResponse.json().catch(() => ({}))
+      console.error('[Twitter OAuth Callback] Failed to get user info:', userResponse.status, errorData)
+      console.error('[Twitter OAuth Callback] Error details:', errorData.errors || errorData)
+    } else {
       const userData = await userResponse.json()
+      console.log('[Twitter OAuth Callback] User data received:', JSON.stringify({ ...userData, data: userData.data ? { id: userData.data.id, username: userData.data.username } : null }, null, 2))
+      
       userId = userData.data?.id
       username = userData.data?.username
+      
+      if (!userId) {
+        console.error('[Twitter OAuth Callback] WARNING: User ID not found in response!')
+        console.error('[Twitter OAuth Callback] Full response:', JSON.stringify(userData, null, 2))
+      } else {
+        console.log(`[Twitter OAuth Callback] Successfully retrieved userId: ${userId}, username: ${username || 'N/A'}`)
+      }
     }
 
     // Store token temporarily

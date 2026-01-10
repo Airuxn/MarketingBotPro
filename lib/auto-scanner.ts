@@ -32,8 +32,68 @@ export async function scanFacebookAccount(accessToken: string, accountId: string
   try {
     const allScanned: ScannedContent[] = []
     
-    // Try to scan Pages first (most reliable for Business accounts)
-    // Pages usually have more posts and better permissions
+    // Try to scan personal posts first (works with Consumer login)
+    // Use 'me' to get user's personal posts
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/v18.0/me/posts?access_token=${accessToken}&fields=id,message,created_time,attachments{media{image{src}}},likes.summary(true),comments.summary(true),shares&limit=50`,
+        {
+          method: 'GET',
+        }
+      )
+
+      const data = await response.json()
+
+      if (!data.error && data.data) {
+        for (const post of data.data) {
+          const images: string[] = []
+          
+          // Extract images from attachments (only photos, not videos)
+          if (post.attachments?.data) {
+            for (const attachment of post.attachments.data) {
+              // Only include photo attachments
+              if (attachment.media?.type === 'photo' && attachment.media?.image?.src) {
+                images.push(attachment.media.image.src)
+              }
+            }
+          }
+
+          // Also check for photos field if available
+          if (post.photos?.data) {
+            for (const photo of post.photos.data) {
+              if (photo.picture || photo.images?.[0]?.source) {
+                images.push(photo.picture || photo.images[0].source)
+              }
+            }
+          }
+
+          // Analyze content style (only if post has meaningful content)
+          let styleAnalysis: StyleAnalysis | undefined
+          if (post.message && post.message.trim().length > 0) {
+            styleAnalysis = analyzeContent(post.message)
+          }
+
+          allScanned.push({
+            id: post.id,
+            platform: 'facebook',
+            content: post.message || '',
+            images,
+            createdAt: post.created_time,
+            engagement: {
+              likes: post.likes?.summary?.total_count,
+              comments: post.comments?.summary?.total_count,
+              shares: post.shares?.count,
+            },
+            styleAnalysis,
+          })
+        }
+      }
+    } catch (personalError) {
+      // Personal posts scan failed - might not have permission or using Business login
+      console.log('Personal posts scan failed, trying pages...')
+    }
+
+    // Also try to scan Pages (works with Business login or if user has pages)
     try {
       const pagesResponse = await fetch(
         `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,access_token`,
@@ -44,143 +104,38 @@ export async function scanFacebookAccount(accessToken: string, accountId: string
 
       const pagesData = await pagesResponse.json()
 
-      if (pagesData.error) {
-        console.warn('Facebook Pages API error:', pagesData.error)
-      } else if (pagesData.data && pagesData.data.length > 0) {
-        console.log(`Found ${pagesData.data.length} Facebook pages, scanning posts...`)
-        
-        // Scan each page
+      // If we got pages, scan each page
+      if (pagesData.data && pagesData.data.length > 0) {
         for (const page of pagesData.data) {
           try {
+            // Use page access token to get page posts
             const pageToken = page.access_token || accessToken
-            
-            // Try multiple post endpoints and field combinations
-            const endpoints = [
-              // Standard posts endpoint
-              `https://graph.facebook.com/v18.0/${page.id}/posts?access_token=${pageToken}&fields=id,message,created_time,full_picture,attachments{media{image{src}},type},likes.summary(true),comments.summary(true),shares&limit=50`,
-              // Feed endpoint (alternative)
-              `https://graph.facebook.com/v18.0/${page.id}/feed?access_token=${pageToken}&fields=id,message,created_time,full_picture,attachments{media{image{src}},type},likes.summary(true),comments.summary(true),shares&limit=50`,
-            ]
-            
-            for (const endpoint of endpoints) {
-              try {
-                const response = await fetch(endpoint, { method: 'GET' })
-                const data = await response.json()
-
-                if (data.error) {
-                  console.warn(`Page ${page.name} (${page.id}) API error:`, data.error)
-                  continue
-                }
-
-                if (data.data && data.data.length > 0) {
-                  console.log(`Found ${data.data.length} posts from page ${page.name}`)
-                  
-                  for (const post of data.data) {
-                    const images: string[] = []
-                    
-                    // Extract full_picture if available (single image posts)
-                    if (post.full_picture) {
-                      images.push(post.full_picture)
-                    }
-                    
-                    // Extract images from attachments
-                    if (post.attachments?.data) {
-                      for (const attachment of post.attachments.data) {
-                        if (attachment.type === 'photo' || attachment.type === 'album') {
-                          if (attachment.media?.image?.src) {
-                            images.push(attachment.media.image.src)
-                          }
-                          // Some posts have subattachments
-                          if (attachment.subattachments?.data) {
-                            for (const sub of attachment.subattachments.data) {
-                              if (sub.media?.image?.src) {
-                                images.push(sub.media.image.src)
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-
-                    // Only add if post has content or images
-                    if (post.message || images.length > 0) {
-                      let styleAnalysis: StyleAnalysis | undefined
-                      if (post.message && post.message.trim().length > 0) {
-                        styleAnalysis = analyzeContent(post.message)
-                      }
-
-                      allScanned.push({
-                        id: post.id,
-                        platform: 'facebook',
-                        content: post.message || '',
-                        images,
-                        createdAt: post.created_time,
-                        engagement: {
-                          likes: post.likes?.summary?.total_count || post.likes?.summary?.can_like ? 0 : undefined,
-                          comments: post.comments?.summary?.total_count || post.comments?.summary?.can_comment ? 0 : undefined,
-                          shares: post.shares?.count,
-                        },
-                        styleAnalysis,
-                      })
-                    }
-                  }
-                  
-                  // If we found posts, break (don't try other endpoints)
-                  if (data.data.length > 0) break
-                }
-              } catch (endpointError: any) {
-                console.warn(`Error scanning page ${page.name} with endpoint:`, endpointError.message)
-                continue
+            const response = await fetch(
+              `https://graph.facebook.com/v18.0/${page.id}/posts?access_token=${pageToken}&fields=id,message,created_time,attachments{media{image{src}}},likes.summary(true),comments.summary(true),shares&limit=25`,
+              {
+                method: 'GET',
               }
-            }
-          } catch (pageError: any) {
-            console.warn(`Error scanning page ${page.name}:`, pageError.message)
-            continue
-          }
-        }
-      }
-    } catch (pagesError: any) {
-      console.warn('Facebook Pages scan failed:', pagesError.message)
-    }
-    
-    // If we didn't find anything from pages, try personal posts
-    if (allScanned.length === 0) {
-      try {
-        console.log('Trying personal posts endpoint...')
-        const response = await fetch(
-          `https://graph.facebook.com/v18.0/me/posts?access_token=${accessToken}&fields=id,message,created_time,full_picture,attachments{media{image{src}},type},likes.summary(true),comments.summary(true),shares&limit=50`,
-          {
-            method: 'GET',
-          }
-        )
+            )
 
-        const data = await response.json()
+            const data = await response.json()
 
-        if (data.error) {
-          console.warn('Personal posts API error:', data.error)
-        } else if (data.data && data.data.length > 0) {
-          console.log(`Found ${data.data.length} personal posts`)
-          
-          for (const post of data.data) {
-            const images: string[] = []
-            
-            if (post.full_picture) {
-              images.push(post.full_picture)
+            if (data.error) {
+              continue
             }
-            
-            if (post.attachments?.data) {
-              for (const attachment of post.attachments.data) {
-                if (attachment.type === 'photo' || attachment.type === 'album') {
-                  if (attachment.media?.image?.src) {
+
+            for (const post of data.data || []) {
+              const images: string[] = []
+              
+              if (post.attachments?.data) {
+                for (const attachment of post.attachments.data) {
+                  if (attachment.media?.type === 'photo' && attachment.media?.image?.src) {
                     images.push(attachment.media.image.src)
                   }
                 }
               }
-            }
 
-            if (post.message || images.length > 0) {
               let styleAnalysis: StyleAnalysis | undefined
-              if (post.message && post.message.trim().length > 0) {
+            if (post.message && post.message.trim().length > 0) {
                 styleAnalysis = analyzeContent(post.message)
               }
 
@@ -198,13 +153,14 @@ export async function scanFacebookAccount(accessToken: string, accountId: string
                 styleAnalysis,
               })
             }
+          } catch (pageError) {
+            continue
           }
         }
-      } catch (personalError: any) {
-        console.warn('Personal posts scan failed:', personalError.message)
       }
+    } catch (pagesError) {
+      // Pages scan failed
     }
-
 
     return allScanned
   } catch (error: any) {
@@ -215,27 +171,73 @@ export async function scanFacebookAccount(accessToken: string, accountId: string
 
 export async function scanTwitterAccount(accessToken: string, userId: string): Promise<ScannedContent[]> {
   try {
-    // Twitter API v2 - get user tweets (get more to ensure we have enough images)
-    const response = await fetch(
-      `https://api.twitter.com/2/users/${userId}/tweets?max_results=100&tweet.fields=created_at,public_metrics,attachments&expansions=attachments.media_keys&media.fields=url,preview_image_url,type`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+    // Validate userId - Twitter User ID should not be 'me' or empty
+    if (!userId || userId === 'me' || userId.trim() === '') {
+      console.error('Twitter scan error: Invalid userId. Twitter requires a specific User ID, not "me".')
+      console.error('Current userId:', userId)
+      console.error('Please ensure the Twitter account was connected properly via OAuth and userId was retrieved.')
+      return []
+    }
+
+    console.log(`[Twitter Scan] Starting scan for userId: ${userId}`)
+
+    // Twitter API v2 - get user tweets
+    // Note: Using userId from the connected account (not 'me' endpoint)
+    const apiUrl = `https://api.twitter.com/2/users/${userId}/tweets?max_results=100&tweet.fields=created_at,text,public_metrics,attachments&expansions=attachments.media_keys&media.fields=url,preview_image_url,type&exclude=replies,retweets`
+    
+    console.log(`[Twitter Scan] Calling API: ${apiUrl.replace(userId, 'USER_ID')}`)
+    
+    const response = await fetch(apiUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage = errorData.errors?.[0]?.detail || errorData.title || `HTTP ${response.status}`
+      const errorType = errorData.errors?.[0]?.type || 'unknown'
+      
+      console.error(`[Twitter Scan] API Error (${response.status}):`, errorMessage)
+      console.error(`[Twitter Scan] Error type:`, errorType)
+      console.error(`[Twitter Scan] Full error data:`, JSON.stringify(errorData, null, 2))
+      
+      // Common issues:
+      if (response.status === 403) {
+        console.error('[Twitter Scan] 403 Forbidden - This usually means:')
+        console.error('1. The token does not have tweet.read permission')
+        console.error('2. The app does not have "Read and write" permissions enabled')
+        console.error('3. The userId might be incorrect or not accessible with this token')
+      } else if (response.status === 401) {
+        console.error('[Twitter Scan] 401 Unauthorized - Token might be expired or invalid')
+      } else if (response.status === 404) {
+        console.error('[Twitter Scan] 404 Not Found - User ID might be incorrect or user does not exist')
       }
-    )
+      
+      throw new Error(`Twitter API error: ${errorMessage}`)
+    }
 
     const data = await response.json()
 
-    if (data.errors) {
-      throw new Error(data.errors[0].detail)
+    if (data.errors && data.errors.length > 0) {
+      const errorDetail = data.errors[0].detail || data.errors[0].title || 'Unknown error'
+      console.error('[Twitter Scan] API returned errors:', JSON.stringify(data.errors, null, 2))
+      throw new Error(`Twitter API error: ${errorDetail}`)
     }
+
+    if (!data.data || data.data.length === 0) {
+      console.log('[Twitter Scan] No tweets found for this user (user might have no tweets, or all are replies/retweets)')
+      return []
+    }
+
+    console.log(`[Twitter Scan] Found ${data.data.length} tweets`)
 
     const scanned: ScannedContent[] = []
     const mediaMap = new Map()
 
     // Map media (only images, not videos)
     if (data.includes?.media) {
+      console.log(`[Twitter Scan] Found ${data.includes.media.length} media items`)
       for (const media of data.includes.media) {
         // Only include images, skip videos
         if (media.type === 'photo' && (media.url || media.preview_image_url)) {
@@ -244,7 +246,7 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
       }
     }
 
-    for (const tweet of data.data || []) {
+    for (const tweet of data.data) {
       const images: string[] = []
       
       // Extract images from attachments
@@ -278,9 +280,12 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
       })
     }
 
+    console.log(`[Twitter Scan] Successfully scanned ${scanned.length} tweets`)
     return scanned
   } catch (error: any) {
-    console.error('Twitter scan error:', error)
+    console.error('[Twitter Scan] Error scanning Twitter account:', error)
+    console.error('[Twitter Scan] Error message:', error.message)
+    console.error('[Twitter Scan] UserId used:', userId)
     return []
   }
 }
@@ -347,182 +352,66 @@ export async function scanInstagramAccount(accessToken: string, userId: string):
     // Instagram Graph API requires Instagram Business Account ID (not Facebook user ID or 'me')
     if (!userId || userId === 'me') {
       console.error('Instagram scan: userId is required and must be an Instagram Business Account ID')
-      console.error('Current userId:', userId)
       return []
     }
 
-    console.log(`Scanning Instagram account with ID: ${userId}`)
-
-    // Try Instagram Graph API first (requires Long-Lived Token or valid Business Account token)
-    try {
-      const response = await fetch(
-        `https://graph.instagram.com/${userId}/media?access_token=${accessToken}&limit=100&fields=id,caption,media_type,media_url,thumbnail_url,timestamp,like_count,comments_count`,
-        {
-          method: 'GET',
-        }
-      )
-
-      const data = await response.json()
-
-      if (data.error) {
-        console.warn('Instagram Graph API error:', data.error)
-        // Try Facebook Graph API as fallback
-        throw new Error(`Instagram API error: ${data.error.message || 'Unknown error'}`)
+    // Instagram Graph API - get user media (limit to 100 to get more images)
+    const response = await fetch(
+      `https://graph.instagram.com/${userId}/media?access_token=${accessToken}&limit=100&fields=id,caption,media_type,media_url,thumbnail_url,timestamp,like_count,comments_count`,
+      {
+        method: 'GET',
       }
+    )
 
-      if (!data.data || data.data.length === 0) {
-        console.warn('Instagram Graph API returned no media')
-        return []
-      }
+    const data = await response.json()
 
-      console.log(`Found ${data.data.length} Instagram media items`)
-      const scanned: ScannedContent[] = []
+    if (data.error) {
+      console.error('Instagram API error:', data.error)
+      throw new Error(data.error.message || 'Instagram API error')
+    }
 
-      for (const media of data.data) {
-        const images: string[] = []
-        
-        if (media.media_type === 'IMAGE' && media.media_url) {
+    const scanned: ScannedContent[] = []
+
+    for (const media of data.data || []) {
+      const images: string[] = []
+      
+      if (media.media_type === 'IMAGE' && media.media_url) {
+        images.push(media.media_url)
+      } else if (media.media_type === 'VIDEO') {
+        // For videos, use thumbnail_url (if available) or media_url
+        if (media.thumbnail_url) {
+          images.push(media.thumbnail_url)
+        } else if (media.media_url) {
           images.push(media.media_url)
-        } else if (media.media_type === 'VIDEO') {
-          // For videos, use thumbnail_url (if available) or media_url
-          if (media.thumbnail_url) {
-            images.push(media.thumbnail_url)
-          } else if (media.media_url) {
-            images.push(media.media_url)
-          }
-        } else if (media.media_type === 'CAROUSEL_ALBUM') {
-          // For carousels, try to get children
-          try {
-            const childrenResponse = await fetch(
-              `https://graph.instagram.com/${media.id}/children?access_token=${accessToken}&fields=id,media_type,media_url,thumbnail_url`,
-              { method: 'GET' }
-            )
-            const childrenData = await childrenResponse.json()
-            
-            if (childrenData.data) {
-              for (const child of childrenData.data) {
-                if (child.media_type === 'IMAGE' && child.media_url) {
-                  images.push(child.media_url)
-                } else if (child.media_type === 'VIDEO' && child.thumbnail_url) {
-                  images.push(child.thumbnail_url)
-                }
-              }
-            }
-            
-            // Fallback to main media_url if no children found
-            if (images.length === 0 && media.media_url) {
-              images.push(media.media_url)
-            }
-          } catch (carouselError) {
-            // If carousel children fetch fails, use main media_url
-            if (media.media_url) {
-              images.push(media.media_url)
-            }
-          }
         }
-
-        // Only add if has content or images
-        if (media.caption || images.length > 0) {
-          let styleAnalysis: StyleAnalysis | undefined
-          if (media.caption && media.caption.trim().length > 0) {
-            styleAnalysis = analyzeContent(media.caption)
-          }
-
-          scanned.push({
-            id: media.id,
-            platform: 'instagram',
-            content: media.caption || '',
-            images,
-            createdAt: media.timestamp,
-            engagement: {
-              likes: media.like_count,
-              comments: media.comments_count,
-            },
-            styleAnalysis,
-          })
+      } else if (media.media_type === 'CAROUSEL_ALBUM') {
+        // Would need additional API call to get carousel items
+        if (media.media_url) {
+          images.push(media.media_url)
         }
       }
 
-      return scanned
-    } catch (instagramError: any) {
-      console.warn('Instagram Graph API failed, trying Facebook Graph API...', instagramError.message)
-      
-      // Fallback: Try Facebook Graph API (works with Page-token)
-      // Get Instagram Business Account from Facebook Pages
-      try {
-        const pagesResponse = await fetch(
-          `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,instagram_business_account{id,username}`,
-          { method: 'GET' }
-        )
-        
-        const pagesData = await pagesResponse.json()
-        
-        if (pagesData.data) {
-          for (const page of pagesData.data) {
-            if (page.instagram_business_account?.id === userId) {
-              // Found matching Instagram account, try Facebook API endpoint
-              console.log(`Found matching Instagram account via Facebook Page: ${page.name}`)
-              
-              // Try to get media via Facebook Graph API
-              const fbMediaResponse = await fetch(
-                `https://graph.facebook.com/v18.0/${userId}/media?access_token=${accessToken}&fields=id,caption,media_type,media_url,thumbnail_url,timestamp,like_count,comments_count&limit=100`,
-                { method: 'GET' }
-              )
-              
-              const fbMediaData = await fbMediaResponse.json()
-              
-              if (fbMediaData.error) {
-                console.warn('Facebook Graph API Instagram media error:', fbMediaData.error)
-                return []
-              }
-              
-              if (fbMediaData.data && fbMediaData.data.length > 0) {
-                console.log(`Found ${fbMediaData.data.length} Instagram media via Facebook API`)
-                const scanned: ScannedContent[] = []
-                
-                for (const media of fbMediaData.data) {
-                  const images: string[] = []
-                  
-                  if (media.media_type === 'IMAGE' && media.media_url) {
-                    images.push(media.media_url)
-                  } else if (media.media_type === 'VIDEO' && media.thumbnail_url) {
-                    images.push(media.thumbnail_url)
-                  } else if (media.media_type === 'CAROUSEL_ALBUM' && media.media_url) {
-                    images.push(media.media_url)
-                  }
-                  
-                  if (media.caption || images.length > 0) {
-                    let styleAnalysis: StyleAnalysis | undefined
-                    if (media.caption && media.caption.trim().length > 0) {
-                      styleAnalysis = analyzeContent(media.caption)
-                    }
-                    
-                    scanned.push({
-                      id: media.id,
-                      platform: 'instagram',
-                      content: media.caption || '',
-                      images,
-                      createdAt: media.timestamp,
-                      engagement: {
-                        likes: media.like_count,
-                        comments: media.comments_count,
-                      },
-                      styleAnalysis,
-                    })
-                  }
-                }
-                
-                return scanned
-              }
-            }
-          }
-        }
-      } catch (facebookError: any) {
-        console.warn('Facebook Graph API fallback failed:', facebookError.message)
+      // Analyze content style
+      let styleAnalysis: StyleAnalysis | undefined
+      if (media.caption && media.caption.trim().length > 0) {
+        styleAnalysis = analyzeContent(media.caption)
       }
-      
-      return []
+
+      scanned.push({
+        id: media.id,
+        platform: 'instagram',
+        content: media.caption || '',
+        images,
+        createdAt: media.timestamp,
+        engagement: {
+          likes: media.like_count,
+          comments: media.comments_count,
+        },
+        styleAnalysis,
+      })
     }
+
+    return scanned
   } catch (error: any) {
     console.error('Instagram scan error:', error)
     return []
@@ -587,37 +476,53 @@ export async function autoScanAllPlatforms(
 
   // Scan social accounts (Facebook, Twitter, LinkedIn, Instagram for posts)
   for (const account of socialAccounts) {
-    if (!account.connected || !account.accessToken) continue
+    if (!account.connected || !account.accessToken) {
+      console.log(`[Auto Scanner] Skipping ${account.platform} - connected: ${account.connected}, hasToken: ${!!account.accessToken}`)
+      continue
+    }
 
     try {
       let scanned: ScannedContent[] = []
 
       switch (account.platform) {
         case 'facebook':
+          console.log(`[Auto Scanner] Scanning Facebook account (userId: ${account.userId || 'me'})`)
           scanned = await scanFacebookAccount(account.accessToken, account.userId || 'me')
+          console.log(`[Auto Scanner] Facebook scan completed: ${scanned.length} items found`)
           break
         case 'twitter':
-          scanned = await scanTwitterAccount(account.accessToken, account.userId || 'me')
+          console.log(`[Auto Scanner] Scanning Twitter account (userId: ${account.userId || 'NOT SET'})`)
+          if (!account.userId || account.userId === 'me') {
+            console.error('[Auto Scanner] Twitter account missing userId. Twitter requires a specific User ID.')
+            console.error('[Auto Scanner] This usually means the OAuth callback failed to retrieve the User ID.')
+            console.error('[Auto Scanner] Please disconnect and reconnect Twitter to fix this.')
+          } else {
+            scanned = await scanTwitterAccount(account.accessToken, account.userId)
+            console.log(`[Auto Scanner] Twitter scan completed: ${scanned.length} items found`)
+          }
           break
         case 'linkedin':
+          console.log(`[Auto Scanner] Scanning LinkedIn account`)
           scanned = await scanLinkedInAccount(account.accessToken)
+          console.log(`[Auto Scanner] LinkedIn scan completed: ${scanned.length} items found`)
           break
         case 'instagram':
           // Instagram requires Instagram Business Account ID, not 'me'
           if (account.userId && account.userId !== 'me') {
-            console.log(`Scanning Instagram account with userId: ${account.userId}`)
+            console.log(`[Auto Scanner] Scanning Instagram account with userId: ${account.userId}`)
             scanned = await scanInstagramAccount(account.accessToken, account.userId)
-            console.log(`Instagram scan completed: ${scanned.length} items found`)
+            console.log(`[Auto Scanner] Instagram scan completed: ${scanned.length} items found`)
           } else {
-            console.warn('Instagram account missing userId (Instagram Business Account ID). Skipping scan.')
-            console.warn('This usually means:')
+            console.warn('[Auto Scanner] Instagram account missing userId (Instagram Business Account ID). Skipping scan.')
+            console.warn('[Auto Scanner] This usually means:')
             console.warn('1. Instagram account is not a Business/Creator account, OR')
             console.warn('2. Instagram account is not connected to a Facebook Page, OR')
             console.warn('3. The OAuth callback failed to retrieve the Instagram Business Account ID')
-            console.warn('Try disconnecting and reconnecting Instagram.')
+            console.warn('[Auto Scanner] Try disconnecting and reconnecting Instagram.')
           }
           break
         default:
+          console.log(`[Auto Scanner] Unknown platform: ${account.platform}, skipping`)
           continue
       }
 
