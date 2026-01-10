@@ -44,14 +44,16 @@ export async function GET(request: Request) {
     // Business login - use config_id
     authParams.set('config_id', FACEBOOK_LOGIN_CONFIG_ID)
   } else {
-    // Consumer login - use scope with page permissions (for scanning Page posts)
-    // Note: user_posts requires App Review, so we use page permissions instead
-    // Most business posts are on Pages anyway
+    // Consumer login - use scope with all necessary permissions
+    // Request permissions for both reading posts and creating posts
     const scopes = [
-      'public_profile',        // Basic profile (name, ID, picture)
-      'pages_show_list',       // List user's pages
-      'pages_read_engagement', // Read page posts (may require App Review for production)
-      'pages_read_user_content', // Read page content (may require App Review for production)
+      'public_profile',           // Basic profile (name, ID, picture)
+      'user_posts',               // Read user's personal posts (requires App Review for production)
+      'pages_show_list',          // List user's pages
+      'pages_read_engagement',    // Read page posts and engagement metrics
+      'pages_read_user_content',  // Read page content (posts, comments, etc.)
+      'pages_manage_posts',       // Create and manage posts on pages (requires App Review)
+      'pages_manage_metadata',    // Manage page metadata (may be needed for posting)
     ].join(',')
     authParams.set('scope', scopes)
   }

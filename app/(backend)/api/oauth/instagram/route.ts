@@ -34,11 +34,15 @@ export async function GET(request: Request) {
   console.log('[Instagram OAuth] Using Facebook Graph API for Instagram Business')
   
   // Facebook Graph API OAuth for Instagram Business
+  // Request all necessary permissions for reading posts and creating posts
   const scopes = [
-    'instagram_basic',
-    'instagram_content_publish',
-    'pages_show_list',
-    'pages_read_engagement',
+    'instagram_basic',              // Read Instagram basic info
+    'instagram_content_publish',    // Create Instagram posts (requires App Review)
+    'instagram_manage_comments',    // Manage comments on posts
+    'pages_show_list',              // List Facebook pages (needed for Instagram Business)
+    'pages_read_engagement',        // Read page engagement metrics
+    'pages_read_user_content',      // Read Instagram posts and content
+    'pages_manage_posts',           // Manage Instagram posts through pages
   ].join(',')
   
   // Use Facebook OAuth endpoint, not Instagram Basic Display
