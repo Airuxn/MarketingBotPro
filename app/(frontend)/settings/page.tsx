@@ -43,6 +43,9 @@ export default function SettingsPage() {
   const [showAllItems, setShowAllItems] = useState<Record<string, boolean>>({})
   const [storageInfo, setStorageInfo] = useState<ReturnType<typeof getStorageUsage> | null>(null)
   const [storageQuota, setStorageQuota] = useState<Awaited<ReturnType<typeof getStorageQuota>> | null>(null)
+  const [showManualToken, setShowManualToken] = useState<string | null>(null)
+  const [manualAccessToken, setManualAccessToken] = useState('')
+  const [manualUserId, setManualUserId] = useState('')
 
   // Handle OAuth callback
   useEffect(() => {
@@ -129,6 +132,57 @@ export default function SettingsPage() {
     const updated = currentSocialAccounts.filter((acc) => acc.platform !== platform)
     updateSettings({ socialAccounts: updated })
     toast.success(`Disconnected from ${platformNames[platform as keyof typeof platformNames]}`)
+  }
+
+  const handleManualTokenConnect = async (platform: string) => {
+    if (!manualAccessToken.trim()) {
+      toast.error('Please enter access token')
+      return
+    }
+
+    setIsConnecting(platform)
+    try {
+      let userId: string | undefined = manualUserId.trim() || undefined
+
+      // For Instagram, try to validate and get user ID from token
+      if (platform === 'instagram' && !userId) {
+        try {
+          const response = await fetch(
+            `https://graph.facebook.com/v18.0/me?access_token=${manualAccessToken}&fields=id`
+          )
+          if (response.ok) {
+            const data = await response.json()
+            userId = data.id
+          }
+        } catch (error) {
+          console.error('Error validating token:', error)
+        }
+      }
+
+      const currentSocialAccounts = settings.socialAccounts || []
+      const newAccount = {
+        platform: platform as any,
+        accessToken: manualAccessToken.trim(),
+        userId,
+        connected: true,
+        connectedAt: new Date().toISOString(),
+      }
+
+      const updated = [
+        ...currentSocialAccounts.filter((acc) => acc.platform !== platform),
+        newAccount,
+      ]
+
+      updateSettings({ socialAccounts: updated })
+      toast.success(`Connected to ${platformNames[platform as keyof typeof platformNames]}!`)
+      setShowManualToken(null)
+      setManualAccessToken('')
+      setManualUserId('')
+    } catch (error: any) {
+      toast.error(`Connection failed: ${error.message || 'Invalid token'}`)
+    } finally {
+      setIsConnecting(null)
+    }
   }
 
   const [adConnecting, setAdConnecting] = useState<string | null>(null)
@@ -395,7 +449,7 @@ export default function SettingsPage() {
                         </div>
                         
                         {/* Social Account */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-wrap">
                           {socialAccount ? (
                             <>
                               <CheckCircle className="w-3.5 h-3.5 text-green-400" />
@@ -407,18 +461,91 @@ export default function SettingsPage() {
                               </button>
                             </>
                           ) : (
-                            <button
-                              onClick={() => handleSocialConnect(platform)}
-                              disabled={isConnecting === platform}
-                              className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1"
-                            >
-                              {isConnecting === platform ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : null}
-                              <span>Social</span>
-                            </button>
+                            <>
+                              {platform === 'instagram' && (
+                                <button
+                                  onClick={() => setShowManualToken(showManualToken === platform ? null : platform)}
+                                  className="px-1.5 py-0.5 text-xs glass hover:bg-slate-700/50 rounded transition-colors text-slate-300"
+                                >
+                                  {showManualToken === platform ? 'Cancel' : 'Token'}
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleSocialConnect(platform)}
+                                disabled={isConnecting === platform}
+                                className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-1"
+                              >
+                                {isConnecting === platform ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : null}
+                                <span>Social</span>
+                              </button>
+                            </>
                           )}
                         </div>
+
+                        {/* Instagram Social Token Form */}
+                        {showManualToken === platform && platform === 'instagram' && !socialAccount && (
+                          <div className="mt-2 pt-2 border-t border-slate-700/50 flex flex-col gap-2">
+                            <div>
+                              <label className="block text-[10px] font-medium text-slate-300 mb-1">
+                                Instagram Access Token
+                              </label>
+                              <input
+                                type="password"
+                                value={manualAccessToken}
+                                onChange={(e) => setManualAccessToken(e.target.value)}
+                                placeholder="Enter your Instagram access token"
+                                className="w-full px-2 py-1 text-xs glass rounded focus:ring-1 focus:ring-purple-500 text-white placeholder:text-slate-400"
+                              />
+                              <p className="text-[9px] text-slate-500 mt-1">
+                                Get your token from{' '}
+                                <a
+                                  href="https://developers.facebook.com/tools/explorer/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-400 hover:text-blue-300 underline"
+                                >
+                                  Facebook Graph API Explorer
+                                </a>
+                              </p>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-medium text-slate-300 mb-1">
+                                Instagram Business Account ID (Optional)
+                              </label>
+                              <input
+                                type="text"
+                                value={manualUserId}
+                                onChange={(e) => setManualUserId(e.target.value)}
+                                placeholder="Will be auto-detected if not provided"
+                                className="w-full px-2 py-1 text-xs glass rounded focus:ring-1 focus:ring-purple-500 text-white placeholder:text-slate-400"
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleManualTokenConnect(platform)}
+                                disabled={isConnecting === platform || !manualAccessToken.trim()}
+                                className="flex-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+                              >
+                                {isConnecting === platform ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : null}
+                                <span>Connect with Token</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setShowManualToken(null)
+                                  setManualAccessToken('')
+                                  setManualUserId('')
+                                }}
+                                className="px-2 py-1 text-xs glass hover:bg-slate-700/50 rounded transition-colors text-slate-300"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
 
                         {/* Ad Account */}
                         <div className="flex items-center gap-1">
