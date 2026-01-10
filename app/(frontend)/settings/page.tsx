@@ -87,13 +87,91 @@ export default function SettingsPage() {
               connectedAt: new Date().toISOString(),
             }
 
-            const updated = [
-              ...currentSocialAccounts.filter((acc) => acc.platform !== platform),
-              newAccount,
-            ]
+            // For Meta platforms (Facebook/Instagram), connect both with the same token
+            // Facebook and Instagram share the same OAuth token from Meta
+            let updated: typeof currentSocialAccounts = []
+            let connectedBoth = false
+            
+            if (platform === 'facebook' || platform === 'instagram') {
+              // Remove existing Facebook and Instagram accounts (they'll be replaced with new token)
+              updated = currentSocialAccounts.filter((acc) => acc.platform !== 'facebook' && acc.platform !== 'instagram')
+              
+              // Add the connected platform
+              updated.push(newAccount)
+              
+              // If connecting Facebook, also try to connect Instagram with the same token
+              if (platform === 'facebook') {
+                // Try to get Instagram Business Account ID
+                try {
+                  const pagesResponse = await fetch(
+                    `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,instagram_business_account{id,username}`
+                  )
+                  
+                  if (pagesResponse.ok) {
+                    const pagesData = await pagesResponse.json()
+                    const pages = pagesData.data || []
+                    
+                    for (const page of pages) {
+                      if (page.instagram_business_account?.id) {
+                        updated.push({
+                          platform: 'instagram',
+                          accessToken, // Same token as Facebook
+                          userId: page.instagram_business_account.id,
+                          connected: true,
+                          connectedAt: new Date().toISOString(),
+                        })
+                        connectedBoth = true
+                        console.log(`Auto-connected Instagram Business Account: ${page.instagram_business_account.id}`)
+                        break
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.warn('Could not auto-connect Instagram:', error)
+                }
+              }
+              
+              // If connecting Instagram, also connect Facebook with the same token
+              if (platform === 'instagram') {
+                // Get Facebook user ID
+                try {
+                  const meResponse = await fetch(
+                    `https://graph.facebook.com/v18.0/me?access_token=${accessToken}&fields=id,name`
+                  )
+                  
+                  if (meResponse.ok) {
+                    const meData = await meResponse.json()
+                    updated.push({
+                      platform: 'facebook',
+                      accessToken, // Same token as Instagram
+                      userId: meData.id,
+                      connected: true,
+                      connectedAt: new Date().toISOString(),
+                    })
+                    connectedBoth = true
+                    console.log(`Auto-connected Facebook account: ${meData.id}`)
+                  }
+                } catch (error) {
+                  console.warn('Could not auto-connect Facebook:', error)
+                }
+              }
+              
+              // Show appropriate success message
+              if (connectedBoth) {
+                toast.success(`Connected to Facebook and Instagram with one Meta account!`)
+              } else {
+                toast.success(`Connected to ${platformNames[platform as keyof typeof platformNames]}!`)
+              }
+            } else {
+              // For other platforms, just replace the existing account
+              updated = [
+                ...currentSocialAccounts.filter((acc) => acc.platform !== platform),
+                newAccount,
+              ]
+              toast.success(`Connected to ${platformNames[platform as keyof typeof platformNames]}!`)
+            }
 
             updateSettings({ socialAccounts: updated })
-            toast.success(`Connected to ${platformNames[platform as keyof typeof platformNames]}!`)
             setIsConnecting(null)
           } catch (error: any) {
             toast.error(`Failed to complete connection: ${error.message}`)
@@ -130,6 +208,8 @@ export default function SettingsPage() {
 
   const handleSocialDisconnect = (platform: string) => {
     const currentSocialAccounts = settings.socialAccounts || []
+    // For Meta platforms, only disconnect the specific platform, not both
+    // This allows users to keep one connected while disconnecting the other
     const updated = currentSocialAccounts.filter((acc) => acc.platform !== platform)
     updateSettings({ socialAccounts: updated })
     toast.success(`Disconnected from ${platformNames[platform as keyof typeof platformNames]}`)
