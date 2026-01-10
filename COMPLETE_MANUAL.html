@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarketingBot Pro - Complete Manual</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 50, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.8em;
+            color: #a78bfa;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            padding-left: 15px;
+            border-left: 4px solid #667eea;
+        }
+        h3 {
+            font-size: 1.4em;
+            color: #c4b5fd;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        h4 {
+            font-size: 1.2em;
+            color: #ddd6fe;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        code {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #fbbf24;
+        }
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            border-left: 4px solid #667eea;
+        }
+        .code-block code {
+            color: #e0e0e0;
+            background: transparent;
+            padding: 0;
+        }
+        .highlight {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+        .warning {
+            background: rgba(251, 191, 36, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #fbbf24;
+            margin: 20px 0;
+        }
+        .info {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            margin: 20px 0;
+        }
+        .toc {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+        }
+        .toc h2 {
+            margin-top: 0;
+        }
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+        .toc li {
+            margin: 10px 0;
+        }
+        .toc a {
+            color: #a78bfa;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .toc a:hover {
+            color: #c4b5fd;
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        th {
+            background: rgba(102, 126, 234, 0.3);
+            color: #c4b5fd;
+            font-weight: bold;
+        }
+        .flow-diagram {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            border: 2px solid #667eea;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        .badge-ai {
+            background: rgba(102, 126, 234, 0.3);
+            color: #a78bfa;
+        }
+        .badge-rule {
+            background: rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+        .badge-always {
+            background: rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+        }
+        .part-nav {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .part-nav a {
+            color: #a78bfa;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            background: rgba(102, 126, 234, 0.2);
+            transition: all 0.3s;
+        }
+        .part-nav a:hover {
+            background: rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+    </style>
+    <script>
+        // Show/hide back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+    </script>
+</head>
+<body id="top">
+    <div class="container">
+        <h1>📚 MarketingBot Pro - Complete Manual</h1>
+        <p style="font-size: 1.1em; color: #c4b5fd; margin-bottom: 30px;">
+            A comprehensive guide to understanding every aspect of the AI-powered marketing automation platform
+        </p>
+
+        <div class="toc">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#part1">Part 1: System Overview & Architecture</a></li>
+                <li><a href="#part2">Part 2: AI Learning System (How & When AI Learns)</a></li>
+                <li><a href="#part3">Part 3: Content Generation, Scanning & Image Management</a></li>
+                <li><a href="#part4">Part 4: Email System, Scheduling, Publishing & Analytics</a></li>
+            </ul>
+        </div>
+
+        <div class="part-nav">
+            <strong>Navigation:</strong>
+            <a href="#part1">Part 1</a>
+            <a href="#part2">Part 2</a>
+            <a href="#part3">Part 3</a>
+            <a href="#part4">Part 4</a>
+        </div>
+
+        <!-- PART 1: SYSTEM OVERVIEW & ARCHITECTURE -->
+        <section id="part1">
+            <h2>Part 1: System Overview & Architecture</h2>
+
+            <h3>1.1 What is MarketingBot Pro?</h3>
+            <p>
+                MarketingBot Pro is an AI-powered marketing automation platform built with Next.js 14, TypeScript, 
+                and Google Gemini AI. It helps businesses create, schedule, and publish social media content and 
+                email campaigns while learning from user preferences to improve over time.
+            </p>
+
+            <h3>1.2 Technology Stack</h3>
+            <div class="highlight">
+                <strong>Frontend:</strong>
+                <ul>
+                    <li>Next.js 14 (App Router) - React framework</li>
+                    <li>TypeScript - Type safety</li>
+                    <li>Tailwind CSS - Styling</li>
+                    <li>Zustand - State management with localStorage persistence</li>
+                    <li>React Hot Toast - Notifications</li>
+                    <li>Recharts - Analytics charts</li>
+                </ul>
+                
+                <strong>AI & APIs:</strong>
+                <ul>
+                    <li>Google Gemini (2.5 Flash, 2.0 Flash, 1.5 Flash, Pro) - Content generation</li>
+                    <li>Facebook Graph API - Social media integration</li>
+                    <li>Twitter API v2 - Social media integration</li>
+                    <li>LinkedIn API v2 - Social media integration</li>
+                    <li>Instagram Graph API - Social media integration</li>
+                </ul>
+            </div>
+
+            <h3>1.3 Application Architecture</h3>
+            <div class="code-block">
+                <code>
+marketing-bot/
+├── app/
+│   ├── (frontend)/          # Client-side pages (user interface)
+│   │   ├── page.tsx         # Dashboard/Home
+│   │   ├── content/         # AI content generator
+│   │   ├── email/           # Email campaign manager
+│   │   ├── schedule/        # Post scheduling & auto-publishing
+│   │   ├── analytics/       # Performance analytics & insights
+│   │   ├── leads/           # Lead management
+│   │   └── settings/        # Account settings & OAuth connections
+│   ├── (backend)/           # Server-side API routes
+│   │   └── api/
+│   │       ├── oauth/       # OAuth handlers (Facebook, Twitter, LinkedIn, Instagram)
+│   │       ├── scan-twitter/    # Twitter scanning proxy (server-side)
+│   │       ├── publish-twitter/ # Twitter publishing proxy (server-side)
+│   │       ├── validate-*-token/ # Token validation endpoints
+│   │       ├── analyze-content/ # Content analysis API
+│   │       └── extract-images/  # Image extraction API
+│   ├── globals.css          # Global styles
+│   └── layout.tsx           # Root layout with providers
+├── components/              # Reusable React components
+│   ├── SocialAccountConnector.tsx
+│   ├── AdPlatformConnector.tsx
+│   ├── BrandImageLibrary.tsx
+│   ├── CreateAdDialog.tsx
+│   ├── EngagementTracker.tsx
+│   ├── PlatformPreview.tsx
+│   └── Navigation.tsx
+├── lib/                     # Core business logic & utilities
+│   ├── store.ts             # Zustand state store (all app data)
+│   ├── ai.ts                # Google Gemini integration
+│   ├── content-learner.ts   # AI learning system
+│   ├── content-analyzer.ts  # Rule-based content analysis
+│   ├── content-performance-analyzer.ts  # Performance insights
+│   ├── auto-scanner.ts      # Social media account scanning
+│   ├── post-publisher.ts    # Post publishing to social platforms
+│   ├── image-extractor.ts   # Image extraction utilities
+│   ├── image-optimizer.ts   # Image optimization
+│   ├── backup.ts            # Data backup/restore system
+│   └── i18n.ts              # Internationalization
+└── public/                  # Static assets
+                </code>
+            </div>
+
+            <h3>1.4 Data Flow Architecture</h3>
+            <div class="flow-diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                     USER INTERACTION                         │
+│  (Generate Content, Edit, Accept, Connect Social Accounts)  │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│              REACT COMPONENT (Frontend Page)                 │
+│  (content/page.tsx, email/page.tsx, schedule/page.tsx)      │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│              ZUSTAND STORE (State Management)                │
+│  - All app data stored here                                  │
+│  - Automatically persisted to localStorage                   │
+│  - Debounced auto-backup every 30 seconds                    │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+         ┌───────────┴───────────┐
+         │                       │
+         ▼                       ▼
+┌─────────────────┐    ┌─────────────────────┐
+│  AI LEARNING    │    │  CONTENT GENERATION │
+│  (content-learner)   │  (ai.ts + Gemini)   │
+└─────────────────┘    └─────────────────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│              STORE UPDATE + PERSISTENCE                      │
+│  - learnedStyle updated                                      │
+│  - scannedPosts saved                                        │
+│  - acceptedContent/edits stored                              │
+│  - All saved to localStorage                                 │
+└─────────────────────────────────────────────────────────────┘
+            </div>
+
+            <h3>1.5 Data Storage System</h3>
+            <h4>Storage Location: localStorage</h4>
+            <p>
+                All application data is stored in the browser's <code>localStorage</code> under the key 
+                <code>marketing-bot-storage</code>. This includes:
+            </p>
+            <ul>
+                <li><strong>Posts:</strong> Last 100 posts (drafts, scheduled, posted)</li>
+                <li><strong>Leads:</strong> Last 200 leads</li>
+                <li><strong>Contact Lists:</strong> Up to 100 lists with contacts</li>
+                <li><strong>Email Campaigns:</strong> Last 50 campaigns</li>
+                <li><strong>Settings:</strong> All user settings including:
+                    <ul>
+                        <li>Gemini API key</li>
+                        <li>Business information</li>
+                        <li>Connected social accounts (tokens stored securely)</li>
+                        <li>Brand images (up to 50 images)</li>
+                        <li><strong>Content Preferences:</strong>
+                            <ul>
+                                <li>Accepted content (last 50)</li>
+                                <li>Rejected content (last 20)</li>
+                                <li>Edits (last 30)</li>
+                                <li>Scanned posts (last 30, newest 15 keep images)</li>
+                                <li><strong>learnedStyle</strong> - The aggregated AI preferences (this is what AI uses!)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4>Automatic Backup System</h4>
+            <div class="info">
+                <strong>How it works:</strong>
+                <ul>
+                    <li>Every time data is saved to localStorage, a debounced backup timer starts (30 seconds)</li>
+                    <li>After 30 seconds of no changes, an automatic backup is created</li>
+                    <li>Last 5 automatic backups are stored in localStorage under <code>marketing-bot-auto-backups</code></li>
+                    <li>Users can also manually export/import JSON backup files</li>
+                    <li>Storage quota management: If localStorage is full, the app automatically cleans up old data (keeps newest, removes oldest)</li>
+                </ul>
+            </div>
+
+            <h3>1.6 State Management (Zustand)</h3>
+            <p>
+                The entire application state is managed by Zustand, a lightweight state management library. 
+                The store automatically persists to localStorage using the <code>persist</code> middleware.
+            </p>
+            <div class="code-block">
+                <code>
+Key Store Structure:
+{
+  posts: Post[]              // All posts (drafts, scheduled, posted)
+  leads: Lead[]              // All leads
+  contactLists: ContactList[] // Contact lists for email campaigns
+  emailCampaigns: EmailCampaign[] // Email campaigns
+  stats: {                    // Statistics
+    postsCreated: number
+    emailsSent: number
+    leadsCaptured: number
+    engagementRate: number
+  }
+  settings: {                 // User settings
+    geminiApiKey?: string
+    businessName?: string
+    businessType?: string
+    targetAudience?: string
+    brandImages?: BrandImage[]  // Extracted brand images
+    adAccounts?: AdAccount[]    // Connected ad platform accounts
+    socialAccounts?: SocialAccount[]  // Connected social accounts
+    contentPreferences?: {      // AI LEARNING DATA (Most Important!)
+      acceptedContent: ContentPreference[]
+      rejectedContent: ContentPreference[]
+      edits: ContentEdit[]
+      scannedPosts: ScannedPost[]
+      learnedStyle: LearnedStyle  // ← THIS IS WHAT AI USES!
+    }
+  }
+}
+                </code>
+            </div>
+
+            <h3>1.7 Application Pages Overview</h3>
+            <table>
+                <tr>
+                    <th>Page</th>
+                    <th>Purpose</th>
+                    <th>Key Features</th>
+                </tr>
+                <tr>
+                    <td><strong>Dashboard</strong><br/>(/page.tsx)</td>
+                    <td>Overview of all activity</td>
+                    <td>Statistics, recent posts, quick actions</td>
+                </tr>
+                <tr>
+                    <td><strong>Content</strong><br/>(/content/page.tsx)</td>
+                    <td>AI content generation</td>
+                    <td>Generate posts, edit inline, accept/reject, auto-scan connected accounts, preview</td>
+                </tr>
+                <tr>
+                    <td><strong>Email</strong><br/>(/email/page.tsx)</td>
+                    <td>Email campaign creation</td>
+                    <td>Generate emails with AI, manage contact lists, schedule campaigns, tone selector</td>
+                </tr>
+                <tr>
+                    <td><strong>Schedule</strong><br/>(/schedule/page.tsx)</td>
+                    <td>Post scheduling & publishing</td>
+                    <td>Schedule posts, auto-publish when time comes, track engagement, mark as published</td>
+                </tr>
+                <tr>
+                    <td><strong>Analytics</strong><br/>(/analytics/page.tsx)</td>
+                    <td>Performance insights</td>
+                    <td>View metrics, AI performance insights, current learned preferences, best posting times</td>
+                </tr>
+                <tr>
+                    <td><strong>Settings</strong><br/>(/settings/page.tsx)</td>
+                    <td>Configuration</td>
+                    <td>API keys, business info, OAuth connections (Facebook, Twitter, LinkedIn, Instagram), manual token connection, data backup/restore</td>
+                </tr>
+                <tr>
+                    <td><strong>Leads</strong><br/>(/leads/page.tsx)</td>
+                    <td>Lead management</td>
+                    <td>Capture, organize, track lead status (new, contacted, qualified, converted)</td>
+                </tr>
+            </table>
+
+            <div class="part-nav">
+                <strong>Navigation:</strong>
+                <a href="#part1">Part 1</a>
+                <a href="#part2">Part 2</a>
+                <a href="#part3">Part 3</a>
+                <a href="#part4">Part 4</a>
+            </div>
+        </section>
+
+        <!-- PART 2: AI LEARNING SYSTEM -->
+        <section id="part2">
+            <h2>Part 2: AI Learning System - How & When AI Learns</h2>
+
+            <h3>2.1 Understanding Rule-Based vs AI Analysis</h3>
+            <div class="highlight">
+                <h4><span class="badge badge-rule">Rule-Based Analysis</span> (No AI, Always Available)</h4>
+                <p><strong>What it is:</strong> Traditional programming using predefined rules, patterns, and logic (NOT AI/ML).</p>
+                <p><strong>Examples:</strong></p>
+                <ul>
+                    <li>Regex patterns: <code>/#\w+/g</code> to find hashtags</li>
+                    <li>Keyword matching: if content contains "excited" → add "enthusiastic" tone</li>
+                    <li>Word counting: count words to determine length (short/medium/long)</li>
+                    <li>Statistical calculations: average, min, max, most common patterns</li>
+                </ul>
+                <p><strong>Characteristics:</strong></p>
+                <ul>
+                    <li>✅ Fast - instant results</li>
+                    <li>✅ Always available - works offline</li>
+                    <li>✅ Free - no API costs</li>
+                    <li>✅ No quota limits</li>
+                </ul>
+                <p><strong>Used for:</strong> Scanning posts, accepting content, analyzing edits (fallback), aggregating preferences</p>
+            </div>
+
+            <div class="info">
+                <h4><span class="badge badge-ai">AI Analysis</span> (Gemini API - Requires API Key)</h4>
+                <p><strong>What it is:</strong> Machine learning models that understand context and meaning.</p>
+                <p><strong>Characteristics:</strong></p>
+                <ul>
+                    <li>✅ Understands WHY changes were made (not just what changed)</li>
+                    <li>✅ Reads FULL content to understand complete context</li>
+                    <li>✅ Provides deeper insights about user preferences</li>
+                    <li>❌ Requires API key (from Settings)</li>
+                    <li>❌ Has costs/quota limits</li>
+                    <li>❌ Needs internet connection</li>
+                </ul>
+                <p><strong>Used for:</strong> Analyzing edits (when API key available) - understands WHY you made changes</p>
+            </div>
+
+            <h3>2.2 When Learning Happens - Complete Timeline</h3>
+            <div class="flow-diagram">
+LEARNING TIMELINE (Complete Flow):
+
+1. CONNECT SOCIAL ACCOUNT
+   └─> Auto-scan triggered (Content page loads)
+       └─> scanTwitterAccount() / scanFacebookAccount() / etc.
+           └─> analyzeContent() [RULE-BASED - No AI]
+               └─> styleAnalysis created
+                   └─> Scanned post saved to settings.contentPreferences.scannedPosts
+                       └─> combineAllLearningSources() called IMMEDIATELY
+                           └─> learnFromScannedPosts() [RULE-BASED]
+                               └─> learnedStyle updated
+                                   └─> Saved to localStorage
+                                       ✅ LEARNING COMPLETE (Scanned posts have HIGHEST priority)
+
+2. GENERATE CONTENT
+   └─> User enters prompt
+       └─> generateContent() called (ai.ts)
+           └─> generateLearningPrompt() called (content-learner.ts)
+               └─> Reads learnedStyle from store (ALREADY LEARNED - no new learning here!)
+                   └─> Adds learned preferences to AI prompt
+                       └─> AI generates content matching your style
+                           ✅ CONTENT USES LEARNED PREFERENCES (no learning happens during generation)
+
+3. EDIT GENERATED CONTENT
+   └─> User edits content in preview
+       └─> User clicks "Save" or accepts edited content
+           └─> trackContentEdit() called
+               └─> analyzeEdit() [RULE-BASED - instant]
+               └─> analyzeEditWithAI() [AI - if API key available]
+                   └─> AI reads FULL original and edited content
+                       └─> Understands WHY changes were made
+                           └─> Stores aiPreferences in edit object
+                               └─> Edit saved to settings.contentPreferences.edits
+                                   └─> aggregatePreferencesFromEdits() [RULE-BASED - weighted voting]
+                                       └─> combineAllLearningSources() called IMMEDIATELY
+                                           └─> learnedStyle updated
+                                               └─> Saved to localStorage
+                                                   ✅ LEARNING COMPLETE (Edits have MEDIUM priority)
+
+4. ACCEPT GENERATED CONTENT
+   └─> User clicks "Accept"
+       └─> trackAcceptedContent() called
+           └─> analyzeContent() [RULE-BASED - No AI]
+               └─> Content saved to settings.contentPreferences.acceptedContent
+                   └─> combineAllLearningSources() called IMMEDIATELY
+                       └─> learnFromAcceptedContent() [RULE-BASED]
+                           └─> learnedStyle updated
+                               └─> Saved to localStorage
+                                   ✅ LEARNING COMPLETE (Accepted content has LOWER priority)
+
+5. REJECT GENERATED CONTENT
+   └─> User clicks "Reject"
+       └─> trackRejectedContent() called
+           └─> Content saved to settings.contentPreferences.rejectedContent
+               └─> ❌ NO LEARNING HAPPENS (just records what you don't like)
+            </div>
+
+            <h3>2.3 Priority Order: How Different Sources Are Combined</h3>
+            <div class="warning">
+                <strong>Learning Priority (Highest to Lowest):</strong>
+                <ol>
+                    <li><strong>Scanned Posts</strong> (Highest Priority) - Your actual posted content on social media
+                        <ul>
+                            <li>These represent your real style that's already working</li>
+                            <li>Primary source for new users who connect accounts</li>
+                            <li>Rule-based analysis only (fast, free, effective)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Edits</strong> (Medium Priority) - You actively changed things!
+                        <ul>
+                            <li>AI analysis if API key available (understands WHY you changed)</li>
+                            <li>Rule-based fallback if no API key</li>
+                            <li>Uses weighted voting (all edits contribute, recent ones have more weight)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Accepted Content</strong> (Lower Priority) - You accepted as-is
+                        <ul>
+                            <li>Rule-based analysis only (no AI needed)</li>
+                            <li>Shows what you approve without changes</li>
+                        </ul>
+                    </li>
+                    <li><strong>Rejected Content</strong> - Does NOT learn (just records what you don't like)</li>
+                </ol>
+            </div>
+
+            <h3>2.4 How Aggregation Works (Preventing Over-Dominance)</h3>
+            <h4>Edits: Weighted Voting System</h4>
+            <p>
+                When you have multiple edits, the system uses <strong>weighted voting</strong> to aggregate preferences. 
+                More recent edits have higher weight, but ALL edits contribute:
+            </p>
+            <div class="code-block">
+                <code>
+Example with 5 edits:
+- Most recent edit:  weight = 5 (33% influence)
+- 2nd most recent:   weight = 4 (27% influence)
+- 3rd most recent:   weight = 3 (20% influence)
+- 4th most recent:   weight = 2 (13% influence)
+- Oldest edit:       weight = 1 (7% influence)
+Total: All 5 edits contribute 100%
+
+Key Points:
+✅ Most recent edit has MORE influence (reflects current preferences)
+✅ But ALL edits contribute (not just the latest)
+✅ Older edits still matter (7-27% each)
+✅ System uses VOTING - most common pattern across all edits wins
+✅ Thresholds prevent outliers (e.g., tones need 20%+ votes to be included)
+                </code>
+            </div>
+
+            <h4>How Final Combination Works</h4>
+            <div class="code-block">
+                <code>
+Final Merge Priority (Rule-Based):
+
+1. Scanned posts style → HIGHEST PRIORITY
+   If scanned posts have "enthusiastic" tone → Use "enthusiastic"
+   
+2. Edits style → FILLS GAPS if scanned doesn't have that preference
+   If scanned posts don't have tone preference, use edits tone
+   
+3. Accepted content → FILLS REMAINING GAPS
+   Only used if scanned and edits don't have that preference
+
+Example:
+- Scanned posts: "enthusiastic" tone, "medium" length
+- Edits: "professional" tone, "short" length
+- Accepted: "casual" tone, "long" length
+
+Result: "enthusiastic" tone (from scanned), "medium" length (from scanned)
+        Edits and accepted only used if scanned doesn't have that preference
+                </code>
+            </div>
+
+            <h3>2.5 When AI is Used vs When Rule-Based is Used</h3>
+            <table>
+                <tr>
+                    <th>Action</th>
+                    <th>Analysis Method</th>
+                    <th>AI Calls</th>
+                    <th>When It Happens</th>
+                </tr>
+                <tr>
+                    <td><strong>Scan Social Posts</strong></td>
+                    <td><span class="badge badge-rule">Rule-Based</span></td>
+                    <td>0 API calls</td>
+                    <td>When you connect account or on content page load</td>
+                </tr>
+                <tr>
+                    <td><strong>Accept Generated Content</strong></td>
+                    <td><span class="badge badge-rule">Rule-Based</span></td>
+                    <td>0 API calls</td>
+                    <td>When you click "Accept" on generated content</td>
+                </tr>
+                <tr>
+                    <td><strong>Edit Generated Content</strong></td>
+                    <td><span class="badge badge-ai">AI (Primary)</span><br/><span class="badge badge-rule">Rule-Based (Fallback)</span></td>
+                    <td>1 API call per edit<br/>(if API key available)</td>
+                    <td>When you edit content and save it</td>
+                </tr>
+                <tr>
+                    <td><strong>Aggregate Preferences</strong></td>
+                    <td><span class="badge badge-rule">Rule-Based</span></td>
+                    <td>0 API calls</td>
+                    <td>Immediately after accept/edit/scan (uses stored AI results)</td>
+                </tr>
+                <tr>
+                    <td><strong>Generate Content</strong></td>
+                    <td><span class="badge badge-ai">AI (Gemini)</span></td>
+                    <td>1 API call per generation</td>
+                    <td>When you click "Generate Content"</td>
+                </tr>
+            </table>
+
+            <div class="info">
+                <h4>Key Insight: AI is NOT called during aggregation!</h4>
+                <p>
+                    When you accept/edit/scan content, the system immediately aggregates preferences. However, 
+                    <strong>aggregation itself is rule-based</strong>. It uses:
+                </p>
+                <ul>
+                    <li><strong>For edits:</strong> Stored AI analysis results (<code>edit.aiPreferences</code>) - already analyzed, no new AI call</li>
+                    <li><strong>For scanned posts:</strong> Stored rule-based analysis (<code>post.styleAnalysis</code>) - already analyzed</li>
+                    <li><strong>For accepted content:</strong> Quick rule-based analysis - no AI needed</li>
+                </ul>
+                <p>
+                    <strong>Result:</strong> Only 1 AI call per edit (for analysis). Aggregation uses stored results, 
+                    so there's no additional AI cost for combining preferences.
+                </p>
+            </div>
+
+            <h3>2.6 How learnedStyle is Created and Stored</h3>
+            <div class="code-block">
+                <code>
+The learnedStyle Object (What AI Uses During Generation):
+
+{
+  tone?: string[]                    // e.g., ["enthusiastic", "personal"]
+  length?: "short" | "medium" | "long"  // Preferred content length
+  hashtagUsage?: "none" | "minimal" | "moderate" | "heavy"
+  emojiUsage?: "none" | "minimal" | "moderate"
+  ctaStyle?: string[]                // e.g., ["learn more", "get started"]
+  structure?: string[]               // e.g., ["question-based", "benefit-focused"]
+}
+
+Storage Location:
+settings.contentPreferences.learnedStyle
+
+How It's Created:
+1. Individual Analysis (happens when you accept/edit/scan):
+   - Edits: AI analysis (if API key) → stores edit.aiPreferences
+   - Scanned Posts: Rule-based analysis → stores styleAnalysis
+   - Accepted Content: Rule-based analysis → stores preferences
+
+2. Aggregation (RULE-BASED - no AI):
+   - For Edits: Uses stored aiPreferences + weighted voting (rule-based)
+   - For Scanned Posts: Uses stored styleAnalysis + statistical aggregation
+   - For Accepted Content: Frequency analysis (most common patterns)
+
+3. Final Combination (RULE-BASED merging):
+   - Priority: scanned > edits > accepted
+   - Combines arrays (tones, CTAs, structure) using deduplication
+   - Simple logic: prefer scanned, then edits, then accepted
+
+4. Immediate Storage:
+   - Updates learnedStyle IMMEDIATELY after accept/edit/scan
+   - Saved to localStorage with the rest of settings
+   - Available for next content generation immediately
+                </code>
+            </div>
+
+            <h3>2.7 How learnedStyle is Used During Content Generation</h3>
+            <div class="flow-diagram">
+CONTENT GENERATION FLOW (How learnedStyle is Applied):
+
+1. USER ENTERS PROMPT
+   └─> User types: "Promote our new product launch"
+       └─> User clicks "Generate Content"
+
+2. BUILD AI PROMPT
+   └─> generateContent() called (ai.ts)
+       └─> generateLearningPrompt() called (content-learner.ts)
+           └─> Reads learnedStyle from store (ALREADY STORED - no learning here!)
+               └─> Creates learning prompt section:
+
+   === LEARNED USER PREFERENCES (Apply these styles):
+   - Content Length: medium (50-150 words)
+   - Tone: enthusiastic, personal
+   - Hashtag Usage: minimal (1-2 hashtags)
+   - Emoji Usage: none (no emojis)
+   - Preferred CTA styles: learn more, get started
+   - Structure: question-based, benefit-focused
+   
+   === RECENT USER EDITS (Read FULL content to understand WHY changes were made):
+   [Shows last 5 edits with full original and edited content]
+   
+   KEY LEARNING: Understand WHY user made changes - what was wrong with original, 
+   what makes edited version better.
+
+3. COMBINE PROMPTS
+   └─> System prompt + User prompt + Learning prompt
+       └─> Full prompt sent to Gemini AI
+
+4. AI GENERATES CONTENT
+   └─> Gemini reads prompt + learned preferences
+       └─> Generates content matching your style
+           └─> Returns generated content to user
+
+✅ RESULT: Content matches your learned preferences!
+            </div>
+
+            <div class="warning">
+                <strong>Important Notes:</strong>
+                <ul>
+                    <li>❌ <strong>No learning happens during generation</strong> - it only uses what's already learned</li>
+                    <li>✅ <strong>Learning happens BEFORE generation</strong> - when you accept/edit/scan</li>
+                    <li>✅ <strong>learnedStyle is read from localStorage</strong> - already stored, no API call</li>
+                    <li>✅ <strong>Only 1 AI call per generation</strong> - for content generation, not learning</li>
+                </ul>
+            </div>
+
+            <h3>2.8 Learning Data Limits (Storage Management)</h3>
+            <table>
+                <tr>
+                    <th>Data Type</th>
+                    <th>Maximum Kept</th>
+                    <th>Cleanup Method</th>
+                    <th>Why This Limit?</th>
+                </tr>
+                <tr>
+                    <td><strong>Accepted Content</strong></td>
+                    <td>Last 50 items</td>
+                    <td>Oldest removed when limit exceeded</td>
+                    <td>Performance, storage limits, recent data more relevant</td>
+                </tr>
+                <tr>
+                    <td><strong>Rejected Content</strong></td>
+                    <td>Last 20 items</td>
+                    <td>Oldest removed when limit exceeded</td>
+                    <td>Just tracking patterns, less important than accepted</td>
+                </tr>
+                <tr>
+                    <td><strong>Edits</strong></td>
+                    <td>Last 30 items</td>
+                    <td>Oldest removed when limit exceeded</td>
+                    <td>Weighted voting still works with 30, most recent matter more</td>
+                </tr>
+                <tr>
+                    <td><strong>Scanned Posts</strong></td>
+                    <td>Last 30 items<br/>(images only for newest 15)</td>
+                    <td>Oldest removed, images removed from older posts</td>
+                    <td>Images take up space, text is more important for learning</td>
+                </tr>
+                <tr>
+                    <td><strong>learnedStyle</strong></td>
+                    <td>No limit</td>
+                    <td>Aggregated summary, always small</td>
+                    <td>This is just a small object with preferences, not full content</td>
+                </tr>
+            </table>
+
+            <div class="info">
+                <strong>Total Maximum:</strong> 130 items across all sources (50 + 20 + 30 + 30)<br/>
+                <strong>Automatic Cleanup:</strong> Oldest items are removed when limits are reached<br/>
+                <strong>No Data Loss:</strong> The <code>learnedStyle</code> object (aggregated preferences) is preserved even when history is cleaned up
+            </div>
+
+            <div class="part-nav">
+                <strong>Navigation:</strong>
+                <a href="#part1">Part 1</a>
+                <a href="#part2">Part 2</a>
+                <a href="#part3">Part 3</a>
+                <a href="#part4">Part 4</a>
+            </div>
+        </section>
+
+        <!-- PART 3: CONTENT GENERATION, SCANNING & IMAGE MANAGEMENT -->
+        <section id="part3">
+            <h2>Part 3: Content Generation, Scanning & Image Management</h2>
+
+            <h3>3.1 Content Generation Flow (Complete Process)</h3>
+            <div class="flow-diagram">
+CONTENT GENERATION COMPLETE FLOW:
+
+1. USER NAVIGATES TO CONTENT PAGE (/content)
+   └─> Content page loads
+       └─> Auto-scan triggered (if accounts connected)
+           └─> autoScanAllPlatforms() called
+               └─> Scans all connected social accounts
+                   └─> Posts analyzed with rule-based analysis
+                       └─> Images extracted from posts
+                           └─> All saved to settings.contentPreferences.scannedPosts
+                               └─> learnedStyle updated immediately
+                                   ✅ SCANNING COMPLETE
+
+2. USER CREATES CONTENT
+   └─> User selects content type (Post, Email, Paid Ad)
+       └─> User selects platform (Twitter, LinkedIn, Facebook, Instagram)
+           └─> User enters prompt/topic
+               └─> User optionally uploads media OR selects from brand image library
+                   └─> User clicks "Generate Content"
+
+3. AI GENERATION PROCESS
+   └─> generateContent() called (ai.ts)
+       ├─> Reads learnedStyle from store (already stored!)
+       ├─> generateLearningPrompt() creates learning prompt section
+       ├─> Combines: System prompt + User prompt + Learning prompt
+       └─> Calls Gemini AI (tries models in order: gemini-2.5-flash → 2.0-flash → 1.5-flash → pro)
+           └─> AI generates content matching your style
+               └─> Content returned to user
+                   ✅ GENERATION COMPLETE
+
+4. USER REVIEWS GENERATED CONTENT
+   └─> Content displayed in preview
+       └─> User can:
+           ├─> EDIT (inline editing in preview)
+           │   └─> User makes changes → clicks Save
+           │       └─> trackContentEdit() called
+           │           ├─> analyzeEdit() [RULE-BASED - instant]
+           │           ├─> analyzeEditWithAI() [AI - if API key available]
+           │           └─> Edit saved → learnedStyle updated → ✅ LEARNING HAPPENS
+           │
+           ├─> ACCEPT (content is good as-is)
+           │   └─> User clicks "Accept"
+           │       └─> trackAcceptedContent() called
+           │           ├─> analyzeContent() [RULE-BASED]
+           │           └─> Content saved → learnedStyle updated → ✅ LEARNING HAPPENS
+           │
+           ├─> REJECT (content is not good)
+           │   └─> User clicks "Reject"
+           │       └─> trackRejectedContent() called
+           │           └─> Content saved → ❌ NO LEARNING (just records what you don't like)
+           │
+           └─> REGENERATE (try again with same prompt)
+               └─> Goes back to step 3 (new generation, but uses same learnedStyle)
+            </div>
+
+            <h3>3.2 How Images Get Scanned and Saved</h3>
+            <h4>Image Extraction Process</h4>
+            <div class="code-block">
+                <code>
+IMAGE SCANNING & STORAGE FLOW:
+
+1. AUTO-SCAN TRIGGERED
+   └─> User connects social account OR content page loads
+       └─> autoScanAllPlatforms() called (auto-scanner.ts)
+
+2. PLATFORM-SPECIFIC SCANNING
+   ├─> Facebook: scanFacebookAccount()
+   │   └─> Fetches posts from Graph API
+   │       └─> Extracts images from:
+   │           ├─> post.attachments.data[].media.image.src (photo attachments)
+   │           └─> post.photos.data[].picture or images[0].source
+   │
+   ├─> Twitter: scanTwitterAccount()
+   │   └─> Calls /api/scan-twitter (server-side proxy)
+   │       └─> Server calls Twitter API v2
+   │           └─> Fetches tweets with media expansions
+   │               └─> Extracts images from:
+   │                   └─> attachments.media_keys → maps to includes.media (type === 'photo')
+   │
+   ├─> LinkedIn: scanLinkedInAccount()
+   │   └─> Fetches posts from LinkedIn API
+   │       └─> Extracts images from:
+   │           └─> specificContent['com.linkedin.ugc.ShareContent'].media[].media
+   │
+   └─> Instagram: scanInstagramAccount()
+       └─> Fetches media from Instagram Graph API
+           └─> Extracts images from:
+               ├─> media_url (for IMAGE type)
+               └─> thumbnail_url (for VIDEO type)
+
+3. IMAGE PROCESSING
+   └─> For each scanned post:
+       ├─> Images extracted and added to ScannedContent object
+       ├─> Content analyzed (rule-based: analyzeContent())
+       └─> styleAnalysis created
+           └─> ScannedContent object created:
+               {
+                 id: post.id,
+                 platform: 'twitter' | 'facebook' | etc,
+                 content: post.text || post.message || '',
+                 images: [url1, url2, ...],  // ← Images stored here
+                 createdAt: post.created_at,
+                 engagement: { likes, comments, shares },
+                 styleAnalysis: { ... }  // ← Style analysis here
+               }
+
+4. STORAGE TO STATE
+   └─> All scanned content saved to:
+       settings.contentPreferences.scannedPosts[]
+       └─> Last 30 scanned posts kept
+           └─> Images kept for newest 15 posts (to save storage space)
+               └─> Older posts: images removed but content and styleAnalysis kept
+
+5. BRAND IMAGE LIBRARY
+   └─> Images extracted from scanned posts are ALSO saved to:
+       settings.brandImages[]
+       └─> Each image saved as:
+           {
+             id: 'auto-{platform}-{sourceId}-{index}',
+             url: imageUrl,  // ← Actual image URL
+             sourceUrl: '{platform}://{sourceId}',
+             platform: 'twitter' | 'facebook' | etc,
+             extractedAt: ISO timestamp
+           }
+       └─> Last 50 brand images kept (grouped by platform, 20 per platform max)
+           └─> Used for: Selecting images when creating new posts
+                </code>
+            </div>
+
+            <h3>3.3 How Images Are Used in New Posts</h3>
+            <div class="flow-diagram">
+IMAGE USAGE IN NEW POSTS:
+
+1. USER CREATES NEW POST
+   └─> User goes to Content page
+       └─> User selects platform
+           └─> User enters prompt
+
+2. IMAGE SELECTION OPTIONS
+   ├─> Option A: Upload New Image
+   │   └─> User clicks "Upload Media" button
+   │       └─> File picker opens
+   │           └─> User selects image/video
+   │               └─> Image validated (platform-specific checks)
+   │                   ├─> Size validation
+   │                   ├─> Dimension validation
+   │                   ├─> Format validation
+   │                   └─> Auto-optimization if too large
+   │                       └─> Image converted to base64
+   │                           └─> Stored in post.media.file
+   │
+   └─> Option B: Select from Brand Image Library
+       └─> User clicks "Brand Image Library" button
+           └─> Modal opens showing:
+               ├─> Images from scanned posts (auto-extracted)
+               └─> Images grouped by platform
+                   └─> User selects image
+                       └─> Image URL copied to post.media.file
+                           ✅ NO DOWNLOAD - uses original URL from social media
+
+3. CONTENT GENERATION WITH IMAGE
+   └─> User clicks "Generate Content"
+       └─> AI generates text (text complements the selected image)
+           └─> Preview shows: Generated text + Selected image
+
+4. POST SAVED
+   └─> Post object created:
+       {
+         id: unique-id,
+         content: generated-text,
+         platform: selected-platform,
+         media: {
+           file: image-url-or-base64,
+           type: 'image' | 'video',
+           width: number,
+           height: number
+         },
+         hasMedia: true,
+         status: 'draft'
+       }
+       └─> Saved to store.posts[]
+            </div>
+
+            <h3>3.4 Image Storage Details</h3>
+            <div class="highlight">
+                <h4>Image Storage Strategy:</h4>
+                <ul>
+                    <li><strong>From Scanned Posts:</strong> Images stored as URLs (original social media URLs)
+                        <ul>
+                            <li>✅ Saves storage space (URLs are small strings, not full images)</li>
+                            <li>✅ Images load directly from social media servers</li>
+                            <li>⚠️ Risk: If original post is deleted, image URL might break</li>
+                        </ul>
+                    </li>
+                    <li><strong>From Uploads:</strong> Images stored as base64 strings
+                        <ul>
+                            <li>✅ Self-contained (no external dependencies)</li>
+                            <li>✅ Works offline</li>
+                            <li>⚠️ Uses more storage space (~100-200KB per image)</li>
+                            <li>⚠️ localStorage limit: ~5-10MB total</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>Storage Limits & Cleanup:</h4>
+                <ul>
+                    <li><strong>Brand Images:</strong> Last 50 images kept (20 per platform max)</li>
+                    <li><strong>Scanned Posts:</strong> Last 30 posts kept, images only for newest 15</li>
+                    <li><strong>Automatic Cleanup:</strong> When localStorage is full, oldest images removed first</li>
+                    <li><strong>Storage Monitoring:</strong> App detects quota exceeded and automatically cleans up</li>
+                </ul>
+            </div>
+
+            <h3>3.5 Platform-Specific Image Requirements</h3>
+            <table>
+                <tr>
+                    <th>Platform</th>
+                    <th>Image Max Size</th>
+                    <th>Recommended Dimensions</th>
+                    <th>Video Max Size</th>
+                    <th>Video Max Duration</th>
+                </tr>
+                <tr>
+                    <td><strong>Twitter/X</strong></td>
+                    <td>5 MB</td>
+                    <td>1200×675px (16:9)</td>
+                    <td>512 MB</td>
+                    <td>140 seconds</td>
+                </tr>
+                <tr>
+                    <td><strong>LinkedIn</strong></td>
+                    <td>10 MB</td>
+                    <td>1200×627px (1.91:1)</td>
+                    <td>200 MB</td>
+                    <td>10 minutes</td>
+                </tr>
+                <tr>
+                    <td><strong>Facebook</strong></td>
+                    <td>4 MB</td>
+                    <td>1200×630px (1.91:1)</td>
+                    <td>1 GB</td>
+                    <td>4 minutes</td>
+                </tr>
+                <tr>
+                    <td><strong>Instagram</strong></td>
+                    <td>8 MB</td>
+                    <td>1080×1080px (1:1)</td>
+                    <td>100 MB</td>
+                    <td>60 seconds</td>
+                </tr>
+            </table>
+
+            <h3>3.6 Social Media Account Scanning Details</h3>
+            <h4>Auto-Scan Trigger Conditions</h4>
+            <div class="code-block">
+                <code>
+AUTO-SCAN TRIGGERS (content/page.tsx):
+
+1. On Content Page Load (useEffect hook)
+   ├─> Checks if accounts are connected
+   ├─> Checks last scan time
+   └─> Scans if:
+       ├─> First time (no previous scan)
+       ├─> Accounts changed (new account connected)
+       ├─> More than 1 hour since last scan (for non-Twitter platforms)
+       └─> More than 15 minutes since last scan (for Twitter - rate limit)
+           └─> BUT: Uses 24-hour cache for Twitter (free tier optimization)
+
+2. Platform-Specific Rate Limiting:
+   ├─> Twitter: 15-minute rate limit (free tier: 1 request per 15 minutes)
+   │   └─> Cache: 24 hours (free tier optimization)
+   │   └─> Prevents scans within 15 minutes
+   └─> Other Platforms: 1-hour cache
+       └─> Standard scanning behavior
+
+3. Scan Frequency Control:
+   └─> sessionStorage used to track:
+       ├─> lastScanKey (JSON string of account IDs)
+       ├─> lastScanTime (timestamp)
+       ├─> lastTwitterScanTime (Twitter-specific timestamp)
+       └─> Prevents duplicate scans
+                </code>
+            </div>
+
+            <h4>Scanning Process Per Platform</h4>
+            <div class="code-block">
+                <code>
+FACEBOOK SCANNING:
+1. Try personal posts first: GET /me/posts
+   └─> Works with Consumer login
+   └─> Fields: message, created_time, attachments, likes, comments, shares
+   └─> Extracts images from attachments.media.image.src
+
+2. Try pages if personal fails: GET /me/accounts
+   └─> Gets all Facebook Pages user manages
+   └─> For each page: GET /{page-id}/posts
+       └─> Works with Business login
+       └─> Same image extraction process
+
+TWITTER SCANNING (via server-side proxy):
+1. Browser calls: POST /api/scan-twitter
+   └─> Sends: { accessToken, userId }
+   └─> Server proxies request to Twitter API v2
+       └─> GET /users/{userId}/tweets
+           └─> Params: max_results=100, exclude=replies,retweets
+           └─> Expansions: attachments.media_keys
+           └─> Media fields: url, preview_image_url, type
+           └─> Returns: tweets + media mapping
+               └─> Server maps media_keys to image URLs
+                   └─> Returns to browser: { tweets: [...], media: [...] }
+
+2. Browser processes response:
+   └─> For each tweet: analyzeContent() [RULE-BASED]
+   └─> Maps images from media array
+   └─> Creates ScannedContent objects
+
+LINKEDIN SCANNING:
+1. GET /v2/ugcPosts?q=authors&authors=List(me)
+   └─> Returns user's posts
+   └─> Extracts: shareCommentary.text, media[].media
+   └─> Analyzes content (rule-based)
+
+INSTAGRAM SCANNING:
+1. GET /{instagram-business-account-id}/media
+   └─> Fields: caption, media_type, media_url, thumbnail_url, timestamp
+   └─> Only works with Instagram Business/Creator accounts
+   └─> Requires Instagram Business Account ID (not Facebook user ID)
+   └─> Extracts: media_url (images) or thumbnail_url (videos)
+                </code>
+            </div>
+
+            <div class="part-nav">
+                <strong>Navigation:</strong>
+                <a href="#part1">Part 1</a>
+                <a href="#part2">Part 2</a>
+                <a href="#part3">Part 3</a>
+                <a href="#part4">Part 4</a>
+            </div>
+        </section>
+
+        <!-- PART 4: EMAIL SYSTEM, SCHEDULING, PUBLISHING & ANALYTICS -->
+        <section id="part4">
+            <h2>Part 4: Email System, Scheduling, Publishing & Analytics</h2>
+
+            <h3>4.1 How the Email System Works</h3>
+            <div class="flow-diagram">
+EMAIL GENERATION & CAMPAIGN FLOW:
+
+1. USER NAVIGATES TO EMAIL PAGE (/email)
+   └─> Email page loads
+       └─> Shows existing campaigns and contact lists
+
+2. CREATE EMAIL CAMPAIGN
+   └─> User clicks "Create Email Campaign"
+       ├─> User enters Campaign Name/Topic (e.g., "Product Launch", "Apology Letter")
+       ├─> User selects Tone (Personal, Neutral, Professional, Marketing)
+       ├─> User optionally selects Contact List (for recipients)
+       └─> User clicks "Generate Email"
+
+3. AI EMAIL GENERATION
+   └─> generateContent() called (ai.ts)
+       ├─> Type: 'email'
+       ├─> Prompt includes campaign name/topic (context-aware!)
+       ├─> System prompt analyzes topic to determine email type:
+       │   ├─> Personal email (e.g., "can't attend wedding") → personal, appropriate tone
+       │   ├─> Marketing email (e.g., "Product Launch") → marketing elements, CTA
+       │   └─> Business email (e.g., "Update") → professional tone
+       ├─> Tone instruction added based on user selection
+       ├─> Business context added (if available in settings)
+       └─> AI generates email with:
+           ├─> Subject line (well-crafted, not just raw topic)
+           └─> Email body (appropriate for context)
+               ✅ EMAIL GENERATED
+
+4. EMAIL FORMATTING
+   └─> Generated content parsed:
+       ├─> Extracts "Subject:" or "Onderwerp:" line → subject
+       └─> Rest of content → email body
+           └─> Saved to campaign object:
+               {
+                 id: unique-id,
+                 name: campaignName,
+                 subject: extracted-subject,
+                 content: email-body,
+                 recipients: selected-list-contacts || [],
+                 status: 'draft',
+                 createdAt: timestamp
+               }
+
+5. USER MANAGES CAMPAIGN
+   └─> User can:
+       ├─> Edit subject/content (inline editing)
+       ├─> Select/Change contact list
+       ├─> Schedule campaign (set date/time)
+       └─> Send campaign (manual or scheduled)
+            </div>
+
+            <h3>4.2 Contact List Management</h3>
+            <div class="highlight">
+                <h4>How Contact Lists Work:</h4>
+                <ul>
+                    <li><strong>Create List:</strong> User creates a named contact list (e.g., "VIP Customers", "Newsletter Subscribers")</li>
+                    <li><strong>Add Contacts:</strong> User adds contacts to list (name, email, optional phone)</li>
+                    <li><strong>Import from Leads:</strong> Can convert leads to contacts and add to lists</li>
+                    <li><strong>Use in Campaigns:</strong> Select list when creating email campaign - all contacts in list become recipients</li>
+                    <li><strong>Storage:</strong> Contact lists stored in <code>store.contactLists[]</code></li>
+                    <li><strong>Limit:</strong> Last 100 contact lists kept (can contain many contacts each)</li>
+                </ul>
+            </div>
+
+            <h3>4.3 How Scheduling & Auto-Publishing Works</h3>
+            <div class="flow-diagram">
+POST SCHEDULING & AUTO-PUBLISHING FLOW:
+
+1. USER SCHEDULES POST
+   └─> User goes to Schedule page (/schedule)
+       └─> User selects a post (draft)
+           └─> User clicks "Schedule Post"
+               ├─> User selects date and time
+               └─> User clicks "Schedule"
+                   └─> Post updated:
+                       {
+                         ...post,
+                         scheduledFor: ISO-timestamp,
+                         status: 'scheduled'
+                       }
+                       └─> Saved to store.posts[]
+                           ✅ POST SCHEDULED
+
+2. AUTO-PUBLISH CHECK (Running in Background)
+   └─> useEffect hook on Schedule page runs checkAndPublishScheduledPosts()
+       └─> Runs every 60 seconds (setInterval)
+           └─> Also runs immediately on page load
+               └─> Checks all posts with status: 'scheduled'
+
+3. TIME CHECK
+   └─> For each scheduled post:
+       ├─> Gets current time (now)
+       ├─> Gets scheduled time (post.scheduledFor)
+       └─> Calculates time difference
+           └─> If scheduled time has passed (within last 5 minutes):
+               └─> Proceeds to publish
+               └─> If too early: Skip (wait for scheduled time)
+
+4. PUBLISH PROCESS
+   └─> findConnectedAccount() - finds connected social account for post.platform
+       └─> publishPost() called (post-publisher.ts)
+           └─> Platform-specific publishing:
+               ├─> Twitter: postToTwitter() → calls /api/publish-twitter (server-side proxy)
+               ├─> Facebook: postToFacebook() → calls Graph API directly
+               ├─> LinkedIn: postToLinkedIn() → calls LinkedIn API v2
+               └─> Instagram: postToInstagram() → two-step process (create container → publish)
+
+5. PUBLISH RESULT
+   ├─> SUCCESS:
+   │   └─> Post updated:
+   │       {
+   │         ...post,
+   │         status: 'posted',
+   │         postedAt: current-timestamp,
+   │         scheduledFor: undefined
+   │       }
+   │       └─> Toast notification: "✓ Post automatically published to {platform}!"
+   │           ✅ POST PUBLISHED
+   │
+   └─> FAILURE:
+       └─> Error message shown
+           └─> Post remains as 'scheduled' (user can retry manually)
+               ⚠️ PUBLISH FAILED - RETRY NEEDED
+            </div>
+
+            <div class="info">
+                <h4>Important Notes:</h4>
+                <ul>
+                    <li>✅ <strong>Auto-publish runs every 60 seconds</strong> - checks all scheduled posts</li>
+                    <li>✅ <strong>Publishes posts within 5-minute window</strong> - won't miss posts if check is a bit late</li>
+                    <li>✅ <strong>Only publishes if scheduled time has passed</strong> - won't publish early</li>
+                    <li>✅ <strong>Requires connected social account</strong> - won't publish if account not connected</li>
+                    <li>⚠️ <strong>Requires Schedule page to be open</strong> - check only runs while on schedule page</li>
+                    <li>💡 <strong>Future enhancement:</strong> Could use background service worker for 24/7 publishing</li>
+                </ul>
+            </div>
+
+            <h3>4.4 Platform-Specific Publishing Details</h3>
+            <h4>Twitter/X Publishing</h4>
+            <div class="code-block">
+                <code>
+TWITTER PUBLISHING (via server-side proxy):
+
+1. Browser calls: POST /api/publish-twitter
+   └─> Sends: { accessToken, content, mediaUrl? }
+   
+2. Server proxies to Twitter API v2:
+   └─> POST /2/tweets
+       └─> Headers: Authorization: Bearer {accessToken}
+       └─> Body: { text: content, media: { media_ids: [...] } }  // if media
+       
+3. Twitter API Requirements:
+   ├─> Token must be OAuth 2.0 User Context (NOT Application-Only)
+   ├─> App must have "Read and write" permissions enabled
+   ├─> Free tier: 17 requests per 24 hours (very limited)
+   ├─> Basic tier ($200/month): 100 requests per 24 hours
+   └─> Pro tier ($5000/month): 100 requests per 15 minutes
+
+4. Error Handling:
+   ├─> 403 Forbidden → Token doesn't have tweet.write permission
+   │   └─> User needs to reconnect with "Read and write" permissions
+   ├─> 429 Rate Limit → Too many requests
+   │   └─> Wait before retrying
+   └─> 401 Unauthorized → Token expired/invalid
+       └─> User needs to reconnect account
+                </code>
+            </div>
+
+            <h4>Facebook Publishing</h4>
+            <div class="code-block">
+                <code>
+FACEBOOK PUBLISHING:
+
+1. Direct API call from browser:
+   └─> POST https://graph.facebook.com/v18.0/{page-id or 'me'}/feed
+       └─> Params: message={content}, access_token={token}
+       
+2. With Image:
+   └─> POST https://graph.facebook.com/v18.0/{page-id or 'me'}/photos
+       └─> Params: url={imageUrl}, message={content}, access_token={token}
+
+3. Requirements:
+   ├─> Token must have 'pages_manage_posts' permission
+   ├─> For Pages: Use page access token (from OAuth callback)
+   └─> For Personal: Use user access token with 'user_posts' permission
+                </code>
+            </div>
+
+            <h4>Instagram Publishing</h4>
+            <div class="code-block">
+                <code>
+INSTAGRAM PUBLISHING (Two-Step Process):
+
+1. Create Media Container:
+   └─> POST https://graph.instagram.com/v18.0/{user-id}/media
+       └─> Params:
+           ├─> image_url={imageUrl}  // REQUIRED (Instagram needs image)
+           ├─> caption={content}
+           └─> access_token={token}
+       └─> Returns: { id: creation-id }
+
+2. Wait 2 seconds (Instagram processes image)
+
+3. Publish Container:
+   └─> POST https://graph.instagram.com/v18.0/{user-id}/media_publish
+       └─> Params:
+           ├─> creation_id={creation-id}
+           └─> access_token={token}
+       └─> Returns: { id: post-id }
+
+Requirements:
+├─> Instagram Business/Creator account required
+├─> Account must be connected to Facebook Page
+├─> Token must have 'instagram_content_publish' permission
+└─> Image is REQUIRED (Instagram doesn't support text-only posts)
+                </code>
+            </div>
+
+            <h3>4.5 How Analytics & Performance Analysis Works</h3>
+            <div class="flow-diagram">
+ANALYTICS & PERFORMANCE ANALYSIS FLOW:
+
+1. DATA SOURCES (Combined for Analysis)
+   ├─> Manually Tracked Posts (store.posts[] with status='posted')
+   │   └─> User manually enters engagement metrics
+   │       └─> views, likes, comments, shares, reach
+   │
+   └─> Scanned Posts (settings.contentPreferences.scannedPosts[])
+       └─> Automatically scanned from social media
+           └─> Engagement metrics from API:
+               └─> likes, comments, shares (actual metrics)
+               └─> views/reach estimated (if not available)
+
+2. PERFORMANCE ANALYSIS (analyzeContentPerformance)
+   └─> analyzeContentPerformance() called (content-performance-analyzer.ts)
+       ├─> Combines both sources (manual + scanned posts)
+       ├─> Calculates metrics:
+       │   ├─> Engagement Rate = (likes + comments + shares) / reach × 100
+       │   ├─> Performance Score = weighted scoring (0-100)
+       │   │   ├─> Views: 20 points (max 20)
+       │   │   ├─> Likes: 30 points (max 30)
+       │   │   ├─> Comments: 25 points (max 25)
+       │   │   ├─> Shares: 15 points (max 15)
+       │   │   └─> Reach: 10 points (max 10)
+       │   └─> Top Performing Posts = sorted by score (top 5)
+       │
+       └─> Analyzes patterns:
+           ├─> Best Posting Times (analyzePostingTimes)
+           │   └─> Groups by day + hour, calculates avg engagement
+           ├─> Best Content Types (analyzeContentTypes)
+           │   └─> Groups by type (text/image/video/carousel), calculates avg views
+           ├─> Best Hashtags (analyzeHashtags)
+           │   └─> Groups by hashtag, calculates avg views per hashtag
+           ├─> Best Platforms (analyzePlatforms)
+           │   └─> Groups by platform, calculates avg reach + engagement
+           ├─> Optimal Content Length (analyzeContentLength)
+           │   └─> Groups by length ranges, finds best performing range
+           └─> Media Impact (analyzeMediaImpact)
+               └─> Compares posts with media vs without media
+
+3. INSIGHTS GENERATION (generateRecommendations)
+   └─> Based on analysis results, generates actionable recommendations:
+       ├─> "Post on Mondays around 10:00 for best engagement"
+       ├─> "Use image content more often - it averages X views"
+       ├─> "Posts with media perform significantly better"
+       ├─> "Top performing hashtags: #tag1, #tag2, #tag3"
+       ├─> "Twitter shows highest reach (avg X)"
+       └─> "Optimal content length: 100-200 characters"
+
+4. DISPLAY (analytics/page.tsx)
+   └─> Analytics page shows:
+       ├─> Overall Metrics: Total views, likes, comments, shares, reach
+       ├─> Engagement Rate: Average engagement rate
+       ├─> Best Posting Times: Top 10 time slots with engagement
+       ├─> Best Content Types: Performance by content type
+       ├─> Best Hashtags: Top 20 hashtags with avg views
+       ├─> Best Platforms: Performance by platform
+       ├─> Top Performing Posts: Top 5 posts by performance score
+       ├─> AI Performance Insights: Recommendations
+       └─> Current Learned Preferences: What AI has learned about your style
+            </div>
+
+            <h3>4.6 Engagement Tracking System</h3>
+            <div class="highlight">
+                <h4>How Engagement Tracking Works:</h4>
+                <ul>
+                    <li><strong>Manual Tracking:</strong> User manually enters metrics after posting
+                        <ul>
+                            <li>User clicks "Mark as Published" on schedule page</li>
+                            <li>EngagementTracker modal opens</li>
+                            <li>User enters: views, likes, comments, shares, reach</li>
+                            <li>Data saved to <code>post.engagement</code></li>
+                        </ul>
+                    </li>
+                    <li><strong>Automatic Tracking (Scanned Posts):</strong> Engagement metrics from social media APIs
+                        <ul>
+                            <li>When posts are scanned, API provides engagement metrics</li>
+                            <li>For Twitter: likes, comments, shares from <code>public_metrics</code></li>
+                            <li>For Facebook: likes, comments, shares from Graph API</li>
+                            <li>For Instagram: likes, comments from Instagram Graph API</li>
+                            <li>Views/Reach estimated if not available (typical multipliers)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Performance Score Calculation:</strong>
+                        <ul>
+                            <li>Weighted scoring: Views (20pts) + Likes (30pts) + Comments (25pts) + Shares (15pts) + Reach (10pts)</li>
+                            <li>Each metric normalized to 0-1 range, then multiplied by max points</li>
+                            <li>Final score: 0-100</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <h3>4.7 OAuth & Social Account Connection</h3>
+            <h4>OAuth Flow (Complete Process)</h4>
+            <div class="flow-diagram">
+OAUTH CONNECTION FLOW:
+
+1. USER INITIATES CONNECTION
+   └─> User goes to Settings page (/settings)
+       └─> User clicks "Connect" button for platform (e.g., Twitter)
+           └─> Browser redirects to: GET /api/oauth/twitter
+               └─> OAuth route handler (app/(backend)/api/oauth/twitter/route.ts)
+
+2. OAUTH INITIATION
+   └─> Server constructs OAuth URL:
+       ├─> Uses getOAuthUrls() helper (vercel-url.ts) - detects Vercel/localhost
+       ├─> Generates PKCE code verifier & challenge (Twitter only)
+       ├─> Stores code_verifier in cookie (Twitter only)
+       ├─> Redirects user to platform OAuth page:
+       │   ├─> Twitter: https://twitter.com/i/oauth2/authorize?...
+       │   ├─> Facebook: https://www.facebook.com/v18.0/dialog/oauth?...
+       │   └─> LinkedIn: https://www.linkedin.com/oauth/v2/authorization?...
+       └─> User authorizes app on platform
+
+3. OAUTH CALLBACK
+   └─> Platform redirects back to: GET /api/oauth/twitter/callback?code=...
+       └─> Callback handler (app/(backend)/api/oauth/twitter/callback/route.ts)
+           ├─> Exchanges code for access token
+           ├─> Retrieves user info (user ID, username, etc.)
+           ├─> Stores token temporarily in cookies:
+           │   ├─> oauth_token (access token)
+           │   ├─> oauth_user_id (user ID)
+           │   └─> oauth_platform ('twitter' | 'facebook' | etc.)
+           └─> Redirects to: /settings?oauth_success=twitter
+
+4. TOKEN STORAGE
+   └─> Settings page detects oauth_success parameter
+       └─> Calls GET /api/oauth/token
+           └─> Retrieves token from cookies
+               └─> Saves to store.settings.socialAccounts[]:
+                   {
+                     platform: 'twitter',
+                     accessToken: token,
+                     userId: user-id,
+                     connected: true,
+                     connectedAt: timestamp
+                   }
+               └─> Clears cookies
+                   ✅ ACCOUNT CONNECTED
+            </div>
+
+            <h4>OAuth Scopes & Permissions Required</h4>
+            <table>
+                <tr>
+                    <th>Platform</th>
+                    <th>Required Scopes/Permissions</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td><strong>Facebook</strong></td>
+                    <td><code>user_posts</code>, <code>pages_manage_posts</code>, <code>pages_show_list</code>, <code>pages_read_engagement</code>, <code>pages_manage_metadata</code></td>
+                    <td>Read personal posts, manage page posts, read engagement metrics</td>
+                </tr>
+                <tr>
+                    <td><strong>Twitter/X</strong></td>
+                    <td><code>tweet.read</code>, <code>tweet.write</code>, <code>users.read</code>, <code>offline.access</code></td>
+                    <td>Read tweets, create tweets, get user info, refresh token access</td>
+                </tr>
+                <tr>
+                    <td><strong>Instagram</strong></td>
+                    <td><code>instagram_basic</code>, <code>instagram_content_publish</code>, <code>pages_show_list</code>, <code>pages_read_engagement</code>, <code>business_management</code></td>
+                    <td>Read Instagram posts, publish Instagram posts (requires Business/Creator account)</td>
+                </tr>
+                <tr>
+                    <td><strong>LinkedIn</strong></td>
+                    <td><code>r_liteprofile</code>, <code>r_emailaddress</code>, <code>w_member_social</code></td>
+                    <td>Read profile, publish posts (basic LinkedIn integration)</td>
+                </tr>
+            </table>
+
+            <div class="warning">
+                <h4>Important Notes:</h4>
+                <ul>
+                    <li><strong>Twitter:</strong> App must have "Read and write" permissions enabled in Twitter Developer Portal. 
+                        Application-Only tokens (read-only) will NOT work for posting. You must use OAuth popup to get User Context token.</li>
+                    <li><strong>Instagram:</strong> Requires Instagram Business or Creator account, connected to a Facebook Page. 
+                        Personal Instagram accounts cannot be used.</li>
+                    <li><strong>Facebook:</strong> Consumer login works for personal posts. Business login required for Page management.</li>
+                    <li><strong>All Platforms:</strong> Tokens must have correct permissions or features will fail with 403 Forbidden errors.</li>
+                </ul>
+            </div>
+
+            <h4>Manual Token Connection</h4>
+            <div class="info">
+                <h4>How Manual Token Connection Works:</h4>
+                <ul>
+                    <li><strong>Why Use Manual Token:</strong> Some users prefer to generate tokens themselves, bypassing OAuth popup</li>
+                    <li><strong>Process:</strong>
+                        <ol>
+                            <li>User clicks "Token" button (next to "Connect" button)</li>
+                            <li>Modal opens asking for access token</li>
+                            <li>User pastes token</li>
+                            <li>User clicks "Validate & Connect"</li>
+                            <li>App calls validation endpoint:
+                                <ul>
+                                    <li>Twitter: <code>POST /api/validate-twitter-token</code> → calls Twitter API <code>/users/me</code></li>
+                                    <li>Facebook: Validates via Graph API <code>/me</code></li>
+                                    <li>Instagram: <code>POST /api/validate-instagram-token</code> → validates token</li>
+                                </ul>
+                            </li>
+                            <li>If valid: Token + user ID saved to store</li>
+                            <li>If invalid: Error message shown (token expired, wrong permissions, etc.)</li>
+                        </ol>
+                    </li>
+                    <li><strong>Important Notes:</strong>
+                        <ul>
+                            <li>⚠️ <strong>Twitter:</strong> Manual tokens might be Application-Only (read-only). For posting, use OAuth popup to get User Context token.</li>
+                            <li>✅ <strong>Facebook/Instagram:</strong> Manual tokens work fine if they have correct permissions.</li>
+                            <li>✅ <strong>All tokens:</strong> Must have correct permissions for the features you want to use.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <h3>4.8 Data Backup & Restore System</h3>
+            <div class="flow-diagram">
+BACKUP & RESTORE SYSTEM:
+
+1. AUTOMATIC BACKUP (Every 30 seconds, debounced)
+   └─> Zustand store persists to localStorage
+       └─> Storage setItem() hook triggered
+           └─> Debounce timer starts (30 seconds)
+               └─> After 30 seconds of no changes:
+                   └─> createAutomaticBackup() called (backup.ts)
+                       └─> Creates backup object:
+                           {
+                             version: '1.0.0',
+                             timestamp: ISO-timestamp,
+                             data: {
+                               posts, leads, emailCampaigns,
+                               stats, settings
+                             }
+                           }
+                       └─> Saved to localStorage under key: 'marketing-bot-auto-backups'
+                           └─> Last 5 automatic backups kept
+                               ✅ AUTOMATIC BACKUP CREATED
+
+2. MANUAL EXPORT
+   └─> User clicks "Export Data" button (Settings page)
+       └─> exportData() called (backup.ts)
+           └─> Gets all data from store
+               └─> Creates JSON file:
+                   {
+                     version: '1.0.0',
+                     exportedAt: ISO-timestamp,
+                     data: { posts, leads, contactLists, emailCampaigns, stats, settings }
+                   }
+               └─> Downloads file: marketing-bot-backup-YYYY-MM-DD.json
+                   ✅ BACKUP FILE DOWNLOADED
+
+3. MANUAL IMPORT/RESTORE
+   └─> User clicks "Import Data" button (Settings page)
+       └─> File picker opens
+           └─> User selects backup JSON file
+               └─> importData() called (backup.ts)
+                   ├─> Reads file (FileReader API)
+                   ├─> Parses JSON
+                   ├─> Validates structure (version, data fields)
+                   ├─> Clears existing data (to avoid duplicates)
+                   └─> Imports all data:
+                       ├─> Posts: addPost() for each post
+                       ├─> Leads: addLead() for each lead
+                       ├─> Contact Lists: addContactList() for each list
+                       ├─> Email Campaigns: addEmailCampaign() for each campaign
+                       ├─> Stats: updateStats()
+                       └─> Settings: updateSettings()
+                           ✅ DATA RESTORED
+
+4. RESTORE FROM AUTOMATIC BACKUP
+   └─> User clicks "Restore" next to automatic backup (Settings page)
+       └─> restoreFromAutomaticBackup(timestamp) called (backup.ts)
+           └─> Gets backup from localStorage by timestamp
+               └─> Restores all data (same as manual import)
+                   ✅ DATA RESTORED FROM AUTOMATIC BACKUP
+            </div>
+
+            <h3>4.9 Complete Application Flow (Start to End)</h3>
+            <div class="highlight">
+                <h4>First-Time User Journey:</h4>
+                <ol>
+                    <li><strong>Initial Setup</strong>
+                        <ul>
+                            <li>User opens app → Dashboard loads</li>
+                            <li>User goes to Settings → Enters Gemini API key</li>
+                            <li>User enters business information (optional)</li>
+                            <li>User connects social accounts (OAuth or manual token)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Auto-Scan (First Time)</strong>
+                        <ul>
+                            <li>User navigates to Content page</li>
+                            <li>Auto-scan triggered (accounts are connected)</li>
+                            <li>All connected accounts scanned for posts</li>
+                            <li>Posts analyzed (rule-based), images extracted</li>
+                            <li>Scanned posts saved to <code>settings.contentPreferences.scannedPosts</code></li>
+                            <li><code>learnedStyle</code> created from scanned posts (PRIMARY SOURCE for new users!)</li>
+                            <li>✅ AI now knows your style!</li>
+                        </ul>
+                    </li>
+                    <li><strong>Generate First Content</strong>
+                        <ul>
+                            <li>User enters prompt: "Promote our new product"</li>
+                            <li>User clicks "Generate Content"</li>
+                            <li>AI generates content using <code>learnedStyle</code> from scanned posts</li>
+                            <li>Content matches your existing style!</li>
+                        </ul>
+                    </li>
+                    <li><strong>Review & Learn</strong>
+                        <ul>
+                            <li>User reviews generated content</li>
+                            <li>User edits content (makes changes)</li>
+                            <li>AI analyzes edit (if API key available) - understands WHY you changed it</li>
+                            <li>Edit saved → <code>learnedStyle</code> updated with new preferences</li>
+                            <li>User accepts edited content</li>
+                            <li>Accepted content saved → <code>learnedStyle</code> refined</li>
+                        </ul>
+                    </li>
+                    <li><strong>Schedule & Publish</strong>
+                        <ul>
+                            <li>User schedules post for specific time</li>
+                            <li>Schedule page auto-publishes when time comes</li>
+                            <li>Post published to social platform</li>
+                            <li>User tracks engagement (manually or from scan)</li>
+                        </ul>
+                    </li>
+                    <li><strong>Analytics & Optimization</strong>
+                        <ul>
+                            <li>User views Analytics page</li>
+                            <li>Performance insights shown (best posting times, content types, etc.)</li>
+                            <li>AI recommendations provided</li>
+                            <li>User optimizes future content based on insights</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <h3>4.10 Summary: When AI is Used vs Rule-Based</h3>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>When AI (Gemini) is Used</th>
+                    <th>When Rule-Based is Used</th>
+                    <th>Cost/Performance</th>
+                </tr>
+                <tr>
+                    <td><strong>Content Generation</strong></td>
+                    <td>✅ Always (1 API call per generation)</td>
+                    <td>❌ Never</td>
+                    <td>$0.000165 per generation</td>
+                </tr>
+                <tr>
+                    <td><strong>Email Generation</strong></td>
+                    <td>✅ Always (1 API call per generation)</td>
+                    <td>❌ Never</td>
+                    <td>$0.000165 per generation</td>
+                </tr>
+                <tr>
+                    <td><strong>Scanning Posts</strong></td>
+                    <td>❌ Never</td>
+                    <td>✅ Always (rule-based analysis)</td>
+                    <td>Free, instant</td>
+                </tr>
+                <tr>
+                    <td><strong>Accepting Content</strong></td>
+                    <td>❌ Never</td>
+                    <td>✅ Always (rule-based analysis)</td>
+                    <td>Free, instant</td>
+                </tr>
+                <tr>
+                    <td><strong>Editing Content</strong></td>
+                    <td>✅ Primary (if API key available, 1 API call per edit)</td>
+                    <td>✅ Fallback (if no API key or AI fails)</td>
+                    <td>$0.00009 per edit (if AI used)</td>
+                </tr>
+                <tr>
+                    <td><strong>Aggregating Preferences</strong></td>
+                    <td>❌ Never (uses stored AI results from edits)</td>
+                    <td>✅ Always (rule-based weighted voting)</td>
+                    <td>Free, instant</td>
+                </tr>
+                <tr>
+                    <td><strong>Performance Analysis</strong></td>
+                    <td>❌ Never</td>
+                    <td>✅ Always (statistical calculations)</td>
+                    <td>Free, instant</td>
+                </tr>
+            </table>
+
+            <div class="info">
+                <h4>Cost Summary (50 clients, moderate usage):</h4>
+                <ul>
+                    <li><strong>Content Generation:</strong> $1.98/month (main cost - 83% of total)</li>
+                    <li><strong>Edit Analysis:</strong> $0.41/month (learning - 17% of total)</li>
+                    <li><strong>Accept/Scan/Aggregation:</strong> $0/month (rule-based, no API calls)</li>
+                    <li><strong>Total:</strong> $2.39/month (~$0.05 per client)</li>
+                </ul>
+                <p>
+                    <strong>Result:</strong> Extremely cost-effective system that uses AI where needed (generation and 
+                    edit understanding) but uses fast, free rule-based analysis for everything else (scanning, accepting, 
+                    aggregating, performance analysis).
+                </p>
+            </div>
+
+            <h3>4.11 Complete Learning Order (Where It All Starts and Ends)</h3>
+            <div class="flow-diagram">
+COMPLETE LEARNING CYCLE (Start to End):
+
+START: New User Connects Account
+   │
+   ▼
+1. CONNECT SOCIAL ACCOUNT
+   │
+   ▼
+2. AUTO-SCAN TRIGGERED (Content page loads)
+   │
+   ▼
+3. SCAN POSTS (Rule-based analysis - NO AI)
+   ├─> analyzeContent() for each post
+   ├─> Extract images
+   └─> Create styleAnalysis for each post
+       │
+       ▼
+4. SAVE SCANNED POSTS
+   └─> settings.contentPreferences.scannedPosts[] updated
+       │
+       ▼
+5. AGGREGATE PREFERENCES (Rule-based - NO AI)
+   └─> combineAllLearningSources() called IMMEDIATELY
+       └─> learnFromScannedPosts() [RULE-BASED]
+           └─> learnedStyle created/updated
+               │
+               ▼
+6. STORE learnedStyle
+   └─> Saved to localStorage
+       │
+       ▼
+7. USER GENERATES CONTENT
+   └─> generateContent() called
+       └─> generateLearningPrompt() reads learnedStyle (ALREADY STORED)
+           └─> AI generates content matching learnedStyle
+               │
+               ▼
+8. USER EDITS GENERATED CONTENT
+   └─> trackContentEdit() called
+       ├─> analyzeEdit() [RULE-BASED - instant]
+       ├─> analyzeEditWithAI() [AI - if API key, 1 API call]
+       └─> Edit saved with aiPreferences (if AI used)
+           │
+           ▼
+9. AGGREGATE AGAIN (Rule-based - NO AI)
+   └─> combineAllLearningSources() called IMMEDIATELY
+       └─> aggregatePreferencesFromEdits() [RULE-BASED - weighted voting]
+           └─> learnedStyle updated (refined with edit preferences)
+               │
+               ▼
+10. STORE UPDATED learnedStyle
+    └─> Saved to localStorage
+        │
+        ▼
+11. NEXT GENERATION USES REFINED learnedStyle
+    └─> AI generates even better content
+        │
+        ▼
+END: Continuous Learning Cycle
+    └─> Every accept/edit/scan → learnedStyle updated → Next generation better
+            </div>
+
+            <div class="warning">
+                <h4>Key Points:</h4>
+                <ul>
+                    <li>✅ <strong>Learning happens BEFORE generation</strong> - when you accept/edit/scan</li>
+                    <li>✅ <strong>Using learned preferences happens DURING generation</strong> - when you click Generate</li>
+                    <li>✅ <strong>Aggregation is ALWAYS rule-based</strong> - uses stored AI results, no new AI calls</li>
+                    <li>✅ <strong>learnedStyle is updated IMMEDIATELY</strong> - no need to visit analytics page</li>
+                    <li>✅ <strong>Everything persists to localStorage</strong> - survives page reloads, browser restarts</li>
+                    <li>✅ <strong>Continuous improvement</strong> - every action makes AI better for next generation</li>
+                </ul>
+            </div>
+
+            <h3>4.13 Content Generation Prompt Structure</h3>
+            <div class="code-block">
+                <code>
+COMPLETE PROMPT STRUCTURE (What AI Receives):
+
+1. SYSTEM PROMPT (Platform-specific instructions)
+   ├─> For Posts: "You are a professional social media marketing expert..."
+   ├─> For Emails: "You are a professional email expert..."
+   └─> For Ads: "You are a professional advertising copywriter..."
+       └─> Includes content rules, formatting requirements, platform optimization
+
+2. LANGUAGE INSTRUCTION (If not English)
+   └─> French: "IMPORTANT: Generate ALL content in French..."
+   └─> Dutch: "IMPORTANT: Generate ALL content in Dutch..."
+   └─> English: Standard instruction
+
+3. TONE INSTRUCTION (If not professional)
+   └─> Personal: "Write in a personal, friendly, and warm tone..."
+   └─> Neutral: "Write in a neutral, balanced tone..."
+   └─> Marketing: "Write in a marketing-focused, promotional tone..."
+
+4. LEARNED USER PREFERENCES (from learnedStyle)
+   └─> generateLearningPrompt() creates this section:
+       === LEARNED USER PREFERENCES (Apply these styles):
+       - Content Length: medium (50-150 words)
+       - Tone: enthusiastic, personal
+       - Hashtag Usage: minimal (1-2 hashtags)
+       - Emoji Usage: none (no emojis)
+       - Preferred CTA styles: learn more, get started
+       - Structure: question-based, benefit-focused
+       
+       === RECENT USER EDITS (Read FULL content to understand WHY):
+       [Shows last 5 edits with complete original and edited content]
+       KEY LEARNING: Understand WHY user made changes...
+
+5. USER REQUEST PROMPT
+   └─> What user typed (e.g., "Promote our new product launch")
+
+6. CRITICAL CONTENT RULES
+   └─> Safety rules (no profanity, professional tone, etc.)
+
+FULL PROMPT = System Prompt + Language + Tone + Learned Preferences + 
+              Recent Edits + User Request + Content Rules
+                </code>
+            </div>
+
+            <h3>4.14 Inline Content Editing (How It Works)</h3>
+            <div class="highlight">
+                <h4>How Inline Editing Works:</h4>
+                <ul>
+                    <li><strong>Preview Display:</strong> Generated content shown in PlatformPreview component</li>
+                    <li><strong>Editable Text:</strong> Content text is rendered in editable div (<code>contentEditable={true}</code>)</li>
+                    <li><strong>User Edits:</strong> User clicks on text and edits directly in preview</li>
+                    <li><strong>Save Changes:</strong> User clicks "Save" or presses Ctrl+Enter/Cmd+Enter</li>
+                    <li><strong>Track Edit:</strong> <code>trackContentEdit()</code> called with:
+                        <ul>
+                            <li>originalContent (what AI generated)</li>
+                            <li>editedContent (what user changed it to)</li>
+                            <li>contentType, platform, prompt</li>
+                        </ul>
+                    </li>
+                    <li><strong>Learning Happens:</strong> Edit analyzed (AI + rule-based) → learnedStyle updated</li>
+                    <li><strong>Preview Updates:</strong> Preview shows edited content (with edit tracking)</li>
+                </ul>
+            </div>
+
+            <h3>4.15 Preview System (PlatformPreview Component)</h3>
+            <div class="code-block">
+                <code>
+PLATFORM PREVIEW SYSTEM:
+
+1. PREVIEW GENERATION
+   └─> After content generated, PlatformPreview component renders:
+       ├─> Platform-specific styling (Twitter blue, LinkedIn blue, Facebook blue, Instagram gradient)
+       ├─> Shows content text (editable if generated, read-only if scanned)
+       ├─> Shows media (image/video) if available
+       ├─> Shows engagement metrics (if posted/scanned)
+       └─> Shows platform-specific formatting (hashtags, mentions, etc.)
+
+2. PLATFORM-SPECIFIC FEATURES
+   ├─> Twitter: Character count (280 limit), hashtag styling, mention styling
+   ├─> LinkedIn: Professional styling, article preview
+   ├─> Facebook: Post card style, image preview
+   └─> Instagram: Square format, image emphasis
+
+3. EDITING IN PREVIEW
+   └─> For generated content (not scanned):
+       ├─> Content text is editable (contentEditable={true})
+       ├─> User can click and edit directly
+       ├─> Real-time preview updates
+       └─> Save button appears when content changes
+
+4. FULL-SIZE PREVIEW
+   └─> After generation, user can scroll down to see:
+       ├─> Full-size preview with all details
+       ├─> Engagement tracker (if posted)
+       └─> Action buttons (Accept, Reject, Regenerate, Edit)
+                </code>
+            </div>
+
+            <h3>4.16 Store Persistence & Hydration</h3>
+            <div class="info">
+                <h4>How Store Persistence Works:</h4>
+                <ul>
+                    <li><strong>Storage:</strong> Zustand store uses <code>persist</code> middleware</li>
+                    <li><strong>Target:</strong> localStorage with key <code>marketing-bot-storage</code></li>
+                    <li><strong>Hydration:</strong> Store configured with <code>skipHydration: true</code>
+                        <ul>
+                            <li>Prevents SSR mismatches (Next.js server-side rendering)</li>
+                            <li>Manual rehydration on client-side using <code>useStoreHydrated()</code> hook</li>
+                            <li>Components use <code>NoSSR</code> wrapper for hydration-safe rendering</li>
+                        </ul>
+                    </li>
+                    <li><strong>Automatic Backup:</strong>
+                        <ul>
+                            <li>Debounced backup creation (30 seconds after any change)</li>
+                            <li>Last 5 automatic backups stored in localStorage</li>
+                            <li>Backup key: <code>marketing-bot-auto-backups</code></li>
+                        </ul>
+                    </li>
+                    <li><strong>Storage Quota Management:</strong>
+                        <ul>
+                            <li>Automatic cleanup when localStorage is full</li>
+                            <li>Removes oldest data first (keeps newest)</li>
+                            <li>Smart cleanup: Removes images from older scanned posts, limits arrays to safe sizes</li>
+                            <li>User-friendly notifications when cleanup happens</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="part-nav">
+                <strong>Navigation:</strong>
+                <a href="#part1">Part 1</a>
+                <a href="#part2">Part 2</a>
+                <a href="#part3">Part 3</a>
+                <a href="#part4">Part 4</a>
+            </div>
+        </section>
+
+        <!-- Manual Complete -->
+        <section style="margin-top: 60px; padding-top: 40px; border-top: 3px solid #667eea;">
+            <h2>📖 Manual Complete</h2>
+            <p style="font-size: 1.1em; color: #c4b5fd; margin-bottom: 20px;">
+                This comprehensive manual covers all aspects of MarketingBot Pro, including:
+            </p>
+            <ul style="color: #c4b5fd; margin-left: 30px; margin-bottom: 20px;">
+                <li>✅ <strong>System Architecture:</strong> Technology stack, data flow, storage system</li>
+                <li>✅ <strong>AI Learning System:</strong> When and how AI learns, rule-based vs AI analysis, priority order, aggregation</li>
+                <li>✅ <strong>Content Generation:</strong> How content is generated, how learnedStyle is applied, prompt structure</li>
+                <li>✅ <strong>Image Scanning & Storage:</strong> How images are extracted, saved, and used in posts</li>
+                <li>✅ <strong>Social Media Scanning:</strong> Auto-scan process, rate limiting, platform-specific details</li>
+                <li>✅ <strong>Email System:</strong> Email generation, contact list management, campaign creation</li>
+                <li>✅ <strong>Scheduling & Publishing:</strong> How posts are scheduled, auto-publishing mechanism, platform-specific publishing</li>
+                <li>✅ <strong>Analytics & Performance:</strong> How metrics are calculated, insights generation, recommendations</li>
+                <li>✅ <strong>OAuth & Connections:</strong> OAuth flow, manual token connection, required scopes</li>
+                <li>✅ <strong>Data Backup & Restore:</strong> Automatic backups, manual export/import, storage management</li>
+                <li>✅ <strong>Complete Learning Cycle:</strong> Start to end flow of how everything works together</li>
+            </ul>
+            <p style="font-size: 1em; color: #a78bfa; margin-top: 20px;">
+                For technical support, additional details, or setup instructions, refer to the documentation 
+                in the <code>docs/</code> folder or check the code comments in the source files.
+            </p>
+            <p style="font-size: 0.9em; color: #818cf8; margin-top: 20px; font-style: italic;">
+                Last updated: 2024 | MarketingBot Pro v1.0
+            </p>
+        </section>
+    </div>
+    
+    <!-- Back to Top Button -->
+    <a href="#top" class="back-to-top" id="backToTop" title="Back to top">↑</a>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap, X, Search } from 'lucide-react'
+import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap, X, Search, Download, Upload } from 'lucide-react'
 import { useStore, getStorageUsage, getStorageQuota } from '@/lib/store'
 import toast from 'react-hot-toast'
 import { useLanguage } from '@/lib/language-context'
@@ -12,6 +12,7 @@ import { connectFacebookAccount } from '@/lib/facebook-ads'
 import { connectInstagramAccount } from '@/lib/instagram-ads'
 import { connectLinkedInAccount } from '@/lib/linkedin-ads'
 import { connectTwitterAccount } from '@/lib/twitter-ads'
+import { exportData, importData } from '@/lib/backup'
 
 const platformIcons = {
   facebook: Facebook,
@@ -1742,6 +1743,92 @@ export default function SettingsPage() {
                               </div>
                             </div>
                           ) : null}
+
+                          {/* Backup & Restore Section */}
+                          <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30">
+                            <h5 className="text-xs font-semibold text-white mb-2.5 flex items-center space-x-1.5">
+                              <div className="p-1 rounded bg-blue-500/20 border border-blue-500/30">
+                                <Database className="w-2.5 h-2.5 text-blue-400" />
+                              </div>
+                              <span>Backup & Restore</span>
+                            </h5>
+                            <p className="text-[10px] text-slate-400 mb-3 leading-relaxed">
+                              Export your data as a JSON backup file or import a previously exported backup. 
+                              Automatic backups are created every 30 seconds when data changes.
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                onClick={() => {
+                                  try {
+                                    exportData()
+                                    toast.success('Data exported successfully!', {
+                                      icon: '✅',
+                                      duration: 3000,
+                                    })
+                                  } catch (error: any) {
+                                    console.error('Export error:', error)
+                                    toast.error(`Failed to export data: ${error.message}`, {
+                                      duration: 5000,
+                                    })
+                                  }
+                                }}
+                                className="flex items-center justify-center space-x-2 px-3 py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 hover:border-blue-500/50 transition-all text-blue-400 hover:text-blue-300 text-xs font-medium"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Export Data</span>
+                              </button>
+                              <label className="flex items-center justify-center space-x-2 px-3 py-2 rounded-lg bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 hover:border-green-500/50 transition-all text-green-400 hover:text-green-300 text-xs font-medium cursor-pointer">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>Import Data</span>
+                                <input
+                                  type="file"
+                                  accept=".json"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0]
+                                    if (!file) return
+
+                                    // Confirm before importing (destructive operation)
+                                    if (!window.confirm(
+                                      '⚠️ WARNING: Importing will replace all existing data (posts, leads, campaigns, etc.).\n\n' +
+                                      'This action cannot be undone. Make sure you have a backup!\n\n' +
+                                      'Do you want to continue?'
+                                    )) {
+                                      e.target.value = ''
+                                      return
+                                    }
+
+                                    try {
+                                      await importData(file)
+                                      toast.success('Data imported successfully!', {
+                                        icon: '✅',
+                                        duration: 3000,
+                                      })
+                                      // Refresh storage info after import
+                                      const info = getStorageUsage()
+                                      setStorageInfo(info)
+                                      try {
+                                        const quota = await getStorageQuota()
+                                        if (quota) {
+                                          setStorageQuota(quota)
+                                        }
+                                      } catch (err) {
+                                        console.error('Error refreshing quota:', err)
+                                      }
+                                    } catch (error: any) {
+                                      console.error('Import error:', error)
+                                      toast.error(`Failed to import data: ${error.message}`, {
+                                        duration: 5000,
+                                      })
+                                    } finally {
+                                      // Reset file input
+                                      e.target.value = ''
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
                         </>
                       )
                     })()}

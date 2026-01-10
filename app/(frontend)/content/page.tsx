@@ -192,16 +192,40 @@ export default function ContentPage() {
         return
       }
 
-      // Check if we should scan: only if accounts changed or it's been >1 hour
+      // Check if we should scan: platform-specific caching for Twitter (free tier optimization)
       const scanKey = JSON.stringify([connectedAdAccounts.map(a => a.accountId || ''), connectedSocialAccounts.map(a => a.userId || '')])
       const lastScanKey = sessionStorage.getItem('lastScanKey')
+      
+      // Check per-platform rate limits (especially important for Twitter free tier: 1 req/15 mins)
+      const hasTwitter = connectedSocialAccounts.some(acc => acc.platform === 'twitter')
+      const lastTwitterScanTime = sessionStorage.getItem('lastTwitterScanTime')
+      const twitterRateLimitMs = 15 * 60 * 1000 // 15 minutes for Twitter free tier
+      const twitterCacheMs = 24 * 60 * 60 * 1000 // 24 hours cache for Twitter (free tier optimization)
+      
+      // For Twitter: Check both rate limit (15 mins) and cache (24 hours)
+      if (hasTwitter && lastTwitterScanTime) {
+        const timeSinceLastTwitterScan = Date.now() - parseInt(lastTwitterScanTime)
+        if (timeSinceLastTwitterScan < twitterRateLimitMs) {
+          const minutesLeft = Math.ceil((twitterRateLimitMs - timeSinceLastTwitterScan) / 60000)
+          console.log(`[Content Page] Twitter rate limit: Skipping scan (free tier allows 1 request per 15 minutes). Wait ${minutesLeft} more minute(s).`)
+          toast.info(`Twitter: Rate limit active. Wait ${minutesLeft} minute(s) before next scan.`, { duration: 4000 })
+          return
+        }
+        // If we have cached data from less than 24 hours ago, use it instead of scanning
+        if (timeSinceLastTwitterScan < twitterCacheMs && lastScanKey === scanKey) {
+          console.log(`[Content Page] Using cached Twitter data (scanned ${Math.floor(timeSinceLastTwitterScan / 3600000)} hours ago)`)
+          return
+        }
+      }
+      
+      // For other platforms: standard 1 hour cache
       const shouldScan = !lastScanKey || 
                         lastScanKey !== scanKey ||
                         !lastScanned || 
-                        (Date.now() - new Date(lastScanned).getTime()) > 3600000 // 1 hour
+                        (Date.now() - new Date(lastScanned).getTime()) > 3600000 // 1 hour for other platforms
       
-      if (!shouldScan) {
-        return // Skip scanning if not needed
+      if (!shouldScan && !hasTwitter) {
+        return // Skip scanning if not needed (only applies to non-Twitter platforms)
       }
 
       scanInProgressRef.current = true
@@ -335,6 +359,12 @@ export default function ContentPage() {
         }
 
         setLastScanned(new Date().toISOString())
+        
+        // Track Twitter scan time separately for rate limiting
+        if (connectedSocialAccounts.some(acc => acc.platform === 'twitter')) {
+          sessionStorage.setItem('lastTwitterScanTime', Date.now().toString())
+        }
+        
         // Only show toast if we found NEW content (not on every scan)
         const existingScannedPosts = settings.contentPreferences?.scannedPosts || []
         const existingPostIds = new Set(existingScannedPosts.map(p => `${p.id}-${p.platform}`))
@@ -347,7 +377,27 @@ export default function ContentPage() {
         }
       } catch (error: any) {
         console.error('Auto-scan error:', error)
-        // Show error to user if scanning fails
+        
+        // Handle Twitter rate limit errors gracefully
+        if (error.isRateLimit || error.message?.includes('429') || error.message?.includes('Rate Limit') || error.message?.includes('rate limit')) {
+          const twitterAccount = connectedSocialAccounts.find(acc => acc.platform === 'twitter')
+          if (twitterAccount) {
+            // Update rate limit timestamp to prevent immediate retry (wait 15 minutes minimum)
+            sessionStorage.setItem('lastTwitterScanTime', Date.now().toString())
+            const waitMinutes = error.waitMinutes || 15
+            const existingPosts = settings.contentPreferences?.scannedPosts || []
+            const twitterPosts = existingPosts.filter(p => p.platform === 'twitter')
+            if (twitterPosts.length > 0) {
+              toast.info(`Twitter rate limit reached. Using cached data (${twitterPosts.length} posts). Wait ${waitMinutes} minute(s) for next scan. Free tier: 1 request per 15 minutes.`, { duration: 7000 })
+            } else {
+              toast.warning(`Twitter rate limit reached. Wait ${waitMinutes} minute(s) before scanning again. Free tier allows 1 request per 15 minutes.`, { duration: 7000 })
+            }
+            // Don't fail the entire scan - other platforms may have scanned successfully
+            return
+          }
+        }
+        
+        // Show error to user if scanning fails (for non-rate-limit errors)
         const adAccounts = settings.adAccounts || []
         const socialAccounts = settings.socialAccounts || []
         const connectedAdAccounts = adAccounts.filter(acc => acc.connected && acc.accessToken)
@@ -365,31 +415,40 @@ export default function ContentPage() {
       }
     }
 
-    // Only scan if we haven't scanned recently or accounts changed
+    // Determine if we should trigger a scan
     const adAccounts = settings.adAccounts || []
     const socialAccounts = settings.socialAccounts || []
     const connectedAdAccounts = adAccounts.filter(acc => acc.connected && acc.accessToken)
     const connectedSocialAccounts = socialAccounts.filter(acc => acc.connected && acc.accessToken)
     
     if (connectedAdAccounts.length === 0 && connectedSocialAccounts.length === 0) {
-      return
+      return // No accounts connected, skip scanning
     }
     
     const scanKey = JSON.stringify([connectedAdAccounts.map(a => a.accountId || ''), connectedSocialAccounts.map(a => a.userId || '')])
     const lastScanKey = sessionStorage.getItem('lastScanKey')
     const lastScanTime = sessionStorage.getItem('lastScanTime')
+    const lastScanned = sessionStorage.getItem('lastScanned')
+    
+    // Platform-specific scan logic:
+    // - Twitter: Check rate limit (15 mins) and cache (24 hours) - handled inside scanAccounts
+    // - Other platforms: Standard 1 hour cache
+    const hasTwitter = connectedSocialAccounts.some(acc => acc.platform === 'twitter')
+    const timeSinceLastScan = lastScanTime ? Date.now() - parseInt(lastScanTime) : Infinity
     
     // Only scan if:
     // 1. First time (no scan key), OR
     // 2. Accounts changed (different scan key), OR
-    // 3. More than 1 hour since last scan
+    // 3. More than 1 hour since last scan (for non-Twitter platforms)
+    // Note: Twitter-specific rate limiting is handled inside scanAccounts()
     const shouldScan = !lastScanKey || 
                       lastScanKey !== scanKey ||
                       !lastScanTime || 
-                      (Date.now() - parseInt(lastScanTime)) > 3600000
+                      (!hasTwitter && timeSinceLastScan > 3600000) || // 1 hour for non-Twitter
+                      (hasTwitter && timeSinceLastScan > 900000) // 15 minutes minimum for Twitter (rate limit check inside scanAccounts will handle cache)
     
     if (shouldScan) {
-    scanAccounts()
+      scanAccounts()
       sessionStorage.setItem('lastScanTime', Date.now().toString())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -23,9 +23,13 @@ export async function POST(request: Request) {
 
     // Twitter API v2 - get user tweets
     // Note: Using userId from the connected account (not 'me' endpoint)
+    // Free tier optimization: max_results=100 is the maximum allowed per request
+    // Free tier allows: 1 request per 15 minutes per user for GET /2/users/:id/tweets
+    // This request gets up to 100 tweets (excluding replies and retweets) in a single API call
     const apiUrl = `https://api.twitter.com/2/users/${userId}/tweets?max_results=100&tweet.fields=created_at,text,public_metrics,attachments&expansions=attachments.media_keys&media.fields=url,preview_image_url,type&exclude=replies,retweets`
     
     console.log(`[Scan Twitter API] Calling Twitter API for userId: ${userId}`)
+    console.log(`[Scan Twitter API] Free tier: 1 request per 15 minutes. This request fetches up to 100 tweets (excluding replies/retweets).`)
     
     const response = await fetch(apiUrl, {
       headers: {
@@ -71,11 +75,33 @@ export async function POST(request: Request) {
           { status: 404 }
         )
       } else if (response.status === 429) {
+        // Extract rate limit headers if available
+        const resetAt = response.headers.get('x-rate-limit-reset')
+        const remaining = response.headers.get('x-rate-limit-remaining')
+        const limit = response.headers.get('x-rate-limit-limit')
+        
+        console.error(`[Scan Twitter API] Rate limit hit. Remaining: ${remaining}/${limit}, Reset at: ${resetAt}`)
+        
+        // Calculate wait time if reset timestamp is available
+        let waitMinutes = 15 // Default to 15 minutes for free tier
+        if (resetAt) {
+          const resetTime = parseInt(resetAt) * 1000 // Convert to milliseconds
+          const now = Date.now()
+          waitMinutes = Math.ceil((resetTime - now) / 60000)
+          if (waitMinutes < 0) waitMinutes = 1 // At least 1 minute
+        }
+        
         return NextResponse.json(
           {
-            error: '429 Rate Limit - Too many requests. Please wait before scanning again.',
+            error: `429 Rate Limit - Twitter free tier allows 1 request per 15 minutes. Please wait ${waitMinutes} minute(s) before scanning again.`,
             status: 429,
             details: errorMessage,
+            rateLimit: {
+              resetAt,
+              remaining,
+              limit,
+              waitMinutes,
+            },
           },
           { status: 429 }
         )

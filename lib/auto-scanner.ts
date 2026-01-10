@@ -195,30 +195,41 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
       }),
     })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      const errorMessage = errorData.error || `HTTP ${response.status}`
-      const errorStatus = errorData.status || response.status
-      
-      console.error(`[Twitter Scan] Server API Error (${errorStatus}):`, errorMessage)
-      console.error(`[Twitter Scan] Error details:`, errorData.details || errorData)
-      
-      // Common issues:
-      if (errorStatus === 403) {
-        console.error('[Twitter Scan] 403 Forbidden - This usually means:')
-        console.error('1. The token does not have tweet.read permission')
-        console.error('2. The app does not have "Read and write" permissions enabled')
-        console.error('3. The userId might be incorrect or not accessible with this token')
-      } else if (errorStatus === 401) {
-        console.error('[Twitter Scan] 401 Unauthorized - Token might be expired or invalid')
-      } else if (errorStatus === 404) {
-        console.error('[Twitter Scan] 404 Not Found - User ID might be incorrect or user does not exist')
-      } else if (errorStatus === 429) {
-        console.error('[Twitter Scan] 429 Rate Limit - Too many requests. Free tier allows 1 request per 15 minutes.')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        const errorMessage = errorData.error || `HTTP ${response.status}`
+        const errorStatus = errorData.status || response.status
+        
+        console.error(`[Twitter Scan] Server API Error (${errorStatus}):`, errorMessage)
+        console.error(`[Twitter Scan] Error details:`, errorData.details || errorData)
+        
+        // Common issues:
+        if (errorStatus === 403) {
+          console.error('[Twitter Scan] 403 Forbidden - This usually means:')
+          console.error('1. The token does not have tweet.read permission')
+          console.error('2. The app does not have "Read and write" permissions enabled')
+          console.error('3. The userId might be incorrect or not accessible with this token')
+          throw new Error(`Twitter API error: ${errorMessage}`)
+        } else if (errorStatus === 401) {
+          console.error('[Twitter Scan] 401 Unauthorized - Token might be expired or invalid')
+          throw new Error(`Twitter API error: ${errorMessage}`)
+        } else if (errorStatus === 404) {
+          console.error('[Twitter Scan] 404 Not Found - User ID might be incorrect or user does not exist')
+          throw new Error(`Twitter API error: ${errorMessage}`)
+        } else if (errorStatus === 429) {
+          const waitMinutes = errorData.rateLimit?.waitMinutes || 15
+          console.error(`[Twitter Scan] 429 Rate Limit - Too many requests. Free tier allows 1 request per 15 minutes.`)
+          console.error(`[Twitter Scan] Wait ${waitMinutes} minute(s) before scanning again.`)
+          console.error('[Twitter Scan] Consider upgrading to Basic tier ($200/month) for 5 requests per 15 minutes, or Pro tier ($5000/month) for 900 requests per 15 minutes.')
+          // Throw a special error that includes rate limit info, but can be caught and handled gracefully
+          const rateLimitError: any = new Error(`Twitter rate limit: Please wait ${waitMinutes} minute(s) before scanning again. Free tier allows 1 request per 15 minutes.`)
+          rateLimitError.isRateLimit = true
+          rateLimitError.waitMinutes = waitMinutes
+          throw rateLimitError
+        }
+        
+        throw new Error(`Twitter API error: ${errorMessage}`)
       }
-      
-      throw new Error(`Twitter API error: ${errorMessage}`)
-    }
 
     const data = await response.json()
 
@@ -466,8 +477,21 @@ export async function autoScanAllPlatforms(
             console.error('[Auto Scanner] This usually means the OAuth callback failed to retrieve the User ID.')
             console.error('[Auto Scanner] Please disconnect and reconnect Twitter to fix this.')
           } else {
-            scanned = await scanTwitterAccount(account.accessToken, account.userId)
-            console.log(`[Auto Scanner] Twitter scan completed: ${scanned.length} items found`)
+            try {
+              scanned = await scanTwitterAccount(account.accessToken, account.userId)
+              console.log(`[Auto Scanner] Twitter scan completed: ${scanned.length} items found`)
+            } catch (error: any) {
+              // Handle Twitter rate limit errors gracefully (don't fail entire scan)
+              if (error.isRateLimit || error.message?.includes('429') || error.message?.includes('Rate Limit') || error.message?.includes('rate limit')) {
+                const waitMinutes = error.waitMinutes || 15
+                console.warn(`[Auto Scanner] Twitter rate limit reached (free tier: 1 request per 15 minutes). Wait ${waitMinutes} minute(s). Skipping Twitter scan, continuing with other platforms.`)
+                // Return empty array so other platforms can still scan
+                scanned = []
+              } else {
+                // Re-throw other errors
+                throw error
+              }
+            }
           }
           break
         case 'linkedin':
