@@ -100,7 +100,9 @@ Result: Total stored = 35 posts (newest 35 from all scans), images only for newe
 
 **What gets scanned:**
 - **Up to 10 posts** per scan (`count=10`)
-- Scans the **most recent 10 posts** from API
+- Uses server-side proxy (`/api/scan-linkedin`) to avoid CORS issues
+- Scans UGC Posts API endpoint: `/v2/ugcPosts?q=authors&authors=List(me)`
+- **Important:** Only returns posts created via LinkedIn API (UGC Posts), NOT regular "activity" posts created via LinkedIn website/app
 - Gets images from all scanned posts
 
 **Image handling:**

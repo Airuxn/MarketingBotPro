@@ -315,6 +315,7 @@ marketing-bot/
 │   │   └── api/
 │   │       ├── oauth/       # OAuth handlers (Facebook, Twitter, LinkedIn, Instagram)
 │   │       ├── scan-twitter/    # Twitter scanning proxy (server-side)
+│   │       ├── scan-linkedin/   # LinkedIn scanning proxy (server-side)
 │   │       ├── publish-twitter/ # Twitter publishing proxy (server-side)
 │   │       ├── validate-*-token/ # Token validation endpoints
 │   │       ├── analyze-content/ # Content analysis API
@@ -1233,11 +1234,22 @@ TWITTER SCANNING (via server-side proxy):
    └─> Maps images from media array
    └─> Creates ScannedContent objects
 
-LINKEDIN SCANNING:
-1. GET /v2/ugcPosts?q=authors&authors=List(me)
-   └─> Returns user's posts
-   └─> Extracts: shareCommentary.text, media[].media
-   └─> Analyzes content (rule-based)
+LINKEDIN SCANNING (via server-side proxy):
+1. Browser calls: POST /api/scan-linkedin
+   └─> Sends: { accessToken }
+   └─> Server proxies request to LinkedIn API v2
+       └─> GET /v2/ugcPosts?q=authors&authors=List(me)&count=10
+           └─> Returns: UGC posts only (posts created via LinkedIn API)
+           └─> Note: Only returns posts created via API, NOT regular activity posts
+           └─> Extracts: shareCommentary.text, media[].media
+           └─> Returns to browser: { posts: [...] }
+
+2. Browser processes response:
+   └─> For each post: analyzeContent() [RULE-BASED]
+   └─> Maps images from media array
+   └─> Creates ScannedContent objects
+
+**Important:** LinkedIn UGC Posts API only returns posts created via the LinkedIn API, not regular "activity" posts created via the LinkedIn website/app. This is a limitation of LinkedIn's API.
 
 INSTAGRAM SCANNING:
 1. GET /{instagram-business-account-id}/media
@@ -1449,6 +1461,49 @@ FACEBOOK PUBLISHING:
    └─> For Pages: Use page access token (from OAuth callback)
    
    **Note:** Personal posts require different permissions. For posting to Pages, use `pages_manage_posts` permission.
+                </code>
+            </div>
+
+            <h4>LinkedIn Publishing</h4>
+            <div class="code-block">
+                <code>
+LINKEDIN PUBLISHING:
+
+1. Direct API call from browser:
+   └─> POST https://api.linkedin.com/v2/ugcPosts
+       └─> Headers: 
+           ├─> Authorization: Bearer {accessToken}
+           ├─> Content-Type: application/json
+           └─> X-Restli-Protocol-Version: 2.0.0
+       └─> Body:
+           {
+             "author": "urn:li:person:{userId}",  // Person URN from OAuth userId
+             "lifecycleState": "PUBLISHED",
+             "specificContent": {
+               "com.linkedin.ugc.ShareContent": {
+                 "shareCommentary": { "text": content },
+                 "shareMediaCategory": "IMAGE" or "NONE"
+               }
+             },
+             "visibility": {
+               "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
+             }
+           }
+       
+2. Requirements:
+   ├─> Token must have 'w_member_social' scope (requires "Share on LinkedIn" product)
+   ├─> userId required (from OAuth callback - userinfo.sub)
+   ├─> Person URN format: urn:li:person:{userId}
+   └─> Posts created via API are "UGC Posts" and can be scanned later
+
+3. Error Handling:
+   ├─> 401 Unauthorized → Token expired/invalid
+   │   └─> User needs to reconnect LinkedIn account
+   ├─> 403 Forbidden → Token doesn't have w_member_social permission
+   │   └─> User needs to grant "Share on LinkedIn" product during OAuth
+   └─> 429 Rate Limit → Too many requests (rare, 100K calls/day limit)
+
+**Important:** Posts created via the API are stored as "UGC Posts" and can be scanned via /v2/ugcPosts endpoint. Regular "activity" posts created via the LinkedIn website/app cannot be scanned (LinkedIn API limitation).
                 </code>
             </div>
 
