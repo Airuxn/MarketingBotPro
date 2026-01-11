@@ -17,18 +17,22 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  background: #0f172a; /* Dark background to prevent white border on mobile scroll */
+  min-height: 100vh;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
   background-attachment: fixed;
+  background-color: #0f172a; /* Fallback dark background */
   overflow-x: hidden;
   font-feature-settings: "kern" 1;
   letter-spacing: -0.011em;
   line-height: 1.65;
   font-weight: 400;
   position: relative;
+  min-height: 100vh;
 }
 
 /* Animated gradient background */
