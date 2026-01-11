@@ -1464,11 +1464,10 @@ export default function ContentPage() {
             })()}
           </div>
 
-          {/* Middle Column - Media - On mobile: only show if media selected, On desktop: always show */}
+          {/* Middle Column - Media */}
           {(contentType === 'post' || contentType === 'ad') && (
-            (selectedMedia || selectedBrandImage) ? (
-              <div className="lg:col-span-1 flex flex-col lg:h-[503px]">
-                <div className="glass rounded-xl p-2.5 lg:p-4 border border-slate-700/50 h-full flex flex-col">
+            <div className="lg:col-span-1 flex flex-col lg:h-[503px]">
+              <div className="glass rounded-xl p-2.5 lg:p-4 border border-slate-700/50 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-2 lg:mb-3 flex-shrink-0">
                   <label className="text-xs lg:text-sm font-semibold text-white">Media</label>
                   <div className="flex items-center space-x-2">
@@ -1524,148 +1523,88 @@ export default function ContentPage() {
                     </button>
                   </div>
                 </div>
-                <div className="border border-dashed border-slate-700 rounded-lg p-2 lg:p-3 flex-1 flex items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '150px' }}>
-                  {selectedMedia && !selectedBrandImage ? (
-                    <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
-                      {selectedMedia.type === 'image' ? (
+                {(selectedMedia || selectedBrandImage) ? (
+                  <div className="border border-dashed border-slate-700 rounded-lg p-2 lg:p-3 flex-1 flex items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '150px' }}>
+                    {selectedMedia && !selectedBrandImage ? (
+                      <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
+                        {selectedMedia.type === 'image' ? (
+                          <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
+                            <img
+                              src={selectedMedia.preview}
+                              alt="Selected media"
+                              className="max-w-full max-h-full w-auto h-auto object-contain rounded"
+                              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
+                            <Video className="w-12 h-12" />
+                            <p className="text-xs">Video selected</p>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => setSelectedMedia(null)}
+                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    ) : selectedBrandImage ? (
+                      <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
                         <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
                           <img
-                            src={selectedMedia.preview}
-                            alt="Selected media"
+                            src={selectedBrandImage}
+                            alt="Selected brand image"
                             className="max-w-full max-h-full w-auto h-auto object-contain rounded"
                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                           />
                         </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
-                          <Video className="w-12 h-12" />
-                          <p className="text-xs">Video selected</p>
-                        </div>
-                      )}
-                    <button
-                      onClick={() => setSelectedMedia(null)}
-                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
-                    >
-                        <X className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
-                  ) : selectedBrandImage ? (
-                    <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
-                      <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
-                        <img
-                          src={selectedBrandImage}
-                          alt="Selected brand image"
-                          className="max-w-full max-h-full w-auto h-auto object-contain rounded"
-                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                        />
+                        <button
+                          onClick={() => setSelectedBrandImage(null)}
+                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setSelectedBrandImage(null)}
-                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
-                      >
-                        <X className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
-                  ) : (
+                    ) : null}
+                  </div>
+                ) : (
+                  /* Desktop: Show empty "No media selected" box, Mobile: hide it */
+                  <div className="hidden lg:flex border border-dashed border-slate-700 rounded-lg p-2 lg:p-3 flex-1 items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '150px' }}>
                     <div className="flex items-center justify-center text-slate-500" style={{ minHeight: '150px' }}>
                       <p className="text-xs text-center">No media selected</p>
-                </div>
-              )}
-                </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            ) : (
-              /* Desktop: Show empty media box when no media selected */
-              <div className="hidden lg:flex lg:col-span-1 flex-col lg:h-[503px]">
-                <div className="glass rounded-xl p-2.5 lg:p-4 border border-slate-700/50 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-2 lg:mb-3 flex-shrink-0">
-                    <label className="text-xs lg:text-sm font-semibold text-white">Media</label>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => {
-                          const fileInput = document.createElement('input')
-                          fileInput.type = 'file'
-                          fileInput.accept = 'image/*,video/*'
-                          fileInput.onchange = async (e) => {
-                            const file = (e.target as HTMLInputElement).files?.[0]
-                            if (!file) return
-                            
-                            const objectUrl = URL.createObjectURL(file)
-                            const mediaFile: MediaFile = {
-                              file,
-                              preview: objectUrl,
-                              type: file.type.startsWith('image/') ? 'image' : 'video',
-                              size: file.size,
-                              validated: true,
-                            }
-                            setSelectedMedia(mediaFile)
-                            setSelectedBrandImage(null)
-                            toast.success('Image loaded with original quality for posting')
-                          }
-                          fileInput.click()
-                        }}
-                        className="text-[10px] lg:text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors flex items-center space-x-1"
-                      >
-                        <Upload className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
-                        <span>Upload</span>
-                      </button>
-                      <button
-                        onClick={() => setShowLibraryModal(true)}
-                        className="text-[10px] lg:text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors relative pr-4 lg:pr-5"
-                      >
-                        Library
-                        {(() => {
-                          const currentPlatform = contentType === 'ad' ? adPlatform : platform
-                          const imageCount = (settings.brandImages || []).filter(
-                            img => img.platform === currentPlatform
-                          ).length
-                          if (imageCount > 0) {
-                            return (
-                              <span className="absolute -top-1.5 right-0 bg-purple-500 text-white text-[9px] lg:text-[10px] font-bold rounded-full min-w-[16px] lg:min-w-[18px] h-[16px] lg:h-[18px] px-1 lg:px-1.5 flex items-center justify-center border-2 border-slate-900 shadow-lg leading-none">
-                                {imageCount > 99 ? '99+' : imageCount}
-                              </span>
-                            )
-                          }
-                          return null
-                        })()}
-                      </button>
-                    </div>
-                  </div>
-                  <div className="border border-dashed border-slate-700 rounded-lg p-2 lg:p-3 flex-1 flex items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '150px' }}>
-                    <div className="flex items-center justify-center text-slate-500" style={{ minHeight: '150px' }}>
-                      <p className="text-xs text-center">No media selected</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
           )}
 
-          {/* Right Column - Generated Content Preview - Hidden on mobile */}
-          <div className="hidden lg:flex lg:col-span-1 flex-col space-y-1.5 lg:h-[503px]">
-            {/* Generate Button - Above content area */}
-          <button
-            onClick={() => handleGenerate()}
+          {/* Right Column - Generate Button (always visible) and Preview (hidden on mobile) */}
+          <div className="lg:col-span-1 flex flex-col space-y-1.5 lg:h-[503px]">
+            {/* Generate Button - Always visible on mobile and desktop */}
+            <button
+              onClick={() => handleGenerate()}
               disabled={isGenerating || isRegenerating || !prompt.trim()}
               className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 animate-gradient text-white py-2.5 lg:py-3 px-3 lg:px-4 rounded-xl font-bold text-xs lg:text-sm hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5 lg:space-x-2 shadow-lg hover:shadow-xl relative overflow-hidden group flex-shrink-0"
-          >
+            >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-            {isGenerating || isRegenerating ? (
-              <>
+              {isGenerating || isRegenerating ? (
+                <>
                   <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin relative z-10" />
                   <span className="relative z-10 text-[10px] lg:text-sm">{isRegenerating ? 'Regenerating...' : 'Creating Magic...'}</span>
-              </>
-            ) : (
-              <>
+                </>
+              ) : (
+                <>
                   <Zap className="w-4 h-4 lg:w-5 lg:h-5 relative z-10" />
                   <span className="relative z-10 text-[10px] lg:text-sm">{t('generateContent')}</span>
                   <Star className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-300 relative z-10" />
-              </>
-            )}
-          </button>
+                </>
+              )}
+            </button>
           
-            {/* Preview with inline editing */}
-            <div className="glass rounded-xl border border-slate-700/50 flex-1 flex flex-col overflow-hidden relative">
+            {/* Preview with inline editing - Hidden on mobile */}
+            <div className="hidden lg:flex glass rounded-xl border border-slate-700/50 flex-1 flex flex-col overflow-hidden relative">
               {/* Header - Fixed position, z-index to stay on top */}
               <div className="flex items-center justify-between px-2.5 lg:px-3 pt-2 lg:pt-3 pb-2 lg:pb-3 border-b border-slate-700/50 flex-shrink-0 bg-slate-800/50 backdrop-blur-sm relative z-10" style={{ minHeight: '40px' }}>
                 <h3 className="text-[10px] lg:text-xs font-bold text-white flex items-center space-x-1.5 lg:space-x-2">
