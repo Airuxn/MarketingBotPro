@@ -1546,7 +1546,6 @@ export default function SettingsPage() {
                                   <> Data is not synced across devices.</>
                                 ) : null}
                               </div>
-                              </div>
                             </div>
 
                             {/* Main Storage Card - Combined Stats & Progress - Now on Right */}
