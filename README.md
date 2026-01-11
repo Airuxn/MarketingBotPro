@@ -239,9 +239,9 @@ marketing-bot/
 
 1. **Initial Setup**
    - Go to Settings
+   - Connect social media accounts (optional)
    - Add your Google Gemini API key
    - Fill in business information
-   - Connect social media accounts (optional)
 
 2. **Create Content**
    - Navigate to Content
