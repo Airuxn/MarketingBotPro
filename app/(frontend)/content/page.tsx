@@ -490,12 +490,37 @@ export default function ContentPage() {
           console.log('[Content Page] Saving brand images:', {
             totalImages: finalImages.length,
             byPlatform: Object.entries(platformGroups).map(([platform, imgs]) => ({ platform, count: imgs.length })),
-            images: finalImages.map(img => ({ platform: img.platform, url: img.url?.substring(0, 50) + '...', id: img.id }))
+            images: finalImages.map(img => ({ platform: img.platform, url: img.url?.substring(0, 50) + '...', id: img.id, sourceUrl: img.sourceUrl }))
           })
+          
+          // Log Instagram images specifically
+          const instagramImages = finalImages.filter(img => img.platform === 'instagram')
+          if (instagramImages.length > 0) {
+            console.log('[Content Page] Instagram images being saved:', instagramImages.map(img => ({
+              id: img.id,
+              url: img.url?.substring(0, 80) + '...',
+              sourceUrl: img.sourceUrl,
+              extractedAt: img.extractedAt
+            })))
+          } else {
+            console.warn('[Content Page] WARNING: No Instagram images in finalImages array!')
+            console.warn('[Content Page] Original result.images:', result.images.filter(img => img.platform === 'instagram').map(img => ({
+              platform: img.platform,
+              url: img.url?.substring(0, 80) + '...',
+              sourceId: img.sourceId
+            })))
+          }
           
           updateSettings({ brandImages: finalImages })
           
-          console.log('[Content Page] Brand images saved successfully!')
+          // Verify images were saved
+          const { settings: updatedSettings } = useStore.getState()
+          const savedInstagramImages = (updatedSettings.brandImages || []).filter(img => img.platform === 'instagram')
+          console.log('[Content Page] Brand images saved! Verification:', {
+            totalSaved: (updatedSettings.brandImages || []).length,
+            instagramSaved: savedInstagramImages.length,
+            instagramImages: savedInstagramImages.map(img => ({ id: img.id, url: img.url?.substring(0, 50) + '...' }))
+          })
         } else {
           console.log('[Content Page] No images to save from scan')
         }
