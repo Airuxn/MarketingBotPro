@@ -155,8 +155,13 @@ export default function ContentPage() {
 
   // Auto-scan connected accounts only on mount or when new accounts are connected
   useEffect(() => {
+    console.log('[Content Page] useEffect triggered - checking if scan should run')
+    
     // Prevent multiple simultaneous scans
-    if (scanInProgressRef.current) return
+    if (scanInProgressRef.current) {
+      console.log('[Content Page] Scan already in progress, skipping')
+      return
+    }
     
     const scanAccounts = async () => {
       const adAccounts = settings.adAccounts || []
@@ -229,6 +234,7 @@ export default function ContentPage() {
                         (Date.now() - new Date(lastScanned).getTime()) > 3600000 // 1 hour for other platforms
       
       if (!shouldScan && !hasTwitter) {
+        console.log('[Content Page] Scan skipped inside scanAccounts - cache still valid (non-Twitter platforms)')
         return // Skip scanning if not needed (only applies to non-Twitter platforms)
       }
 
@@ -511,7 +517,17 @@ export default function ContentPage() {
     const connectedAdAccounts = adAccounts.filter(acc => acc.connected && acc.accessToken)
     const connectedSocialAccounts = socialAccounts.filter(acc => acc.connected && acc.accessToken)
     
+    console.log('[Content Page] Checking accounts:', {
+      totalAdAccounts: adAccounts.length,
+      totalSocialAccounts: socialAccounts.length,
+      connectedAdAccounts: connectedAdAccounts.length,
+      connectedSocialAccounts: connectedSocialAccounts.length,
+      adAccounts: adAccounts.map(a => ({ platform: a.platform, connected: a.connected, hasToken: !!a.accessToken })),
+      socialAccounts: socialAccounts.map(a => ({ platform: a.platform, connected: a.connected, hasToken: !!a.accessToken, userId: a.userId || 'MISSING' }))
+    })
+    
     if (connectedAdAccounts.length === 0 && connectedSocialAccounts.length === 0) {
+      console.log('[Content Page] No connected accounts found - skipping scan')
       return // No accounts connected, skip scanning
     }
     
@@ -537,9 +553,28 @@ export default function ContentPage() {
                       (!hasTwitter && timeSinceLastScan > 3600000) || // 1 hour for non-Twitter
                       (hasTwitter && timeSinceLastScan > 900000) // 15 minutes minimum for Twitter (rate limit check inside scanAccounts will handle cache and monthly limit)
     
+    console.log('[Content Page] Scan decision:', {
+      shouldScan,
+      lastScanKey: lastScanKey ? 'exists' : 'none',
+      currentScanKey: scanKey.substring(0, 50) + '...',
+      keysMatch: lastScanKey === scanKey,
+      lastScanTime: lastScanTime ? new Date(parseInt(lastScanTime)).toISOString() : 'never',
+      timeSinceLastScan: lastScanTime ? Math.floor(timeSinceLastScan / 1000) + ' seconds' : 'N/A',
+      hasTwitter,
+      reason: !lastScanKey ? 'First time' : 
+              lastScanKey !== scanKey ? 'Accounts changed' :
+              !lastScanTime ? 'No previous scan time' :
+              (!hasTwitter && timeSinceLastScan > 3600000) ? '1 hour passed (non-Twitter)' :
+              (hasTwitter && timeSinceLastScan > 900000) ? '15 minutes passed (Twitter)' :
+              'Cache still valid'
+    })
+    
     if (shouldScan) {
+      console.log('[Content Page] Starting scan...')
       scanAccounts()
       sessionStorage.setItem('lastScanTime', Date.now().toString())
+    } else {
+      console.log('[Content Page] Scan skipped - cache still valid or rate limit active')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.adAccounts?.length, settings.socialAccounts?.length])
