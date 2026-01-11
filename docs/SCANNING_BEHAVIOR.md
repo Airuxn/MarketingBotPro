@@ -179,14 +179,14 @@ const uniqueScannedPosts = allScannedPosts.filter((post, idx, self) =>
 - All scanned posts keep their images initially
 
 **After storage optimization:**
-- **Newest 8 posts:** Keep all images
-- **Posts 9-20:** Images removed (saves ~1.2MB storage)
-- **Total images stored:** ~8-32 images (depending on how many images per post)
+- **Newest 14 posts:** Keep all images
+- **Posts 15-35:** Images removed (saves ~3.1MB storage)
+- **Total images stored:** ~14-56 images (depending on how many images per post)
 
 **Storage impact:**
 - Images are stored as URLs (not base64), so ~150KB per image
-- 8 posts × 4 images max = 32 images × 150KB = ~4.8MB (worst case)
-- But typically: 8 posts × 1-2 images = 8-16 images × 150KB = ~1.2-2.4MB
+- 14 posts × 4 images max = 56 images × 150KB = ~8.4MB (worst case)
+- But typically: 14 posts × 1-2 images = 14-28 images × 150KB = ~2.1-4.2MB
 
 ---
 
