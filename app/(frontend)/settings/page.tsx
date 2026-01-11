@@ -818,9 +818,9 @@ export default function SettingsPage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start" style={{ height: '503px', maxHeight: '503px' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start lg:h-[503px]">
           {/* Left Column - Getting Started */}
-          <div className="lg:col-span-1" style={{ height: '503px' }}>
+          <div className="lg:col-span-1 lg:h-[503px] order-2 lg:order-1">
             <div className="glass rounded-xl p-3 border border-slate-700/50 h-full flex flex-col">
               <h3 className="text-base font-semibold text-white mb-2 flex-shrink-0">Getting Started</h3>
               <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -878,7 +878,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Middle Column - Form Fields */}
-          <div className="lg:col-span-1" style={{ height: '503px' }}>
+          <div className="lg:col-span-1 lg:h-[503px] order-1 lg:order-2">
             <div className="glass rounded-xl p-3 h-full flex flex-col">
               <div className="flex-1 space-y-2.5 overflow-y-auto">
           {/* API Key */}
@@ -974,7 +974,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Right Column - Account Connections */}
-          <div className="lg:col-span-1" style={{ height: '503px' }}>
+          <div className="lg:col-span-1 lg:h-[503px] order-3 lg:order-3">
             <div className="glass rounded-xl p-3 border border-slate-700/50 h-full flex flex-col">
               <h3 className="text-base font-semibold text-white mb-3 flex-shrink-0">Account Connections</h3>
               
