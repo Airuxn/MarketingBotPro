@@ -36,7 +36,7 @@ export async function scanFacebookAccount(accessToken: string, accountId: string
     // Use 'me' to get user's personal posts
     try {
       const response = await fetch(
-        `https://graph.facebook.com/v18.0/me/posts?access_token=${accessToken}&fields=id,message,created_time,attachments{media{image{src}}},likes.summary(true),comments.summary(true),shares&limit=50`,
+        `https://graph.facebook.com/v18.0/me/posts?access_token=${accessToken}&fields=id,message,created_time,attachments{media{image{src}}},likes.summary(true),comments.summary(true),shares&limit=10`,
         {
           method: 'GET',
         }
@@ -111,7 +111,7 @@ export async function scanFacebookAccount(accessToken: string, accountId: string
             // Use page access token to get page posts
             const pageToken = page.access_token || accessToken
             const response = await fetch(
-              `https://graph.facebook.com/v18.0/${page.id}/posts?access_token=${pageToken}&fields=id,message,created_time,attachments{media{image{src}}},likes.summary(true),comments.summary(true),shares&limit=25`,
+              `https://graph.facebook.com/v18.0/${page.id}/posts?access_token=${pageToken}&fields=id,message,created_time,attachments{media{image{src}}},likes.summary(true),comments.summary(true),shares&limit=10`,
               {
                 method: 'GET',
               }
@@ -273,9 +273,9 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
 
 export async function scanLinkedInAccount(accessToken: string): Promise<ScannedContent[]> {
   try {
-    // LinkedIn API - get user posts
+    // LinkedIn API - get user posts (limit to 10 for free-tier optimization)
     const response = await fetch(
-      'https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(me)',
+      'https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(me)&count=10',
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -336,9 +336,9 @@ export async function scanInstagramAccount(accessToken: string, userId: string):
       return []
     }
 
-    // Instagram Graph API - get user media (limit to 100 to get more images)
+    // Instagram Graph API - get user media (limit to 10 for free-tier optimization)
     const response = await fetch(
-      `https://graph.instagram.com/${userId}/media?access_token=${accessToken}&limit=100&fields=id,caption,media_type,media_url,thumbnail_url,timestamp,like_count,comments_count`,
+      `https://graph.instagram.com/${userId}/media?access_token=${accessToken}&limit=10&fields=id,caption,media_type,media_url,thumbnail_url,timestamp,like_count,comments_count`,
       {
         method: 'GET',
       }

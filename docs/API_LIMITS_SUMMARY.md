@@ -40,7 +40,7 @@ This document summarizes the free tier limits and paid options for all social me
 - **Rate Limit:** ~200 calls per hour per user access token
 - **Monthly Limit:** None (only hourly rate limit)
 - **Customer Capacity:** **Unlimited** (each customer has their own token)
-- **Scanning Strategy:** 1-hour cache, ~50 posts per scan
+- **Scanning Strategy:** 1-hour cache, 10 posts per scan
 - **Paid Options:** No official paid tier
   - API is free with rate limits
   - Third-party services may offer paid aggregation services
@@ -63,7 +63,7 @@ This document summarizes the free tier limits and paid options for all social me
 - **Monthly Limit:** None (only hourly rate limit)
 - **Customer Capacity:** **Unlimited** (each customer has their own token)
 - **Requirements:** Instagram Business or Creator account linked to Facebook Page
-- **Scanning Strategy:** 1-hour cache, ~100 posts per scan
+- **Scanning Strategy:** 1-hour cache, 10 posts per scan
 - **Paid Options:** No official paid tier
   - API is free with rate limits
   - Third-party services may offer paid aggregation services
@@ -133,8 +133,8 @@ This document summarizes the free tier limits and paid options for all social me
 ## Current Implementation
 
 - **Twitter:** 30-day cache, 5 tweets per scan (optimized for free tier)
-- **Facebook:** 1-hour cache, ~50 posts per scan
-- **Instagram:** 1-hour cache, ~100 posts per scan
-- **LinkedIn:** 1-hour cache (no explicit limit in code)
+- **Facebook:** 1-hour cache, 10 posts per scan (optimized for free tier)
+- **Instagram:** 1-hour cache, 10 posts per scan (optimized for free tier)
+- **LinkedIn:** 1-hour cache, 10 posts per scan (optimized for free tier)
 
 All platforms use per-user access tokens except Twitter (which uses shared API key for free tier).

@@ -13,7 +13,7 @@ This document outlines the optimized storage limits for the marketing bot applic
 | **Contact Lists** | 20 | ~5KB (with contacts) | ~100KB | Can contain many contacts, reduced to save storage |
 | **Email Campaigns** | 30 | ~3KB | ~90KB | Email content and metadata |
 | **Brand Images** | 20 | ~150KB | ~3MB | Biggest storage item - stored as URLs (not base64) |
-| **Scanned Posts** | 20 | ~1KB (text) + images | ~1.2MB | Text only, newest 8 keep images |
+| **Scanned Posts** | 20 | ~1KB (text) + images | ~1.2MB | Text only, newest 8 keep images. See [SCANNING_BEHAVIOR.md](SCANNING_BEHAVIOR.md) for details |
 | **Accepted Content** | 30 | ~2KB | ~60KB | AI learning data |
 | **Edits** | 20 | ~3KB | ~60KB | AI learning data with weighted voting |
 | **Settings/Other** | - | - | ~100KB | API keys, preferences, etc. |
@@ -43,9 +43,9 @@ This document outlines the optimized storage limits for the marketing bot applic
 - **Customer Capacity:** **Unlimited** (each customer has their own token)
 - **Scanning Strategy:** 
   - 1-hour cache (can scan more frequently than Twitter)
-  - ~50 posts per scan (Facebook), ~100 posts per scan (Instagram)
+  - 10 posts per scan (Facebook, Instagram, LinkedIn)
   - Can scan multiple times per day (within hourly rate limit)
-  - **Storage Impact:** ~20-30 scanned posts per month (kept, but can scan more frequently)
+  - **Storage Impact:** ~20 scanned posts kept total (optimized for free-tier, scans more frequently)
 - **Paid Options:** No official paid tier (API is free with rate limits)
 
 ### LinkedIn Free Tier
@@ -55,8 +55,8 @@ This document outlines the optimized storage limits for the marketing bot applic
 - **Customer Capacity:** **~4,000+ customers** (100K calls/day ÷ 24 scans/day = ~4,166 customers)
 - **Scanning Strategy:** 
   - 1-hour cache (can scan frequently)
-  - No explicit limit in code (uses API default)
-  - **Storage Impact:** ~20-30 scanned posts per month (kept)
+  - 10 posts per scan (`count=10`)
+  - **Storage Impact:** ~20 scanned posts kept total (optimized for free-tier)
 - **Paid Options:** No official paid tier for standard API (API is free with rate limits)
 
 ## Why These Limits?
