@@ -90,11 +90,14 @@ export default function SettingsPage() {
 
             // For Meta platforms (Facebook/Instagram), connect both with the same token
             // Facebook and Instagram share the same OAuth token from Meta
+            // For other platforms, just replace the existing account for that platform
+            // IMPORTANT: Preserve ALL other platforms when connecting a new one
             let updated: typeof currentSocialAccounts = []
             let connectedBoth = false
             
             if (platform === 'facebook' || platform === 'instagram') {
               // Remove existing Facebook and Instagram accounts (they'll be replaced with new token)
+              // But preserve all other platforms (Twitter, LinkedIn)
               updated = currentSocialAccounts.filter((acc) => acc.platform !== 'facebook' && acc.platform !== 'instagram')
               
               // Add the connected platform
