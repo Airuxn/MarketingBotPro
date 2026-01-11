@@ -362,9 +362,6 @@ export const useStore = create<Store>()(
         
         const originalSetItem = storage.setItem.bind(storage)
         storage.setItem = function(key: string, value: string) {
-          // Skip cleanup/toast for test keys (used by testLocalStorageLimit)
-          const isTestKey = key.startsWith('__localStorage_limit_test__')
-          
           try {
             originalSetItem(key, value)
             // Debounce backup creation (only backup every 30 seconds max)
@@ -383,10 +380,6 @@ export const useStore = create<Store>()(
               }, 30000) // 30 second debounce
             }
           } catch (error: any) {
-            // If this is a test key, just throw the error without cleanup/toast
-            // This allows testLocalStorageLimit() to handle the error itself
-            if (isTestKey) {
-              throw error
             }
             
             // Handle QuotaExceededError by cleaning up old data
@@ -680,23 +673,9 @@ export async function getStorageQuota(): Promise<{
   const localStorageLimit = localStorageLimitMB * 1024 * 1024
   const available = Math.max(0, localStorageLimit - appUsage)
 
-  // Determine method string - prioritize tested, then browser estimate
-  // Browser estimates (10MB for Brave/Chrome, 5MB for Safari) are well-known and accurate
-  let methodString: string
-  if (localStorageLimitMethod === 'tested') {
-    // Test succeeded - show actual tested limit
-    methodString = `tested (${localStorageLimitMB.toFixed(1)} MB actual limit)`
-  } else if (localStorageLimitMethod === 'browser_estimate') {
-    // Browser-specific estimate (well-known values, accurate per browser)
-    // These are standard limits: Brave/Chrome: 10MB, Safari: 5MB, Firefox: 10MB, Edge: 10MB
-    methodString = `tested (${localStorageLimitMB.toFixed(1)} MB - ${detected.browser} standard limit)`
-  } else if (method === 'detected' && !testAttempted) {
-    // StorageManager API available but test was not attempted (shouldn't happen, but handle it)
-    methodString = `estimated (${localStorageLimitMB} MB typical for ${detected.browser})`
-  } else {
-    // Fallback to estimated
-    methodString = `estimated (${localStorageLimitMB} MB typical for ${detected.browser})`
-  }
+  // Show localStorage limit - browser-specific limits are well-known and accurate
+  // Brave/Chrome: 10MB, Safari: 5MB, Firefox: 10MB, Edge: 10MB
+  const methodString = `${localStorageLimitMB.toFixed(1)} MB (${detected.browser} standard limit)`
 
   return {
     totalQuota, // Total storage quota (can be 2GB+, but not all usable for localStorage)
