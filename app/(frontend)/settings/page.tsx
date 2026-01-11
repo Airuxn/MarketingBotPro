@@ -406,7 +406,7 @@ export default function SettingsPage() {
       }
     } else {
       // Other platforms use OAuth redirect
-      window.location.href = `/api/oauth/${platform}`
+    window.location.href = `/api/oauth/${platform}`
     }
   }
 
@@ -448,50 +448,50 @@ export default function SettingsPage() {
 
       if (currentPlatform === 'instagram') {
         validationResponse = await fetch('/api/validate-instagram-token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            accessToken: manualAccessToken.trim(),
-          }),
-        })
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          accessToken: manualAccessToken.trim(),
+        }),
+      })
         validationData = await validationResponse.json()
 
-        if (!validationResponse.ok || !validationData.valid) {
-          const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
-          const errorType = validationData.errorType || 'unknown'
-          
-          if (errorType === 'OAuthException') {
-            toast.error(`Invalid or expired token: ${errorMessage}`)
-          } else if (errorMessage.includes('expired')) {
-            toast.error('This token has expired. Please generate a new access token.')
-          } else if (errorMessage.includes('permission')) {
-            toast.error('This token does not have the required permissions. Please ensure your token has access to Instagram Business Account data.')
-          } else {
-            toast.error(errorMessage || 'Token validation failed. Please check your access token.')
-          }
-          return
-        }
-
-        // Token is valid - auto-fill the ID field if empty, or validate if ID matches
-        if (manualUserId.trim()) {
-          // User provided ID - check if it matches
-          if (validationData.userId === manualUserId.trim()) {
-            toast.success(`Token validated! Account ID matches: ${validationData.userId}`)
-          } else if (validationData.userId) {
-            toast.error(`Token belongs to different account. Detected ID: ${validationData.userId}, but you entered: ${manualUserId.trim()}`)
-          }
-        } else if (validationData.userId) {
-          // No ID provided - auto-fill it
-          setManualUserId(validationData.userId)
-          if (validationData.username) {
-            toast.success(`Token validated! Found Instagram account: @${validationData.username} (ID: ${validationData.userId})`)
-          } else {
-            toast.success(`Token validated! Found Account ID: ${validationData.userId}`)
-          }
+      if (!validationResponse.ok || !validationData.valid) {
+        const errorMessage = validationData.error || 'Invalid token. Please check your access token and try again.'
+        const errorType = validationData.errorType || 'unknown'
+        
+        if (errorType === 'OAuthException') {
+          toast.error(`Invalid or expired token: ${errorMessage}`)
+        } else if (errorMessage.includes('expired')) {
+          toast.error('This token has expired. Please generate a new access token.')
+        } else if (errorMessage.includes('permission')) {
+          toast.error('This token does not have the required permissions. Please ensure your token has access to Instagram Business Account data.')
         } else {
-          toast.error('Token is valid but could not detect Instagram Business Account ID. Please enter it manually.')
+          toast.error(errorMessage || 'Token validation failed. Please check your access token.')
+        }
+        return
+      }
+
+      // Token is valid - auto-fill the ID field if empty, or validate if ID matches
+      if (manualUserId.trim()) {
+        // User provided ID - check if it matches
+        if (validationData.userId === manualUserId.trim()) {
+          toast.success(`Token validated! Account ID matches: ${validationData.userId}`)
+        } else if (validationData.userId) {
+          toast.error(`Token belongs to different account. Detected ID: ${validationData.userId}, but you entered: ${manualUserId.trim()}`)
+        }
+      } else if (validationData.userId) {
+        // No ID provided - auto-fill it
+        setManualUserId(validationData.userId)
+        if (validationData.username) {
+          toast.success(`Token validated! Found Instagram account: @${validationData.username} (ID: ${validationData.userId})`)
+        } else {
+          toast.success(`Token validated! Found Account ID: ${validationData.userId}`)
+        }
+      } else {
+        toast.error('Token is valid but could not detect Instagram Business Account ID. Please enter it manually.')
         }
       } else if (currentPlatform === 'twitter') {
         validationResponse = await fetch('/api/validate-twitter-token', {
@@ -1731,13 +1731,13 @@ export default function SettingsPage() {
                                 )}
                               </div>
                               <div className="pt-2 mt-auto border-t border-slate-700/30 text-xs text-slate-400 leading-relaxed">
-                                <strong className="text-slate-300 font-medium">Note:</strong> Data is stored locally in your browser (localStorage). 
-                                {storageQuota?.totalQuotaMB && storageQuota.totalQuotaMB > 1000 && (
-                                  <> Your browser has {storageQuota.totalQuotaMB.toFixed(0)} MB total storage available, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB.toFixed(1)} MB limit per origin.</>
-                                )}
-                                {!storageQuota?.totalQuotaMB || storageQuota.totalQuotaMB <= 1000 ? (
-                                  <> Data is not synced across devices.</>
-                                ) : null}
+                                  <strong className="text-slate-300 font-medium">Note:</strong> Data is stored locally in your browser (localStorage). 
+                                  {storageQuota?.totalQuotaMB && storageQuota.totalQuotaMB > 1000 && (
+                                    <> Your browser has {storageQuota.totalQuotaMB.toFixed(0)} MB total storage available, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB.toFixed(1)} MB limit per origin.</>
+                                  )}
+                                  {!storageQuota?.totalQuotaMB || storageQuota.totalQuotaMB <= 1000 ? (
+                                    <> Data is not synced across devices.</>
+                                  ) : null}
                               </div>
                             </div>
 
@@ -1775,24 +1775,24 @@ export default function SettingsPage() {
                                     <X className="w-3 h-3" />
                                     <span>Clear All Data</span>
                                   </button>
-                                  <button
-                                    onClick={async () => {
-                                      const info = getStorageUsage()
-                                      setStorageInfo(info)
-                                      try {
-                                        const quota = await getStorageQuota()
-                                        if (quota) {
-                                          setStorageQuota(quota)
-                                        }
-                                      } catch (err) {
-                                        console.error('Error refreshing quota:', err)
+                                <button
+                                  onClick={async () => {
+                                    const info = getStorageUsage()
+                                    setStorageInfo(info)
+                                    try {
+                                      const quota = await getStorageQuota()
+                                      if (quota) {
+                                        setStorageQuota(quota)
                                       }
-                                    }}
-                                    className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors text-cyan-400 hover:text-cyan-300 border border-slate-700/50"
-                                    title="Refresh"
-                                  >
-                                    <RefreshCw className="w-3.5 h-3.5" />
-                                  </button>
+                                    } catch (err) {
+                                      console.error('Error refreshing quota:', err)
+                                    }
+                                  }}
+                                  className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors text-cyan-400 hover:text-cyan-300 border border-slate-700/50"
+                                  title="Refresh"
+                                >
+                                  <RefreshCw className="w-3.5 h-3.5" />
+                                </button>
                                 </div>
                               </div>
 

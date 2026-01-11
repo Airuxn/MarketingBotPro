@@ -91,14 +91,14 @@ The AI learns your content style from multiple sources and uses that knowledge t
     - Requires your Gemini API key (from Settings)
     - AI preferences are stored per post for aggregation
   - **Rule-Based Analysis (Fallback - always runs)**:
-    - **What is "rule-based"?** A programming approach using predefined rules, patterns, and logic (not AI/ML)
-    - Uses `analyzeContent()` function with pattern matching:
-      - Detects tone using keyword matching (if content contains "excited" → add "enthusiastic" tone)
-      - Analyzes structure using rules (if content has `\n\n` → "multi-paragraph", if has `•` → "list-based")
-      - Extracts hashtags using regex: `/#\w+/g`
-      - Detects CTAs using regex patterns: `/learn more|get started|sign up/gi`
-      - Calculates length statistics (min, max, average word count) using simple math
-      - Detects emoji usage using unicode regex: `[\u{1F300}-\u{1F9FF}]`
+  - **What is "rule-based"?** A programming approach using predefined rules, patterns, and logic (not AI/ML)
+  - Uses `analyzeContent()` function with pattern matching:
+    - Detects tone using keyword matching (if content contains "excited" → add "enthusiastic" tone)
+    - Analyzes structure using rules (if content has `\n\n` → "multi-paragraph", if has `•` → "list-based")
+    - Extracts hashtags using regex: `/#\w+/g`
+    - Detects CTAs using regex patterns: `/learn more|get started|sign up/gi`
+    - Calculates length statistics (min, max, average word count) using simple math
+    - Detects emoji usage using unicode regex: `[\u{1F300}-\u{1F9FF}]`
   - Each post gets a `styleAnalysis` object (rule-based) and optionally `aiPreferences` (AI-based)
   - **Combined Results**:
     - AI preferences **override** rule-based preferences when both available

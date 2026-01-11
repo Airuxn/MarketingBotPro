@@ -92,7 +92,7 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
       autoScannedCount: autoScannedImages.length,
       uploadedCount: uploadedImages.length,
       autoScanned: autoScannedImages.map(img => ({ id: img.id, platform: img.platform, url: img.url?.substring(0, 50) + '...' }))
-    })
+      })
     
     // Combine: auto-scanned first, then uploaded
     setImages([...autoScannedImages, ...uploadedImages])
@@ -391,15 +391,15 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
             {autoScannedImages.map((image) => {
               const loadState = imageLoadStates[image.id] || 'loading'
               return (
-                <div
-                  key={image.id}
-                  className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImageUrl === image.url
-                      ? 'border-blue-500 ring-2 ring-blue-500/30'
-                      : 'border-slate-700 hover:border-slate-600'
-                  }`}
-                  onClick={() => onImageSelect(image.url)}
-                >
+              <div
+                key={image.id}
+                className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                  selectedImageUrl === image.url
+                    ? 'border-blue-500 ring-2 ring-blue-500/30'
+                    : 'border-slate-700 hover:border-slate-600'
+                }`}
+                onClick={() => onImageSelect(image.url)}
+              >
                   {loadState === 'loading' && (
                     <div className="w-full h-32 bg-slate-800 flex items-center justify-center">
                       <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
@@ -413,52 +413,52 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
                     </div>
                   )}
                   {loadState === 'loaded' && (
-                    <img
-                      src={image.url}
-                      alt="Brand image"
-                      className="w-full h-32 object-cover"
+                <img
+                  src={image.url}
+                  alt="Brand image"
+                  className="w-full h-32 object-cover"
                       crossOrigin="anonymous"
                       onLoad={() => {
                         setImageLoadStates(prev => ({ ...prev, [image.id]: 'loaded' }))
                       }}
-                      onError={(e) => {
+                  onError={(e) => {
                         console.error('[BrandImageLibrary] Image failed to load:', image.url, {
                           platform,
                           imageId: image.id,
                           error: 'CORS or network issue on mobile'
                         })
                         setImageLoadStates(prev => ({ ...prev, [image.id]: 'error' }))
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
                   )}
-                  
+                
                   {selectedImageUrl === image.url && loadState === 'loaded' && (
-                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-                      <Check className="w-4 h-4" />
-                    </div>
-                  )}
+                  <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                    <Check className="w-4 h-4" />
+                  </div>
+                )}
 
                   {loadState === 'loaded' && (
                     <>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                        <span className="text-white text-xs opacity-0 group-hover:opacity-100">
-                          Click to use
-                        </span>
-                      </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <span className="text-white text-xs opacity-0 group-hover:opacity-100">
+                    Click to use
+                  </span>
+                </div>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          removeImage(image.id)
-                        }}
-                        className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    removeImage(image.id)
+                  }}
+                  className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3" />
+                </button>
                     </>
                   )}
-                </div>
+              </div>
               )
             })}
           </div>
@@ -478,15 +478,15 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
             {uploadedImages.map((image) => {
               const loadState = imageLoadStates[image.id] || 'loading'
               return (
-                <div
-                  key={image.id}
-                  className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImageUrl === image.url
-                      ? 'border-blue-500 ring-2 ring-blue-500/30'
-                      : 'border-slate-700 hover:border-slate-600'
-                  }`}
-                  onClick={() => onImageSelect(image.url)}
-                >
+              <div
+                key={image.id}
+                className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                  selectedImageUrl === image.url
+                    ? 'border-blue-500 ring-2 ring-blue-500/30'
+                    : 'border-slate-700 hover:border-slate-600'
+                }`}
+                onClick={() => onImageSelect(image.url)}
+              >
                   {loadState === 'loading' && (
                     <div className="w-full h-32 bg-slate-800 flex items-center justify-center">
                       <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
@@ -499,50 +499,50 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
                     </div>
                   )}
                   {loadState === 'loaded' && (
-                    <img
-                      src={image.url}
-                      alt="Uploaded image"
-                      className="w-full h-32 object-cover"
+                <img
+                  src={image.url}
+                  alt="Uploaded image"
+                  className="w-full h-32 object-cover"
                       onLoad={() => {
                         setImageLoadStates(prev => ({ ...prev, [image.id]: 'loaded' }))
                       }}
-                      onError={(e) => {
+                  onError={(e) => {
                         console.error('[BrandImageLibrary] Uploaded image failed to load:', image.url, {
                           platform,
                           imageId: image.id
                         })
                         setImageLoadStates(prev => ({ ...prev, [image.id]: 'error' }))
-                        e.currentTarget.style.display = 'none'
-                      }}
-                    />
+                    e.currentTarget.style.display = 'none'
+                  }}
+                />
                   )}
-                  
+                
                   {selectedImageUrl === image.url && loadState === 'loaded' && (
-                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-                      <Check className="w-4 h-4" />
-                    </div>
-                  )}
+                  <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                    <Check className="w-4 h-4" />
+                  </div>
+                )}
 
                   {loadState === 'loaded' && (
                     <>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                        <span className="text-white text-xs opacity-0 group-hover:opacity-100">
-                          Click to use
-                        </span>
-                      </div>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                  <span className="text-white text-xs opacity-0 group-hover:opacity-100">
+                    Click to use
+                  </span>
+                </div>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          removeImage(image.id)
-                        }}
-                        className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    removeImage(image.id)
+                  }}
+                  className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="w-3 h-3" />
+                </button>
                     </>
                   )}
-                </div>
+              </div>
               )
             })}
           </div>

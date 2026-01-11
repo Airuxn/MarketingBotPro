@@ -205,7 +205,7 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
     // Twitter API doesn't allow browser requests, so we need to go through our server
     const response = await fetch('/api/scan-twitter', {
       method: 'POST',
-      headers: {
+        headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -299,7 +299,7 @@ export async function scanLinkedInAccount(accessToken: string): Promise<ScannedC
     // LinkedIn API doesn't allow direct browser requests, so we need to go through our server
     const response = await fetch('/api/scan-linkedin', {
       method: 'POST',
-      headers: {
+        headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -387,69 +387,85 @@ export async function scanInstagramAccount(accessToken: string, userId: string):
   try {
     // Instagram Graph API requires Instagram Business Account ID (not Facebook user ID or 'me')
     if (!userId || userId === 'me') {
-      console.error('Instagram scan: userId is required and must be an Instagram Business Account ID')
+      console.error('[Instagram Scan] userId is required and must be an Instagram Business Account ID')
       return []
     }
 
-    // Instagram Graph API - get user media (limit to 10 for free-tier optimization)
-    const response = await fetch(
-      `https://graph.instagram.com/${userId}/media?access_token=${accessToken}&limit=10&fields=id,caption,media_type,media_url,thumbnail_url,timestamp,like_count,comments_count`,
-      {
-        method: 'GET',
+    console.log(`[Instagram Scan] Starting scan for userId: ${userId}`)
+    console.log(`[Instagram Scan] Using server-side API to avoid CORS issues`)
+
+    // Use server-side API route to proxy Instagram API calls (avoids CORS issues)
+    // Instagram API can have CORS issues on mobile browsers, so we go through our server
+    const response = await fetch('/api/scan-instagram', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        accessToken,
+        userId,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage = errorData.error || `HTTP ${response.status}`
+      const errorStatus = errorData.status || response.status
+      
+      console.error(`[Instagram Scan] Server API Error (${errorStatus}):`, errorMessage)
+      console.error(`[Instagram Scan] Error details:`, errorData.details || errorData)
+      
+      // Common issues:
+      if (errorStatus === 401) {
+        console.error('[Instagram Scan] 401 Unauthorized - Token is expired or invalid')
+        console.error('[Instagram Scan] Solution: Disconnect Instagram in Settings → Social Accounts, then reconnect using the OAuth popup to get a new token.')
+        throw new Error(`Instagram token expired or invalid. Please disconnect and reconnect Instagram in Settings using the OAuth popup to refresh your token.`)
+      } else if (errorStatus === 403) {
+        console.error('[Instagram Scan] 403 Forbidden - Token does not have required permissions')
+        throw new Error(`Instagram API error: ${errorMessage}`)
+      } else if (errorStatus === 429) {
+        console.error(`[Instagram Scan] 429 Rate Limit - Too many requests. Please wait before scanning again.`)
+        throw new Error(`Instagram rate limit: Please wait before scanning again.`)
       }
-    )
+      
+      throw new Error(`Instagram API error: ${errorMessage}`)
+    }
 
     const data = await response.json()
 
-    if (data.error) {
-      console.error('Instagram API error:', data.error)
-      throw new Error(data.error.message || 'Instagram API error')
+    if (!data.media || data.media.length === 0) {
+      console.log('[Instagram Scan] No media found for this account')
+      return []
     }
+
+    console.log(`[Instagram Scan] Found ${data.media.length} media items from server API`)
 
     const scanned: ScannedContent[] = []
 
-    for (const media of data.data || []) {
-      const images: string[] = []
-      
-      if (media.media_type === 'IMAGE' && media.media_url) {
-        images.push(media.media_url)
-      } else if (media.media_type === 'VIDEO') {
-        // For videos, use thumbnail_url (if available) or media_url
-        if (media.thumbnail_url) {
-          images.push(media.thumbnail_url)
-        } else if (media.media_url) {
-          images.push(media.media_url)
-        }
-      } else if (media.media_type === 'CAROUSEL_ALBUM') {
-        // Would need additional API call to get carousel items
-        if (media.media_url) {
-          images.push(media.media_url)
-        }
-      }
-
+    for (const item of data.media) {
       // Analyze content style
       let styleAnalysis: StyleAnalysis | undefined
-      if (media.caption && media.caption.trim().length > 0) {
-        styleAnalysis = analyzeContent(media.caption)
+      if (item.caption && item.caption.trim().length > 0) {
+        styleAnalysis = analyzeContent(item.caption)
       }
 
       scanned.push({
-        id: media.id,
+        id: item.id,
         platform: 'instagram',
-        content: media.caption || '',
-        images,
-        createdAt: media.timestamp,
-        engagement: {
-          likes: media.like_count,
-          comments: media.comments_count,
-        },
+        content: item.caption || '',
+        images: item.images || [],
+        createdAt: item.createdAt,
+        engagement: item.engagement,
         styleAnalysis,
       })
     }
 
+    console.log(`[Instagram Scan] Successfully scanned ${scanned.length} Instagram posts`)
     return scanned
   } catch (error: any) {
-    console.error('Instagram scan error:', error)
+    console.error('[Instagram Scan] Error scanning Instagram account:', error)
+    console.error('[Instagram Scan] Error message:', error.message)
+    console.error('[Instagram Scan] UserId used:', userId)
     return []
   }
 }

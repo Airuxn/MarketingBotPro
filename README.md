@@ -81,6 +81,7 @@ A modern, enterprise-grade Progressive Web App (PWA) that automates marketing ta
 - Native app-like experience
 - **Mobile-optimized** - Improved image loading with error handling and placeholders
 - **CORS-aware** - Handles cross-origin image loading issues gracefully
+- **Server-side proxies** - Twitter, LinkedIn, and Instagram use server-side APIs to avoid CORS issues on mobile browsers
 
 ### 💾 Data Backup & Restore
 - **Export all data** - Download JSON backup files

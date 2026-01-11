@@ -76,6 +76,7 @@ Result: Total stored = 35 posts (newest 35 from all scans), images only for newe
 - **Up to 10 posts** per scan (`limit=10`)
 - Scans the **most recent 10 media items** from API
 - Gets images from all scanned posts (media_url or thumbnail_url)
+- **Uses server-side proxy** (`/api/scan-instagram`) to avoid CORS issues on mobile browsers
 
 **Image handling:**
 - All scanned posts keep their images initially

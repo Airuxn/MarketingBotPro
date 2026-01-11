@@ -2232,7 +2232,7 @@ export function combineAllLearningSources(
     })
     editStyle = aggregatePreferencesFromEdits(editAnalyses, edits.length)
   }
-  
+
   // Merge with priority: scanned > edits > accepted
   // AI preferences are already included if available, rule-based is fallback
   const combined: LearnedStyle = {
@@ -2258,7 +2258,7 @@ export function combineAllLearningSources(
       mergeArrayPreferences(editStyle.structure, acceptedStyle.structure)
     ),
   }
-  
+
   console.log('[combineAllLearningSources] Final combined style:', combined)
   return combined
 }
