@@ -13,11 +13,11 @@ This document outlines the optimized storage limits for the marketing bot applic
 | **Contact Lists** | 20 | ~5KB (with contacts) | ~100KB | Can contain many contacts, reduced to save storage |
 | **Email Campaigns** | 30 | ~3KB | ~90KB | Email content and metadata |
 | **Brand Images** | 20 | ~150KB | ~3MB | Biggest storage item - stored as URLs (not base64) |
-| **Scanned Posts** | 20 | ~1KB (text) + images | ~1.2MB | Text only, newest 8 keep images. See [SCANNING_BEHAVIOR.md](SCANNING_BEHAVIOR.md) for details |
-| **Accepted Content** | 30 | ~2KB | ~60KB | AI learning data |
-| **Edits** | 20 | ~3KB | ~60KB | AI learning data with weighted voting |
+| **Scanned Posts** | 35 | ~1KB (text) + images | ~2.2MB | Text only, newest 14 keep images. See [SCANNING_BEHAVIOR.md](SCANNING_BEHAVIOR.md) for details |
+| **Accepted Content** | 25 | ~2KB | ~50KB | AI learning data |
+| **Edits** | 30 | ~3KB | ~90KB | AI learning data with weighted voting |
 | **Settings/Other** | - | - | ~100KB | API keys, preferences, etc. |
-| **Total Estimated** | - | - | **~4.6MB** | Fits within 5MB localStorage limit |
+| **Total Estimated** | - | - | **~5.0MB** | Fits within 5MB localStorage limit (100 learning inputs total: 35 scanned + 30 edits + 25 accepted) |
 
 ## Free-Tier API Considerations
 
@@ -65,7 +65,7 @@ This document outlines the optimized storage limits for the marketing bot applic
 - Browser localStorage: ~5-10MB per origin
 - **Safe limit:** 5MB to work across all browsers
 - Each customer uses their own browser (separate localStorage)
-- **Target:** ~4.6MB per customer (leaves 400KB buffer)
+- **Target:** ~5.0MB per customer (uses full 5MB localStorage limit, optimized for 100 learning inputs: 35 scanned + 30 edits + 25 accepted)
 
 ### 2. Free-Tier API Limits
 - **Twitter:** Very strict (1 req/15min, 100 posts/month TOTAL **SHARED** across all customers)
@@ -109,20 +109,20 @@ Leads:           50 × 0.5KB  = 25KB
 Contact Lists:   20 × 5KB    = 100KB
 Email Campaigns: 30 × 3KB    = 90KB
 Brand Images:    20 × 150KB  = 3MB (URLs, not full images)
-Scanned Posts:   20 × 1KB    = 20KB (text)
-Scanned Images:  8 × 150KB   = 1.2MB (newest 8 only)
-Accepted:        30 × 2KB    = 60KB
-Edits:           20 × 3KB    = 60KB
+Scanned Posts:   35 × 1KB    = 35KB (text)
+Scanned Images:  14 × 150KB  = 2.1MB (newest 14 only)
+Accepted:        25 × 2KB    = 50KB
+Edits:           30 × 3KB    = 90KB
 Settings:        -            = 100KB
 ─────────────────────────────────────
-Total:                        ~4.6MB
+Total:                        ~5.0MB
 ```
 
 ## For 20 Customers (Recommended for Free-Tier APIs)
 
 Each customer uses their own browser (separate localStorage):
-- **Per customer:** ~4.6MB
-- **Total storage:** 20 × 4.6MB = 92MB (distributed across 20 browsers)
+- **Per customer:** ~5.0MB
+- **Total storage:** 20 × 5.0MB = 100MB (distributed across 20 browsers)
 - **No server storage required** - all data in customer browsers
 - **No cost** - localStorage is free
 

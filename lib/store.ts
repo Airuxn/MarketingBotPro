@@ -407,28 +407,28 @@ export const useStore = create<Store>()(
                   if (state?.settings?.contentPreferences) {
                     const prefs = state.settings.contentPreferences
                     
-                    // Reduce scanned posts to last 20 (optimized for free-tier: ~1KB each text only = ~20KB total)
+                    // Reduce scanned posts to last 35 (optimized for free-tier: ~1KB each text only = ~35KB total)
                     // Free-tier Twitter: 100 posts/month shared, 30-day cache per customer = ~5 tweets/month per customer (20 customers max)
-                    // Keep images only for newest 8 posts (~150KB each = ~1.2MB max for images)
-                    if (prefs.scannedPosts && prefs.scannedPosts.length > 20) {
+                    // Keep images only for newest 14 posts (~150KB each = ~2.1MB max for images)
+                    if (prefs.scannedPosts && prefs.scannedPosts.length > 35) {
                       const sorted = [...prefs.scannedPosts]
                         .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                      const kept = sorted.slice(0, 20)
-                      // Remove images from older posts to save space (keep images for newest 8 only)
+                      const kept = sorted.slice(0, 35)
+                      // Remove images from older posts to save space (keep images for newest 14 only)
                       const cleaned = kept.map((post: any, idx: number) => 
-                        idx < 8 ? post : { ...post, images: undefined }
+                        idx < 14 ? post : { ...post, images: undefined }
                       )
                       prefs.scannedPosts = cleaned
                     }
                     
                     // Ensure limits are enforced (optimized for free-tier and 5MB localStorage per customer)
-                    // Accepted content: 30 items (~2KB each = ~60KB total)
-                    if (prefs.acceptedContent && prefs.acceptedContent.length > 30) {
-                      prefs.acceptedContent = prefs.acceptedContent.slice(-30)
+                    // Accepted content: 25 items (~2KB each = ~50KB total)
+                    if (prefs.acceptedContent && prefs.acceptedContent.length > 25) {
+                      prefs.acceptedContent = prefs.acceptedContent.slice(-25)
                     }
-                    // Edits: 20 items (~3KB each = ~60KB total) - enough for weighted voting
-                    if (prefs.edits && prefs.edits.length > 20) {
-                      prefs.edits = prefs.edits.slice(-20)
+                    // Edits: 30 items (~3KB each = ~90KB total) - enough for weighted voting
+                    if (prefs.edits && prefs.edits.length > 30) {
+                      prefs.edits = prefs.edits.slice(-30)
                     }
                   }
                   

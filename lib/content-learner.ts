@@ -1562,8 +1562,8 @@ export async function trackContentEdit(
       acceptedContent: [],
       edits: [],
     }
-    // Optimized for free-tier: keep last 20 edits (~3KB each = ~60KB total)
-    const updatedEdits = [...(preferences.edits || []), edit].slice(-20)
+    // Optimized for free-tier: keep last 30 edits (~3KB each = ~90KB total)
+    const updatedEdits = [...(preferences.edits || []), edit].slice(-30)
     updateSettings({
       contentPreferences: {
         ...preferences,
@@ -1720,8 +1720,8 @@ export async function trackContentEdit(
       acceptedContent: [],
       edits: [],
     }
-    // Optimized for free-tier: keep last 20 edits (~3KB each = ~60KB total)
-    const updatedEdits = [...(preferences.edits || []), edit].slice(-20)
+    // Optimized for free-tier: keep last 30 edits (~3KB each = ~90KB total)
+    const updatedEdits = [...(preferences.edits || []), edit].slice(-30)
     
     // Don't update learned preferences, but still store the edit
     updateSettings({
@@ -1743,8 +1743,8 @@ export async function trackContentEdit(
     edits: [],
   }
 
-  // Store the edit (optimized for free-tier: keep last 20 edits, ~3KB each = ~60KB total)
-  const updatedEdits = [...(preferences.edits || []), edit].slice(-20) // Keep last 20 edits
+  // Store the edit (optimized for free-tier: keep last 30 edits, ~3KB each = ~90KB total)
+  const updatedEdits = [...(preferences.edits || []), edit].slice(-30) // Keep last 30 edits
 
   // SUPERSMART: Aggregate learned preferences from ALL edits, not just the latest
   // Use weighted voting where recent edits have more weight, but all edits contribute
@@ -2346,8 +2346,8 @@ export async function trackAcceptedContent(
 
   const updatedAccepted = [...acceptedContent, newAccepted]
   
-  // Optimized for free-tier: keep last 30 accepted items (~2KB each = ~60KB total)
-  const trimmedAccepted = updatedAccepted.slice(-30)
+  // Optimized for free-tier: keep last 25 accepted items (~2KB each = ~50KB total)
+  const trimmedAccepted = updatedAccepted.slice(-25)
 
   // Re-learn style from ALL sources: scanned posts (most important), accepted content, and edits
   const scannedPosts = preferences.scannedPosts || []

@@ -327,13 +327,13 @@ export default function ContentPage() {
             idx === self.findIndex(p => p.id === post.id && p.platform === post.platform)
           )
           
-          // Sort by date (newest first) and keep last 20 (optimized for free-tier APIs)
+          // Sort by date (newest first) and keep last 35 (optimized for free-tier APIs, 100 learning inputs total)
           // Free-tier Twitter: 100 posts/month shared, 30-day cache per customer = ~5 tweets/month per customer (20 customers max)
-          // Remove images from older posts (keep images only for newest 8) to save storage space
+          // Remove images from older posts (keep images only for newest 14) to save storage space
           const sortedScannedPosts = uniqueScannedPosts
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 20)
-            .map((post, idx) => idx < 8 ? post : { ...post, images: undefined })
+            .slice(0, 35)
+            .map((post, idx) => idx < 14 ? post : { ...post, images: undefined })
           
           // IMPORTANT: Learn from scanned posts! This is the PRIMARY source for new users
           // AI analysis is now included if available, providing deeper insights than rule-based only

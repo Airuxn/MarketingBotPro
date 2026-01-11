@@ -26,7 +26,7 @@ This document explains exactly how the app scans social media posts and stores t
 
 **Image handling:**
 - All 5 scanned tweets keep their images initially
-- When storing, if total scanned posts > 20, only newest 8 keep images
+- When storing, if total scanned posts > 35, only newest 14 keep images
 - Older posts have images removed to save storage
 
 **Deduplication:**
@@ -53,7 +53,7 @@ Result: Total stored = 8 posts (A, B, C, D, E, F, G, H)
 
 **Image handling:**
 - All scanned posts keep their images initially
-- When storing, if total scanned posts > 20, only newest 8 keep images
+- When storing, if total scanned posts > 35, only newest 14 keep images
 - Older posts have images removed to save storage
 
 **Deduplication:**
@@ -65,7 +65,7 @@ Result: Total stored = 8 posts (A, B, C, D, E, F, G, H)
 ```
 Scan 1: Gets 10 posts [A-J] → Stores all 10 with images
 Scan 2 (next hour): Gets 10 posts [A-J, K-T] → Only stores [K-T] (A-J already exist)
-Result: Total stored = 20 posts (newest 20 from all scans), images only for newest 8
+Result: Total stored = 35 posts (newest 35 from all scans), images only for newest 14
 ```
 
 ---
@@ -79,7 +79,7 @@ Result: Total stored = 20 posts (newest 20 from all scans), images only for newe
 
 **Image handling:**
 - All scanned posts keep their images initially
-- When storing, if total scanned posts > 20, only newest 8 keep images
+- When storing, if total scanned posts > 35, only newest 14 keep images
 - Older posts have images removed to save storage
 
 **Deduplication:**
@@ -91,7 +91,7 @@ Result: Total stored = 20 posts (newest 20 from all scans), images only for newe
 ```
 Scan 1: Gets 10 posts [A-J] → Stores all 10 with images
 Scan 2 (next hour): Gets 10 posts [A-J, K-T] → Only stores [K-T] (A-J already exist)
-Result: Total stored = 20 posts (newest 20 from all scans), images only for newest 8
+Result: Total stored = 35 posts (newest 35 from all scans), images only for newest 14
 ```
 
 ---
@@ -105,7 +105,7 @@ Result: Total stored = 20 posts (newest 20 from all scans), images only for newe
 
 **Image handling:**
 - All scanned posts keep their images initially
-- When storing, if total scanned posts > 20, only newest 8 keep images
+- When storing, if total scanned posts > 35, only newest 14 keep images
 - Older posts have images removed to save storage
 
 **Deduplication:**
@@ -117,7 +117,7 @@ Result: Total stored = 20 posts (newest 20 from all scans), images only for newe
 ```
 Scan 1: Gets 10 posts [A-J] → Stores all 10 with images
 Scan 2 (next hour): Gets 10 posts [A-J, K-T] → Only stores [K-T] (A-J already exist)
-Result: Total stored = 20 posts (newest 20 from all scans), images only for newest 8
+Result: Total stored = 35 posts (newest 35 from all scans), images only for newest 14
 ```
 
 ---
@@ -128,16 +128,16 @@ Regardless of how many posts are scanned, the app stores:
 
 | Item | Limit | Notes |
 |------|-------|-------|
-| **Total Scanned Posts** | 20 | Across all platforms combined |
-| **Images Kept** | Newest 8 posts only | Older posts have images removed |
+| **Total Scanned Posts** | 35 | Across all platforms combined |
+| **Images Kept** | Newest 14 posts only | Older posts have images removed |
 | **Storage Strategy** | Newest first | Oldest posts removed when limit exceeded |
 
 **How it works:**
 1. Scan returns N posts (varies by platform)
 2. Merge with existing scanned posts (deduplicate by ID)
 3. Sort by date (newest first)
-4. Keep only last 20 posts
-5. Remove images from posts older than newest 8
+4. Keep only last 35 posts
+5. Remove images from posts older than newest 14
 
 ---
 
@@ -212,9 +212,9 @@ const uniqueScannedPosts = allScannedPosts.filter((post, idx, self) =>
 
 1. **Does it scan 100 and save 5, or only scan 5?**
    - **Twitter:** Only scans 5 (not 100)
-   - **Facebook:** Scans 10, stores up to 20 total
-   - **Instagram:** Scans 10, stores up to 20 total
-   - **LinkedIn:** Scans 10, stores up to 20 total
+   - **Facebook:** Scans 10, stores up to 35 total
+   - **Instagram:** Scans 10, stores up to 35 total
+   - **LinkedIn:** Scans 10, stores up to 35 total
 
 2. **Does it scan the last images or not?**
    - Yes, scans images from all scanned posts
@@ -232,6 +232,6 @@ const uniqueScannedPosts = allScannedPosts.filter((post, idx, self) =>
    - **LinkedIn:** Up to 50 images (10 posts × 5 images max)
 
 5. **How many images are stored?**
-   - **Newest 8 posts:** All images kept
-   - **Posts 9-20:** Images removed
-   - **Total:** ~8-32 images stored (typically ~1.2-2.4MB)
+   - **Newest 14 posts:** All images kept
+   - **Posts 15-35:** Images removed
+   - **Total:** ~14-56 images stored (typically ~2.1-4.2MB)

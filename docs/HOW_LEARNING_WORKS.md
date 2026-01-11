@@ -27,7 +27,7 @@ The AI learns your content style from multiple sources and uses that knowledge t
 ### 1. **When You Accept Generated Content**
 - **Trigger**: You click "Accept" on generated content
 - **What happens**: 
-  - The content is saved to `acceptedContent` history (last 30 kept, optimized for free-tier)
+  - The content is saved to `acceptedContent` history (last 25 kept, optimized for free-tier)
   - **AI Analysis (Primary Method - if API key available)**:
     - Uses **Gemini AI** (Google Generative AI) to analyze the content
     - Reads the **FULL content** to understand context and style patterns
@@ -54,7 +54,7 @@ The AI learns your content style from multiple sources and uses that knowledge t
 ### 2. **When You Edit Generated Content (MEDIUM PRIORITY)**
 - **Trigger**: You edit generated content and save it
 - **What happens**:
-  - The edit is saved to `edits` history (last 20 kept, optimized for free-tier)
+  - The edit is saved to `edits` history (last 30 kept, optimized for free-tier)
   - **AI Analysis (Primary Method - if API key available)**:
     - Uses **Gemini AI** (Google Generative AI) to analyze the edit
     - Reads the **FULL original and edited content** to understand context
@@ -278,11 +278,11 @@ When combining all sources:
 The system has limits to prevent storage bloat and ensure performance:
 
 ### Storage Limits (Rolling Window - Optimized for Free-Tier APIs)
-- **Scanned Posts**: Last **20** items kept (~20KB text + 1.2MB images for newest 8) - **HIGHEST PRIORITY**
-- **Edits**: Last **20** items kept (~60KB total, enough for weighted voting) - **MEDIUM PRIORITY**
-- **Accepted Content**: Last **30** items kept (~60KB total) - **LOWER PRIORITY**
+- **Scanned Posts**: Last **35** items kept (~35KB text + 2.1MB images for newest 14) - **HIGHEST PRIORITY**
+- **Edits**: Last **30** items kept (~90KB total, enough for weighted voting) - **MEDIUM PRIORITY**
+- **Accepted Content**: Last **25** items kept (~50KB total) - **LOWER PRIORITY**
 
-**Total Maximum**: ~70 items across all sources (~1.3MB total for learning data)
+**Total Maximum**: **100 items** across all sources (~2.3MB total for learning data: 35 scanned + 30 edits + 25 accepted)
 
 ### Why These Limits? (Optimized for Free-Tier APIs & 20 Customers)
 - **Performance**: Too many items slow down analysis
@@ -314,13 +314,13 @@ The system ensures the new item is included in aggregation:
 
 **When you accept content:**
 1. ✅ Add new item to array (in memory): `updatedAccepted = [...acceptedContent, newAccepted]`
-2. ✅ Trim array to 30 items: `trimmedAccepted = updatedAccepted.slice(-30)` (includes new item, optimized for free-tier)
+2. ✅ Trim array to 25 items: `trimmedAccepted = updatedAccepted.slice(-25)` (includes new item, optimized for free-tier)
 3. ✅ Aggregate using NEW array: `combineAllLearningSources(..., trimmedAccepted, ...)` (new item included!)
 4. ✅ Save BOTH together: `updateSettings({ acceptedContent: trimmedAccepted, learnedStyle })`
 
 **When you edit content:**
 1. ✅ Add new edit to array (in memory): `updatedEdits = [...edits, edit]`
-2. ✅ Trim array to 20 items: `updatedEdits = updatedEdits.slice(-20)` (keeps last 20, includes new edit, optimized for free-tier)
+2. ✅ Trim array to 30 items: `updatedEdits = updatedEdits.slice(-30)` (keeps last 30, includes new edit, optimized for free-tier)
 3. ✅ Aggregate using NEW array: `allEdits = updatedEdits.filter(...)` (new edit included!)
 4. ✅ Extract preferences from all edits (including new one)
 5. ✅ Aggregate all edits together
@@ -553,7 +553,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 
 ### Monthly Cost Example (If Everything Used AI):
 
-**Scenario: 20 edits, 30 accepts, 20 scans (optimized for free-tier APIs)**
+**Scenario: 30 edits, 25 accepts, 35 scans (optimized for free-tier APIs, 90 total learning inputs)**
 - Edits: 100 × $0.0002 = **$0.02**
 - Accepts: 200 × $0.0002 = **$0.04**
 - Scans: 500 × $0.0002 = **$0.10**
