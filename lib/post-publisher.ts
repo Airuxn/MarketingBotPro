@@ -138,16 +138,23 @@ async function postToFacebook(
 async function postToLinkedIn(
   content: string,
   accessToken: string,
-  mediaUrl?: string
+  mediaUrl?: string,
+  userId?: string
 ): Promise<{ success: boolean; postId?: string; error?: string }> {
   try {
-    // LinkedIn requires URN format for posts
-    // This is a simplified version - full implementation would require
-    // getting user URN and proper API structure
+    // LinkedIn requires person URN in format: urn:li:person:{personId}
+    // The userId from OAuth is the person ID (from userinfo.sub)
+    if (!userId) {
+      throw new Error('LinkedIn user ID is required to post. Please reconnect your LinkedIn account.')
+    }
+
     const apiUrl = 'https://api.linkedin.com/v2/ugcPosts'
 
-    const payload = {
-      author: `urn:li:person:${accessToken}`, // This would need actual person URN
+    // Construct the person URN from userId
+    const author = `urn:li:person:${userId}`
+
+    const payload: any = {
+      author,
       lifecycleState: 'PUBLISHED',
       specificContent: {
         'com.linkedin.ugc.ShareContent': {
@@ -162,6 +169,16 @@ async function postToLinkedIn(
       },
     }
 
+    // Add media if provided
+    if (mediaUrl) {
+      payload.specificContent['com.linkedin.ugc.ShareContent'].media = [
+        {
+          status: 'READY',
+          media: mediaUrl,
+        },
+      ]
+    }
+
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -173,8 +190,23 @@ async function postToLinkedIn(
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Failed to post to LinkedIn')
+      const errorText = await response.text()
+      let errorData
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        errorData = { message: errorText }
+      }
+
+      const errorMessage = errorData.message || errorData.error || `LinkedIn API error: ${response.status}`
+      
+      if (response.status === 401) {
+        throw new Error('LinkedIn token expired or invalid. Please reconnect your LinkedIn account.')
+      } else if (response.status === 403) {
+        throw new Error('LinkedIn token does not have posting permissions. Please ensure you granted w_member_social scope.')
+      }
+
+      throw new Error(errorMessage)
     }
 
     const data = await response.json()
@@ -284,7 +316,7 @@ export async function publishPost(
         return await postToFacebook(post.content, account.accessToken, mediaUrl, account.userId)
       
       case 'linkedin':
-        return await postToLinkedIn(post.content, account.accessToken, mediaUrl)
+        return await postToLinkedIn(post.content, account.accessToken, mediaUrl, account.userId)
       
       case 'instagram':
         if (!post.media?.file) {
