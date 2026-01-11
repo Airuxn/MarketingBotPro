@@ -1347,7 +1347,7 @@ export default function ContentPage() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder={t('placeholder')}
-                className="w-full flex-1 px-3 lg:px-4 py-2 lg:py-3 bg-slate-800/50 border-2 border-slate-700 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none text-white placeholder:text-slate-500 text-xs lg:text-sm transition-all min-h-[80px] lg:min-h-[100px]"
+                className="w-full flex-1 px-3 lg:px-4 py-2 lg:py-3 bg-slate-800/50 border-2 border-slate-700 rounded-lg focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 resize-none text-white placeholder:text-slate-500 text-xs lg:text-sm transition-all min-h-[160px] lg:min-h-[100px]"
               />
             </div>
 
