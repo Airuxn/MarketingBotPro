@@ -1128,52 +1128,84 @@ export default function SettingsPage() {
             </div>
             
           {/* Tabs */}
-          <div className="space-y-2 mb-4 border-b border-slate-700/50 pb-2">
-            {/* First row: Overview, Accepted, Edits, Scanned */}
-            <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto w-fit lg:w-full">
-              {(['overview', 'accepted', 'edits', 'scanned'] as const).map((tab) => {
-                const counts = {
-                  overview: 0,
-                  accepted: settings.contentPreferences?.acceptedContent?.length || 0,
-                  edits: settings.contentPreferences?.edits?.length || 0,
-                  scanned: settings.contentPreferences?.scannedPosts?.length || 0,
-                }
-                const labels = {
-                  overview: 'Overview',
-                  accepted: 'Accepted',
-                  edits: 'Edits',
-                  scanned: 'Scanned',
-                }
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveHistoryTab(tab)}
-                    className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
-                      activeHistoryTab === tab
-                        ? 'bg-purple-600 text-white'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                    }`}
-                  >
-                    {labels[tab]} {counts[tab] > 0 && `(${counts[tab]})`}
-                  </button>
-                )
-              })}
+          <div className="mb-4 border-b border-slate-700/50 pb-2">
+            {/* Mobile: Two rows (tabs on top, Storage below) */}
+            <div className="lg:hidden space-y-2">
+              {/* First row: Overview, Accepted, Edits, Scanned */}
+              <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto w-fit">
+                {(['overview', 'accepted', 'edits', 'scanned'] as const).map((tab) => {
+                  const counts = {
+                    overview: 0,
+                    accepted: settings.contentPreferences?.acceptedContent?.length || 0,
+                    edits: settings.contentPreferences?.edits?.length || 0,
+                    scanned: settings.contentPreferences?.scannedPosts?.length || 0,
+                  }
+                  const labels = {
+                    overview: 'Overview',
+                    accepted: 'Accepted',
+                    edits: 'Edits',
+                    scanned: 'Scanned',
+                  }
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveHistoryTab(tab)}
+                      className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
+                        activeHistoryTab === tab
+                          ? 'bg-purple-600 text-white'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                      }`}
+                    >
+                      {labels[tab]} {counts[tab] > 0 && `(${counts[tab]})`}
+                    </button>
+                  )
+                })}
+              </div>
+              {/* Second row: Storage (right-aligned on mobile) */}
+              <div className="flex justify-end">
+                <button
+                  onClick={() => setActiveHistoryTab('storage')}
+                  className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
+                    activeHistoryTab === 'storage'
+                      ? 'bg-purple-600 text-white'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+                >
+                  Storage
+                </button>
+              </div>
             </div>
-            {/* Second row: Storage (right-aligned on mobile, inline on desktop) */}
-            <div className="flex justify-end lg:hidden">
-              <button
-                onClick={() => setActiveHistoryTab('storage')}
-                className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
-                  activeHistoryTab === 'storage'
-                    ? 'bg-purple-600 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-              >
-                Storage
-              </button>
-            </div>
-            {/* Storage inline on desktop */}
-            <div className="hidden lg:flex lg:justify-end">
+            {/* Desktop: Single row with all tabs including Storage */}
+            <div className="hidden lg:flex lg:flex-nowrap lg:items-center lg:justify-between lg:gap-2">
+              <div className="flex flex-nowrap gap-2">
+                {(['overview', 'accepted', 'edits', 'scanned'] as const).map((tab) => {
+                  const counts = {
+                    overview: 0,
+                    accepted: settings.contentPreferences?.acceptedContent?.length || 0,
+                    edits: settings.contentPreferences?.edits?.length || 0,
+                    scanned: settings.contentPreferences?.scannedPosts?.length || 0,
+                  }
+                  const labels = {
+                    overview: 'Overview',
+                    accepted: 'Accepted',
+                    edits: 'Edits',
+                    scanned: 'Scanned',
+                  }
+                  return (
+                    <button
+                      key={tab}
+                      onClick={() => setActiveHistoryTab(tab)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
+                        activeHistoryTab === tab
+                          ? 'bg-purple-600 text-white'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                      }`}
+                    >
+                      {labels[tab]} {counts[tab] > 0 && `(${counts[tab]})`}
+                    </button>
+                  )
+                })}
+              </div>
               <button
                 onClick={() => setActiveHistoryTab('storage')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
