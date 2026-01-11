@@ -274,85 +274,77 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
 export async function scanLinkedInAccount(accessToken: string): Promise<ScannedContent[]> {
   try {
     console.log('[LinkedIn Scan] Starting LinkedIn scan')
-    console.log('[LinkedIn Scan] Using UGC Posts API endpoint')
-    
-    // LinkedIn API - get user posts (limit to 10 for free-tier optimization)
-    // Note: This endpoint only returns UGC posts (posts created via API), not regular activity posts
-    const response = await fetch(
-      'https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(me)&count=10',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'X-Restli-Protocol-Version': '2.0.0',
-        },
-      }
-    )
+    console.log('[LinkedIn Scan] Using server-side API to avoid CORS issues')
 
-    console.log('[LinkedIn Scan] Response status:', response.status)
+    // Use server-side API route to proxy LinkedIn API calls (avoids CORS issues)
+    // LinkedIn API doesn't allow direct browser requests, so we need to go through our server
+    const response = await fetch('/api/scan-linkedin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        accessToken,
+      }),
+    })
 
     if (!response.ok) {
-      const errorText = await response.text()
-      console.error('[LinkedIn Scan] API Error Response:', errorText)
-      let errorData
-      try {
-        errorData = JSON.parse(errorText)
-      } catch {
-        errorData = { message: errorText }
+      const errorData = await response.json().catch(() => ({}))
+      const errorMessage = errorData.error || `HTTP ${response.status}`
+      const errorStatus = errorData.status || response.status
+      
+      console.error(`[LinkedIn Scan] Server API Error (${errorStatus}):`, errorMessage)
+      console.error(`[LinkedIn Scan] Error details:`, errorData.details || errorData)
+      
+      // Common issues:
+      if (errorStatus === 401) {
+        console.error('[LinkedIn Scan] 401 Unauthorized - Token is expired or invalid')
+        console.error('[LinkedIn Scan] Solution: Disconnect LinkedIn in Settings → Social Accounts, then reconnect using the OAuth popup to get a new token.')
+        throw new Error(`LinkedIn token expired or invalid. Please disconnect and reconnect LinkedIn in Settings using the OAuth popup to refresh your token.`)
+      } else if (errorStatus === 403) {
+        console.error('[LinkedIn Scan] 403 Forbidden - Token does not have required permissions')
+        console.error('[LinkedIn Scan] Solution: Ensure you granted all required scopes (openid, profile, email, w_member_social) during OAuth.')
+        throw new Error(`LinkedIn token does not have required permissions. Please disconnect and reconnect LinkedIn to grant all required scopes.`)
+      } else if (errorStatus === 429) {
+        console.error('[LinkedIn Scan] 429 Rate Limit - Too many requests')
+        // LinkedIn has very generous rate limits (100K calls/day), but we should still handle this gracefully
+        const rateLimitError: any = new Error(`LinkedIn API rate limit exceeded. Please try again later.`)
+        rateLimitError.isRateLimit = true
+        throw rateLimitError
       }
-      console.error('[LinkedIn Scan] Error Code:', errorData.errorCode || 'N/A')
-      console.error('[LinkedIn Scan] Error Message:', errorData.message || 'N/A')
-      throw new Error(errorData.message || `LinkedIn API error: ${response.status}`)
+      
+      throw new Error(`LinkedIn API error: ${errorMessage}`)
     }
 
     const data = await response.json()
-    console.log('[LinkedIn Scan] API Response:', JSON.stringify(data, null, 2))
-    console.log('[LinkedIn Scan] Number of elements:', data.elements?.length || 0)
 
-    if (data.errorCode) {
-      console.error('[LinkedIn Scan] Error Code in response:', data.errorCode)
-      throw new Error(data.message || 'LinkedIn API error')
+    if (!data.posts || data.posts.length === 0) {
+      console.log('[LinkedIn Scan] No posts found. Note: UGC Posts API only returns posts created via LinkedIn API, not regular activity posts created via the LinkedIn website/app.')
+      return []
     }
+
+    console.log(`[LinkedIn Scan] Found ${data.posts.length} posts from server API`)
 
     const scanned: ScannedContent[] = []
 
-    for (const post of data.elements || []) {
-      const content = post.specificContent?.['com.linkedin.ugc.ShareContent']?.shareCommentary?.text || ''
-      const images: string[] = []
-
-      // Extract images from share media
-      const shareMedia = post.specificContent?.['com.linkedin.ugc.ShareContent']?.media
-      if (shareMedia) {
-        for (const media of shareMedia) {
-          if (media.media) {
-            images.push(media.media)
-          }
-        }
-      }
-
-      console.log('[LinkedIn Scan] Found post:', {
-        id: post.id,
-        hasContent: !!content,
-        contentLength: content.length,
-        imageCount: images.length,
-      })
-
+    for (const post of data.posts) {
       // Analyze content style
       let styleAnalysis: StyleAnalysis | undefined
-      if (content && content.trim().length > 0) {
-        styleAnalysis = analyzeContent(content)
+      if (post.content && post.content.trim().length > 0) {
+        styleAnalysis = analyzeContent(post.content)
       }
 
       scanned.push({
         id: post.id,
         platform: 'linkedin',
-        content,
-        images,
-        createdAt: post.created?.time || new Date().toISOString(),
+        content: post.content,
+        images: post.images || [],
+        createdAt: post.createdAt,
         styleAnalysis,
       })
     }
 
-    console.log(`[LinkedIn Scan] Scan completed: ${scanned.length} posts found`)
+    console.log(`[LinkedIn Scan] Successfully scanned ${scanned.length} posts`)
     if (scanned.length === 0) {
       console.warn('[LinkedIn Scan] No posts found. Note: UGC Posts API only returns posts created via LinkedIn API, not regular activity posts created via the LinkedIn website/app.')
     }
@@ -361,7 +353,13 @@ export async function scanLinkedInAccount(accessToken: string): Promise<ScannedC
   } catch (error: any) {
     console.error('[LinkedIn Scan] Error scanning LinkedIn account:', error)
     console.error('[LinkedIn Scan] Error message:', error.message)
-    console.error('[LinkedIn Scan] Error stack:', error.stack)
+    
+    // Handle rate limit errors gracefully (don't fail entire scan)
+    if (error.isRateLimit) {
+      console.warn('[LinkedIn Scan] Rate limit reached. Skipping LinkedIn scan, continuing with other platforms.')
+      return []
+    }
+    
     return []
   }
 }
