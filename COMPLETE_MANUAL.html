@@ -1583,39 +1583,56 @@ OAUTH CONNECTION FLOW:
 
 1. USER INITIATES CONNECTION
    └─> User goes to Settings page (/settings)
-       └─> User clicks "Connect" button for platform (e.g., Twitter)
-           └─> Browser redirects to: GET /api/oauth/twitter
-               └─> OAuth route handler (app/(backend)/api/oauth/twitter/route.ts)
+       └─> User clicks "Social" button (Facebook) or "Connect" button (other platforms)
+           ├─> Facebook: handleSocialConnect('facebook') → FB.login() popup
+           └─> Other platforms: Browser redirects to: GET /api/oauth/{platform}
+               └─> OAuth route handler (app/(backend)/api/oauth/{platform}/route.ts)
 
 2. OAUTH INITIATION
-   └─> Server constructs OAuth URL:
-       ├─> Uses getOAuthUrls() helper (vercel-url.ts) - detects Vercel/localhost
-       ├─> Generates PKCE code verifier & challenge (Twitter only)
-       ├─> Stores code_verifier in cookie (Twitter only)
-       ├─> Redirects user to platform OAuth page:
-       │   ├─> Twitter: https://twitter.com/i/oauth2/authorize?...
-       │   ├─> Facebook: https://www.facebook.com/v18.0/dialog/oauth?...
-       │   └─> LinkedIn: https://www.linkedin.com/oauth/v2/authorization?...
-       └─> User authorizes app on platform
+   └─> Platform-specific flow:
+       ├─> Facebook: JavaScript SDK (FB.login() popup)
+       │   ├─> Facebook SDK loaded in layout.tsx
+       │   ├─> User clicks "Social" button on Settings page
+       │   ├─> FB.login() opens popup dialog
+       │   ├─> User authorizes in popup
+       │   └─> Access token returned directly in callback
+       └─> Other platforms (Instagram, Twitter, LinkedIn): OAuth redirect
+           ├─> Server constructs OAuth URL:
+           │   ├─> Uses getOAuthUrls() helper (vercel-url.ts) - detects Vercel/localhost
+           │   ├─> Generates PKCE code verifier & challenge (Twitter only)
+           │   ├─> Stores code_verifier in cookie (Twitter only)
+           │   └─> Redirects user to platform OAuth page:
+           │       ├─> Twitter: https://twitter.com/i/oauth2/authorize?...
+           │       ├─> Instagram: https://www.facebook.com/v18.0/dialog/oauth?...
+           │       └─> LinkedIn: https://www.linkedin.com/oauth/v2/authorization?...
+           └─> User authorizes app on platform
 
-3. OAUTH CALLBACK
-   └─> Platform redirects back to: GET /api/oauth/twitter/callback?code=...
-       └─> Callback handler (app/(backend)/api/oauth/twitter/callback/route.ts)
-           ├─> Exchanges code for access token
-           ├─> Retrieves user info (user ID, username, etc.)
-           ├─> Stores token temporarily in cookies:
-           │   ├─> oauth_token (access token)
-           │   ├─> oauth_user_id (user ID)
-           │   └─> oauth_platform ('twitter' | 'facebook' | etc.)
-           └─> Redirects to: /settings?oauth_success=twitter
+3. OAUTH CALLBACK / TOKEN RETRIEVAL
+   └─> Platform-specific handling:
+       ├─> Facebook: JavaScript SDK callback
+       │   ├─> FB.login() callback receives authResponse
+       │   ├─> Access token in response.authResponse.accessToken
+       │   ├─> FB.api('/me') retrieves user info (user ID, name)
+       │   ├─> Token saved directly to store.settings.socialAccounts[]
+       │   └─> ✅ ACCOUNT CONNECTED (no redirect needed)
+       └─> Other platforms: OAuth redirect callback
+           └─> Platform redirects back to: GET /api/oauth/{platform}/callback?code=...
+               └─> Callback handler (app/(backend)/api/oauth/{platform}/callback/route.ts)
+                   ├─> Exchanges code for access token
+                   ├─> Retrieves user info (user ID, username, etc.)
+                   ├─> Stores token temporarily in cookies:
+                   │   ├─> oauth_token (access token)
+                   │   ├─> oauth_user_id (user ID)
+                   │   └─> oauth_platform ('instagram' | 'twitter' | 'linkedin')
+                   └─> Redirects to: /settings?oauth_success={platform}
 
-4. TOKEN STORAGE
+4. TOKEN STORAGE (OAuth redirect platforms only)
    └─> Settings page detects oauth_success parameter
        └─> Calls GET /api/oauth/token
            └─> Retrieves token from cookies
                └─> Saves to store.settings.socialAccounts[]:
                    {
-                     platform: 'twitter',
+                     platform: 'twitter' | 'instagram' | 'linkedin',
                      accessToken: token,
                      userId: user-id,
                      connected: true,
@@ -1661,7 +1678,7 @@ OAUTH CONNECTION FLOW:
                         Application-Only tokens (read-only) will NOT work for posting. You must use OAuth popup to get User Context token.</li>
                     <li><strong>Instagram:</strong> Requires Instagram Business or Creator account, connected to a Facebook Page. 
                         Personal Instagram accounts cannot be used.</li>
-                    <li><strong>Facebook:</strong> Consumer login works for personal posts. Business login required for Page management.</li>
+                    <li><strong>Facebook:</strong> Uses JavaScript SDK (FB.login() popup) for login. Consumer login works for personal posts. Business login required for Page management. Requires NEXT_PUBLIC_FACEBOOK_APP_ID environment variable (same value as FACEBOOK_CLIENT_ID).</li>
                     <li><strong>All Platforms:</strong> Tokens must have correct permissions or features will fail with 403 Forbidden errors.</li>
                 </ul>
             </div>

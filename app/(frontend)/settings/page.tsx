@@ -185,6 +185,50 @@ export default function SettingsPage() {
     }
   }, [hasHandledCallback, router, settings, updateSettings])
 
+  // Check Facebook login status on mount (if Facebook SDK is available)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    // Check if Facebook SDK is loaded
+    const checkFacebookLoginStatus = () => {
+      if (typeof (window as any).FB !== 'undefined') {
+        const FB = (window as any).FB
+        
+        // Check if user is already logged into Facebook
+        FB.getLoginStatus((response: any) => {
+          if (response.status === 'connected' && response.authResponse) {
+            // User is already logged into Facebook
+            // Don't auto-connect, just log for debugging
+            console.log('[Facebook SDK] User is already logged into Facebook', {
+              userId: response.authResponse.userID,
+              accessToken: response.authResponse.accessToken ? '***' : undefined,
+            })
+            
+            // Check if we already have this Facebook account connected
+            const currentSocialAccounts = settings.socialAccounts || []
+            const existingFacebookAccount = currentSocialAccounts.find(
+              (acc) => acc.platform === 'facebook' && acc.userId === response.authResponse.userID
+            )
+            
+            if (!existingFacebookAccount) {
+              // User is logged into Facebook but not connected to our app
+              // We'll wait for them to click the Social button to connect
+              console.log('[Facebook SDK] User is logged into Facebook but not connected to app')
+            }
+          } else {
+            console.log('[Facebook SDK] User is not logged into Facebook', { status: response.status })
+          }
+        })
+      } else {
+        // SDK not loaded yet, try again after a short delay
+        setTimeout(checkFacebookLoginStatus, 100)
+      }
+    }
+    
+    // Wait a bit for SDK to load, then check status
+    setTimeout(checkFacebookLoginStatus, 500)
+  }, [settings.socialAccounts])
+
   // Update storage info when settings change
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -202,9 +246,105 @@ export default function SettingsPage() {
     }
   }, [settings])
 
-  const handleSocialConnect = (platform: string) => {
+  const handleSocialConnect = async (platform: string) => {
     setIsConnecting(platform)
-    window.location.href = `/api/oauth/${platform}`
+    
+    // Use Facebook JavaScript SDK for Facebook login
+    if (platform === 'facebook') {
+      try {
+        // Wait for FB SDK to be loaded
+        if (typeof window === 'undefined' || typeof (window as any).FB === 'undefined') {
+          // Wait for SDK to load
+          await new Promise<void>((resolve) => {
+            const checkFB = () => {
+              if (typeof (window as any).FB !== 'undefined') {
+                resolve()
+              } else {
+                setTimeout(checkFB, 100)
+              }
+            }
+            checkFB()
+          })
+        }
+        
+        const FB = (window as any).FB
+        
+        FB.login(async (response: any) => {
+          if (response.authResponse) {
+            const accessToken = response.authResponse.accessToken
+            
+            // Get user info
+            FB.api('/me', { fields: 'id,name' }, async (userInfo: any) => {
+              try {
+                const userId = userInfo.id
+                
+                // Save the account
+                const currentSocialAccounts = settings.socialAccounts || []
+                const newAccount = {
+                  platform: 'facebook' as const,
+                  accessToken,
+                  userId,
+                  connected: true,
+                  connectedAt: new Date().toISOString(),
+                }
+                
+                // For Meta platforms (Facebook/Instagram), connect both with the same token
+                let updated: typeof currentSocialAccounts = []
+                updated = currentSocialAccounts.filter((acc) => acc.platform !== 'facebook' && acc.platform !== 'instagram')
+                updated.push(newAccount)
+                
+                // Try to connect Instagram with the same token
+                try {
+                  const pagesResponse = await fetch(
+                    `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,instagram_business_account{id,username}`
+                  )
+                  
+                  if (pagesResponse.ok) {
+                    const pagesData = await pagesResponse.json()
+                    const pages = pagesData.data || []
+                    
+                    for (const page of pages) {
+                      if (page.instagram_business_account?.id) {
+                        updated.push({
+                          platform: 'instagram',
+                          accessToken, // Same token as Facebook
+                          userId: page.instagram_business_account.id,
+                          connected: true,
+                          connectedAt: new Date().toISOString(),
+                        })
+                        break
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.error('Failed to connect Instagram:', error)
+                  // Continue even if Instagram connection fails
+                }
+                
+                updateSettings({ socialAccounts: updated })
+                toast.success('Facebook connected successfully!')
+                setIsConnecting(null)
+              } catch (error: any) {
+                console.error('Facebook connection error:', error)
+                toast.error(`Failed to connect: ${error.message}`)
+                setIsConnecting(null)
+              }
+            })
+          } else {
+            // User cancelled login
+            toast.error('Facebook login was cancelled')
+            setIsConnecting(null)
+          }
+        }, { scope: 'public_profile,user_posts,pages_show_list,pages_read_engagement,pages_read_user_content,pages_manage_posts,pages_manage_metadata' })
+      } catch (error: any) {
+        console.error('Facebook SDK error:', error)
+        toast.error(`Failed to initialize Facebook login: ${error.message}`)
+        setIsConnecting(null)
+      }
+    } else {
+      // Other platforms use OAuth redirect
+      window.location.href = `/api/oauth/${platform}`
+    }
   }
 
   const handleSocialDisconnect = (platform: string) => {

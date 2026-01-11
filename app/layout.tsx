@@ -36,10 +36,38 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  // Get Facebook App ID - needs to be accessible at runtime
+  const facebookAppId = process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || process.env.FACEBOOK_CLIENT_ID || ''
+  
   return (
     <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Facebook SDK initialization
+              window.fbAsyncInit = function() {
+                FB.init({
+                  appId      : '${facebookAppId}',
+                  cookie     : true,
+                  xfbml      : true,
+                  version    : 'v18.0'
+                });
+                
+                FB.AppEvents.logPageView();   
+              };
+
+              (function(d, s, id){
+                 var js, fjs = d.getElementsByTagName(s)[0];
+                 if (d.getElementById(id)) {return;}
+                 js = d.createElement(s); js.id = id;
+                 js.src = "https://connect.facebook.net/en_US/sdk.js";
+                 fjs.parentNode.insertBefore(js, fjs);
+               }(document, 'script', 'facebook-jssdk'));
+            `,
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `

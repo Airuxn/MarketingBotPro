@@ -14,7 +14,10 @@ Add the following environment variables to your `.env.local` file:
 ```env
 FACEBOOK_CLIENT_ID=your_facebook_app_id
 FACEBOOK_CLIENT_SECRET=your_facebook_app_secret
+NEXT_PUBLIC_FACEBOOK_APP_ID=your_facebook_app_id
 ```
+
+**Note:** `NEXT_PUBLIC_FACEBOOK_APP_ID` should have the same value as `FACEBOOK_CLIENT_ID`. It's required for the Facebook JavaScript SDK to work in the browser. The `FACEBOOK_CLIENT_ID` is used for server-side OAuth, while `NEXT_PUBLIC_FACEBOOK_APP_ID` is used for client-side Facebook Login.
 
 ### Twitter/X
 ```env
@@ -47,9 +50,11 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
 1. Go to [Facebook Developers](https://developers.facebook.com/)
 2. Create a new app or use an existing one
 3. Add "Facebook Login" product
-4. Configure OAuth redirect URIs:
+4. Configure OAuth redirect URIs (optional, used for Instagram):
    - `http://localhost:3000/api/oauth/facebook/callback` (development)
    - `https://yourdomain.com/api/oauth/facebook/callback` (production)
+   
+   **Note:** Facebook Login now uses the JavaScript SDK (no redirect needed), but these URIs are still required for Instagram OAuth.
 5. Add "Instagram Basic Display" and "Instagram Graph API" products (if using Instagram)
 6. Request required permissions:
    - `pages_manage_posts`
@@ -57,6 +62,10 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
    - `instagram_basic`
    - `instagram_content_publish`
 7. Copy App ID and App Secret to `.env.local`
+   - Use the same App ID for both `FACEBOOK_CLIENT_ID` and `NEXT_PUBLIC_FACEBOOK_APP_ID`
+   - The App Secret goes in `FACEBOOK_CLIENT_SECRET`
+
+**Note:** Facebook Login now uses the JavaScript SDK (instead of OAuth redirect) for a better user experience. Make sure to set `NEXT_PUBLIC_FACEBOOK_APP_ID` in your environment variables.
 
 ### Instagram
 
@@ -176,9 +185,12 @@ You can also connect Twitter using a manual token:
 
 1. Start your development server: `npm run dev`
 2. Go to Settings page
-3. Click "Connect with [Platform]" for any platform
-4. Complete the OAuth flow
-5. You should be redirected back and see "Connected" status
+3. For Facebook: Click the "Social" button - a Facebook login popup will appear (JavaScript SDK)
+4. For other platforms: Click "Connect with [Platform]" - you'll be redirected to OAuth
+5. Complete the login flow
+6. You should see "Connected" status after successful authentication
+
+**Note:** Facebook uses the JavaScript SDK (popup), while Instagram, Twitter, and LinkedIn use OAuth redirect flows.
 
 ## Troubleshooting
 
