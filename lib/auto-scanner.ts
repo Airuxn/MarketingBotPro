@@ -273,20 +273,44 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
 
 export async function scanLinkedInAccount(accessToken: string): Promise<ScannedContent[]> {
   try {
+    console.log('[LinkedIn Scan] Starting LinkedIn scan')
+    console.log('[LinkedIn Scan] Using UGC Posts API endpoint')
+    
     // LinkedIn API - get user posts (limit to 10 for free-tier optimization)
+    // Note: This endpoint only returns UGC posts (posts created via API), not regular activity posts
     const response = await fetch(
       'https://api.linkedin.com/v2/ugcPosts?q=authors&authors=List(me)&count=10',
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          'X-Restli-Protocol-Version': '2.0.0',
         },
       }
     )
 
+    console.log('[LinkedIn Scan] Response status:', response.status)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[LinkedIn Scan] API Error Response:', errorText)
+      let errorData
+      try {
+        errorData = JSON.parse(errorText)
+      } catch {
+        errorData = { message: errorText }
+      }
+      console.error('[LinkedIn Scan] Error Code:', errorData.errorCode || 'N/A')
+      console.error('[LinkedIn Scan] Error Message:', errorData.message || 'N/A')
+      throw new Error(errorData.message || `LinkedIn API error: ${response.status}`)
+    }
+
     const data = await response.json()
+    console.log('[LinkedIn Scan] API Response:', JSON.stringify(data, null, 2))
+    console.log('[LinkedIn Scan] Number of elements:', data.elements?.length || 0)
 
     if (data.errorCode) {
-      throw new Error(data.message)
+      console.error('[LinkedIn Scan] Error Code in response:', data.errorCode)
+      throw new Error(data.message || 'LinkedIn API error')
     }
 
     const scanned: ScannedContent[] = []
@@ -305,6 +329,13 @@ export async function scanLinkedInAccount(accessToken: string): Promise<ScannedC
         }
       }
 
+      console.log('[LinkedIn Scan] Found post:', {
+        id: post.id,
+        hasContent: !!content,
+        contentLength: content.length,
+        imageCount: images.length,
+      })
+
       // Analyze content style
       let styleAnalysis: StyleAnalysis | undefined
       if (content && content.trim().length > 0) {
@@ -321,9 +352,16 @@ export async function scanLinkedInAccount(accessToken: string): Promise<ScannedC
       })
     }
 
+    console.log(`[LinkedIn Scan] Scan completed: ${scanned.length} posts found`)
+    if (scanned.length === 0) {
+      console.warn('[LinkedIn Scan] No posts found. Note: UGC Posts API only returns posts created via LinkedIn API, not regular activity posts created via the LinkedIn website/app.')
+    }
+
     return scanned
   } catch (error: any) {
-    console.error('LinkedIn scan error:', error)
+    console.error('[LinkedIn Scan] Error scanning LinkedIn account:', error)
+    console.error('[LinkedIn Scan] Error message:', error.message)
+    console.error('[LinkedIn Scan] Error stack:', error.stack)
     return []
   }
 }
@@ -499,6 +537,9 @@ export async function autoScanAllPlatforms(
           console.log(`[Auto Scanner] Scanning LinkedIn account`)
           scanned = await scanLinkedInAccount(account.accessToken)
           console.log(`[Auto Scanner] LinkedIn scan completed: ${scanned.length} items found`)
+          if (scanned.length === 0) {
+            console.warn('[Auto Scanner] LinkedIn returned 0 posts. Note: UGC Posts API only returns posts created via LinkedIn API, not regular activity posts.')
+          }
           break
         case 'instagram':
           // Instagram requires Instagram Business Account ID, not 'me'
