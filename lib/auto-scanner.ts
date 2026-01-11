@@ -153,15 +153,34 @@ export async function scanFacebookAccount(accessToken: string, accountId: string
                 styleAnalysis,
               })
             }
+            
+            if (data.data && data.data.length > 0) {
+              const pageImages = data.data.reduce((sum: number, post: any) => {
+                const postImages: string[] = []
+                if (post.attachments?.data) {
+                  for (const attachment of post.attachments.data) {
+                    if (attachment.media?.type === 'photo' && attachment.media?.image?.src) {
+                      postImages.push(attachment.media.image.src)
+                    }
+                  }
+                }
+                return sum + postImages.length
+              }, 0)
+              console.log(`[Facebook Scan] Page ${page.name} (${page.id}): ${data.data.length} posts, ${pageImages} images`)
+            }
           } catch (pageError) {
+            console.error(`[Facebook Scan] Error scanning page:`, pageError)
             continue
           }
         }
       }
     } catch (pagesError) {
       // Pages scan failed
+      console.error('[Facebook Scan] Pages scan failed:', pagesError)
     }
 
+    const totalImages = allScanned.reduce((sum, post) => sum + post.images.length, 0)
+    console.log(`[Facebook Scan] Total: ${allScanned.length} posts, ${totalImages} images`)
     return allScanned
   } catch (error: any) {
     console.error('Facebook scan error:', error)
@@ -560,6 +579,7 @@ export async function autoScanAllPlatforms(
       }
 
       // Process scanned content
+      let platformImages = 0
       for (const item of scanned) {
         allContent.push(item)
 
@@ -570,6 +590,7 @@ export async function autoScanAllPlatforms(
             platform: item.platform,
             sourceId: item.id,
           })
+          platformImages++
         }
 
         // Collect style analyses
@@ -577,10 +598,31 @@ export async function autoScanAllPlatforms(
           allStyleAnalyses.push(item.styleAnalysis)
         }
       }
+      
+      if (platformImages > 0) {
+        console.log(`[Auto Scanner] ${account.platform} found ${platformImages} images from ${scanned.length} posts`)
+      } else if (scanned.length > 0) {
+        console.log(`[Auto Scanner] ${account.platform} found ${scanned.length} posts but no images`)
+      }
     } catch (error) {
-      console.error(`Error scanning ${account.platform}:`, error)
+      console.error(`[Auto Scanner] Error scanning ${account.platform}:`, error)
+      console.error(`[Auto Scanner] Error details:`, error instanceof Error ? error.message : String(error))
     }
   }
+
+  // Log summary
+  const imagesByPlatform = allImages.reduce((acc, img) => {
+    acc[img.platform] = (acc[img.platform] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+  
+  console.log('[Auto Scanner] Scan summary:', {
+    totalContent: allContent.length,
+    totalImages: allImages.length,
+    imagesByPlatform,
+    totalStyleAnalyses: allStyleAnalyses.length,
+    platformsScanned: Object.keys(imagesByPlatform)
+  })
 
   return {
     content: allContent,

@@ -190,6 +190,59 @@ export default function SettingsPage() {
     }
   }, [hasHandledCallback, router, settings, updateSettings])
 
+  // Auto-fix Instagram userId if missing (but account is connected)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    
+    const fixInstagramUserId = async () => {
+      const currentSocialAccounts = settings.socialAccounts || []
+      const instagramAccount = currentSocialAccounts.find(
+        acc => acc.platform === 'instagram' && acc.connected && acc.accessToken && (!acc.userId || acc.userId === 'me')
+      )
+      
+      if (instagramAccount) {
+        console.log('[Settings] Instagram account found without userId, attempting to retrieve...')
+        try {
+          // Try to get Instagram Business Account ID from Facebook Pages
+          const pagesResponse = await fetch(
+            `https://graph.facebook.com/v18.0/me/accounts?access_token=${instagramAccount.accessToken}&fields=id,name,instagram_business_account{id,username}`
+          )
+          
+          if (pagesResponse.ok) {
+            const pagesData = await pagesResponse.json()
+            const pages = pagesData.data || []
+            
+            for (const page of pages) {
+              if (page.instagram_business_account?.id) {
+                const updated = currentSocialAccounts.map(acc => 
+                  acc.platform === 'instagram' && acc.accessToken === instagramAccount.accessToken
+                    ? { ...acc, userId: page.instagram_business_account.id }
+                    : acc
+                )
+                
+                updateSettings({ socialAccounts: updated })
+                console.log(`[Settings] Successfully retrieved Instagram Business Account ID: ${page.instagram_business_account.id}`)
+                toast.success('Instagram account ID retrieved successfully!', { duration: 3000 })
+                return
+              }
+            }
+            
+            console.warn('[Settings] Instagram account connected but no Business Account ID found in Facebook Pages')
+            console.warn('[Settings] Make sure Instagram is a Business/Creator account connected to a Facebook Page')
+          } else {
+            const errorData = await pagesResponse.json().catch(() => ({}))
+            console.warn('[Settings] Could not fetch Facebook pages to get Instagram ID:', errorData)
+          }
+        } catch (error: any) {
+          console.warn('[Settings] Error retrieving Instagram userId:', error.message)
+        }
+      }
+    }
+    
+    // Run after a short delay to avoid blocking page load
+    setTimeout(fixInstagramUserId, 1000)
+  }, [settings.socialAccounts, updateSettings])
+
   // Check Facebook login status on mount (if Facebook SDK is available)
   useEffect(() => {
     if (typeof window === 'undefined') return
