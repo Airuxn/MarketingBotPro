@@ -1303,10 +1303,9 @@ export default function ContentPage() {
                       </div>
                     ) : connectedSocialAccounts.length > 0 ? (
                       <div className="flex items-center gap-1.5">
-                        <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0" />
                         <span className="text-[10px] font-semibold text-white">Connected Socials:</span>
                         {/* Platform badges - very compact, icons only */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-2">
                           {connectedSocialAccounts.map((acc) => {
                             const Icon = platformIcons[acc.platform]
                             return (
@@ -1322,6 +1321,7 @@ export default function ContentPage() {
                             )
                           })}
                         </div>
+                        <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0 ml-auto" />
                       </div>
                     ) : null}
                   </div>
@@ -1497,57 +1497,57 @@ export default function ContentPage() {
                 </div>
                 {(selectedMedia || selectedBrandImage) ? (
                   <div className="border border-dashed border-slate-700 rounded-lg p-2 lg:p-3 flex-1 flex items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '150px' }}>
-                    {selectedMedia && !selectedBrandImage ? (
-                      <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
-                        {selectedMedia.type === 'image' ? (
-                          <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
-                            <img
-                              src={selectedMedia.preview}
-                              alt="Selected media"
-                              className="max-w-full max-h-full w-auto h-auto object-contain rounded"
-                              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
-                            <Video className="w-12 h-12" />
-                            <p className="text-xs">Video selected</p>
-                          </div>
-                        )}
-                        <button
-                          onClick={() => setSelectedMedia(null)}
-                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
-                        >
-                          <X className="w-4 h-4 text-white" />
-                        </button>
-                      </div>
-                    ) : selectedBrandImage ? (
-                      <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
+                  {selectedMedia && !selectedBrandImage ? (
+                    <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
+                      {selectedMedia.type === 'image' ? (
                         <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
                           <img
-                            src={selectedBrandImage}
-                            alt="Selected brand image"
+                            src={selectedMedia.preview}
+                            alt="Selected media"
                             className="max-w-full max-h-full w-auto h-auto object-contain rounded"
                             style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                           />
                         </div>
-                        <button
-                          onClick={() => setSelectedBrandImage(null)}
-                          className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
-                        >
-                          <X className="w-4 h-4 text-white" />
-                        </button>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center space-y-2 text-slate-400">
+                          <Video className="w-12 h-12" />
+                          <p className="text-xs">Video selected</p>
+                        </div>
+                      )}
+                    <button
+                      onClick={() => setSelectedMedia(null)}
+                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
+                    >
+                        <X className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+                  ) : selectedBrandImage ? (
+                    <div className="flex items-center justify-center relative w-full h-full max-w-full max-h-full overflow-hidden">
+                      <div className="relative w-full h-full max-w-full max-h-full flex items-center justify-center">
+                        <img
+                          src={selectedBrandImage}
+                          alt="Selected brand image"
+                          className="max-w-full max-h-full w-auto h-auto object-contain rounded"
+                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                        />
+                      </div>
+                      <button
+                        onClick={() => setSelectedBrandImage(null)}
+                        className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors z-10"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
                       </div>
                     ) : null}
-                  </div>
-                ) : (
+                    </div>
+                  ) : (
                   /* Desktop: Show empty "No media selected" box, Mobile: hide it */
                   <div className="hidden lg:flex border border-dashed border-slate-700 rounded-lg p-2 lg:p-3 flex-1 items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '150px' }}>
                     <div className="flex items-center justify-center text-slate-500" style={{ minHeight: '150px' }}>
                       <p className="text-xs text-center">No media selected</p>
                     </div>
-                  </div>
-                )}
+                </div>
+              )}
               </div>
             </div>
           )}
@@ -1555,25 +1555,25 @@ export default function ContentPage() {
           {/* Right Column - Generate Button (always visible) and Preview (hidden on mobile) */}
           <div className="lg:col-span-1 flex flex-col space-y-1.5 lg:h-[503px]">
             {/* Generate Button - Always visible on mobile and desktop */}
-            <button
-              onClick={() => handleGenerate()}
+          <button
+            onClick={() => handleGenerate()}
               disabled={isGenerating || isRegenerating || !prompt.trim()}
               className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 animate-gradient text-white py-2.5 lg:py-3 px-3 lg:px-4 rounded-xl font-bold text-sm lg:text-sm hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5 lg:space-x-2 shadow-lg hover:shadow-xl relative overflow-hidden group flex-shrink-0"
-            >
+          >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-              {isGenerating || isRegenerating ? (
-                <>
+            {isGenerating || isRegenerating ? (
+              <>
                   <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin relative z-10" />
                   <span className="relative z-10 text-sm lg:text-sm">{isRegenerating ? 'Regenerating...' : 'Creating Magic...'}</span>
-                </>
-              ) : (
-                <>
+              </>
+            ) : (
+              <>
                   <Zap className="w-4 h-4 lg:w-5 lg:h-5 relative z-10" />
                   <span className="relative z-10 text-sm lg:text-sm">{t('generateContent')}</span>
                   <Star className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-300 relative z-10" />
-                </>
-              )}
-            </button>
+              </>
+            )}
+          </button>
           
             {/* Preview with inline editing - Hidden on mobile */}
             <div className="hidden lg:flex glass rounded-xl border border-slate-700/50 flex-1 flex flex-col overflow-hidden relative">
@@ -1790,20 +1790,20 @@ export default function ContentPage() {
                 </button>
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto">
-                <BrandImageLibrary
-                  onImageSelect={(url) => {
-                    setSelectedBrandImage(url)
-                    setSelectedMedia(null)
-                    setShowLibraryModal(false)
-                  }}
-                  onMediaSelect={(media) => {
-                    setSelectedMedia(media)
-                    setSelectedBrandImage(null)
-                    setShowLibraryModal(false)
-                  }}
-                  selectedImageUrl={selectedBrandImage || undefined}
-                  platform={contentType === 'ad' ? adPlatform : platform}
-                />
+              <BrandImageLibrary
+                onImageSelect={(url) => {
+                  setSelectedBrandImage(url)
+                  setSelectedMedia(null)
+                  setShowLibraryModal(false)
+                }}
+                onMediaSelect={(media) => {
+                  setSelectedMedia(media)
+                  setSelectedBrandImage(null)
+                  setShowLibraryModal(false)
+                }}
+                selectedImageUrl={selectedBrandImage || undefined}
+                platform={contentType === 'ad' ? adPlatform : platform}
+              />
               </div>
             </div>
           </div>
