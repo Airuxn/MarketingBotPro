@@ -192,6 +192,23 @@ export default function ContentPage() {
         }
       }
       
+      // Debug: Check Instagram account (requires userId)
+      const instagramAccount = connectedSocialAccounts.find(acc => acc.platform === 'instagram')
+      if (instagramAccount) {
+        console.log('[Content Page] Instagram account found:', {
+          platform: instagramAccount.platform,
+          connected: instagramAccount.connected,
+          hasAccessToken: !!instagramAccount.accessToken,
+          hasUserId: !!instagramAccount.userId,
+          userId: instagramAccount.userId || 'MISSING - THIS WILL CAUSE SCAN TO FAIL!',
+        })
+        if (!instagramAccount.userId || instagramAccount.userId === 'me') {
+          console.error('[Content Page] ERROR: Instagram account missing userId (Instagram Business Account ID)!')
+          console.error('[Content Page] The scanner will skip this account because userId is required.')
+          console.error('[Content Page] Instagram requires: Business/Creator account connected to Facebook Page')
+        }
+      }
+      
       if (connectedAdAccounts.length === 0 && connectedSocialAccounts.length === 0) {
         console.log('[Content Page] No connected accounts found, skipping scan')
         return
@@ -235,6 +252,11 @@ export default function ContentPage() {
       
       if (!shouldScan && !hasTwitter) {
         console.log('[Content Page] Scan skipped inside scanAccounts - cache still valid (non-Twitter platforms)')
+        console.log('[Content Page] Cache info:', {
+          lastScanned: lastScanned ? new Date(lastScanned).toISOString() : 'never',
+          timeSinceLastScan: lastScanned ? Math.floor((Date.now() - new Date(lastScanned).getTime()) / 1000) + ' seconds' : 'N/A',
+          nextScanAvailable: lastScanned ? new Date(new Date(lastScanned).getTime() + 3600000).toISOString() : 'now'
+        })
         return // Skip scanning if not needed (only applies to non-Twitter platforms)
       }
 
@@ -574,7 +596,18 @@ export default function ContentPage() {
       scanAccounts()
       sessionStorage.setItem('lastScanTime', Date.now().toString())
     } else {
-      console.log('[Content Page] Scan skipped - cache still valid or rate limit active')
+      const cacheInfo = {
+        lastScanTime: lastScanTime ? new Date(parseInt(lastScanTime)).toISOString() : 'never',
+        timeSinceLastScan: lastScanTime ? Math.floor(timeSinceLastScan / 1000) + ' seconds (' + Math.floor(timeSinceLastScan / 60000) + ' minutes)' : 'N/A',
+        nextScanAvailable: lastScanTime ? 
+          (hasTwitter ? 
+            new Date(parseInt(lastScanTime) + 900000).toISOString() + ' (15 min for Twitter)' :
+            new Date(parseInt(lastScanTime) + 3600000).toISOString() + ' (1 hour for others)'
+          ) : 'now',
+        cachedAccounts: connectedAdAccounts.length + connectedSocialAccounts.length
+      }
+      console.log('[Content Page] Scan skipped - cache still valid or rate limit active', cacheInfo)
+      console.log('[Content Page] To force a new scan, clear sessionStorage: sessionStorage.removeItem("lastScanKey")')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.adAccounts?.length, settings.socialAccounts?.length])
