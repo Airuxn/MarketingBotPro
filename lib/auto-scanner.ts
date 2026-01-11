@@ -211,16 +211,17 @@ export async function scanTwitterAccount(accessToken: string, userId: string): P
           console.error('3. The userId might be incorrect or not accessible with this token')
           throw new Error(`Twitter API error: ${errorMessage}`)
         } else if (errorStatus === 401) {
-          console.error('[Twitter Scan] 401 Unauthorized - Token might be expired or invalid')
-          throw new Error(`Twitter API error: ${errorMessage}`)
+          console.error('[Twitter Scan] 401 Unauthorized - Token is expired or invalid')
+          console.error('[Twitter Scan] Solution: Disconnect Twitter in Settings → Social Accounts, then reconnect using the OAuth popup to get a new token.')
+          throw new Error(`Twitter token expired or invalid. Please disconnect and reconnect Twitter in Settings using the OAuth popup to refresh your token.`)
         } else if (errorStatus === 404) {
           console.error('[Twitter Scan] 404 Not Found - User ID might be incorrect or user does not exist')
           throw new Error(`Twitter API error: ${errorMessage}`)
         } else if (errorStatus === 429) {
           const waitMinutes = errorData.rateLimit?.waitMinutes || 15
-          console.error(`[Twitter Scan] 429 Rate Limit - Too many requests. Free tier allows 1 request per 15 minutes.`)
+          console.error(`[Twitter Scan] 429 Rate Limit - Too many requests. Free tier allows 1 request per 15 minutes, and 100 posts per MONTH total.`)
           console.error(`[Twitter Scan] Wait ${waitMinutes} minute(s) before scanning again.`)
-          console.error('[Twitter Scan] Consider upgrading to Basic tier ($200/month) for 5 requests per 15 minutes, or Pro tier ($5000/month) for 900 requests per 15 minutes.')
+          console.error('[Twitter Scan] Free tier limit: 100 posts per month total. Each scan fetches 10 tweets. Consider upgrading to Basic tier ($200/month) for more requests.')
           // Throw a special error that includes rate limit info, but can be caught and handled gracefully
           const rateLimitError: any = new Error(`Twitter rate limit: Please wait ${waitMinutes} minute(s) before scanning again. Free tier allows 1 request per 15 minutes.`)
           rateLimitError.isRateLimit = true

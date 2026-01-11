@@ -15,22 +15,26 @@ This document outlines the optimized storage limits for the marketing bot applic
 | **Brand Images** | 20 | ~150KB | ~3MB | Biggest storage item - stored as URLs (not base64) |
 | **Scanned Posts** | 20 | ~1KB (text) + images | ~1.2MB | Text only, newest 8 keep images |
 | **Accepted Content** | 30 | ~2KB | ~60KB | AI learning data |
-| **Rejected Content** | 10 | ~2KB | ~20KB | Just for tracking patterns |
 | **Edits** | 20 | ~3KB | ~60KB | AI learning data with weighted voting |
 | **Settings/Other** | - | - | ~100KB | API keys, preferences, etc. |
-| **Total Estimated** | - | - | **~4.8MB** | Fits within 5MB localStorage limit |
+| **Total Estimated** | - | - | **~4.6MB** | Fits within 5MB localStorage limit |
 
 ## Free-Tier API Considerations
 
-### Twitter/X Free Tier
+### Twitter/X Free Tier (SHARED LIMITS - Critical!)
 - **Rate Limit:** 1 request per 15 minutes per user
-- **Posts per Request:** Max 100 tweets
-- **Monthly Limit:** 15,000 posts per month total
+- **Monthly Limit:** 100 posts per month total (SHARED across ALL customers using your API key!)
+- **Posts per Request:** 5 tweets (optimized for customer capacity)
+- **Customer Capacity Calculation:**
+  - **Recommended: 20 customers max**
+  - 20 customers × 5 tweets/scan × 1 scan/month = 100 posts/month ✅
+  - Alternative: 10 customers × 10 tweets/scan × 1 scan/month = 100 posts/month ✅
+  - Alternative: 25 customers × 4 tweets/scan × 1 scan/month = 100 posts/month ✅
 - **Scanning Strategy:** 
-  - 24-hour cache (prevents excessive API calls)
-  - Max 1-2 scans per day realistically
-  - ~20-40 tweets per day per customer
-  - **Storage Impact:** ~20 scanned posts per month (optimized to 20 total)
+  - 30-day cache per customer (prevents exceeding shared monthly limit)
+  - Each customer can scan once per month max
+  - 5 tweets per scan per customer
+  - **Storage Impact:** ~20 scanned posts kept per customer (optimized to 20 total, but only ~5 new per month per customer)
 
 ### Facebook/Instagram Free Tier
 - More generous rate limits than Twitter
@@ -47,18 +51,18 @@ This document outlines the optimized storage limits for the marketing bot applic
 - Browser localStorage: ~5-10MB per origin
 - **Safe limit:** 5MB to work across all browsers
 - Each customer uses their own browser (separate localStorage)
-- **Target:** ~4.8MB per customer (leaves 200KB buffer)
+- **Target:** ~4.6MB per customer (leaves 400KB buffer)
 
-### 2. Free-Tier API Limits
-- **Twitter:** Very strict (1 req/15min, 15K posts/month)
+### 2. Free-Tier API Limits (SHARED across all customers!)
+- **Twitter:** Very strict (1 req/15min, 100 posts/month TOTAL shared)
 - **Other platforms:** More generous but still rate-limited
-- **Realistic usage:** 1-2 scans per day per platform max
-- **Result:** ~20-40 new posts per day per customer
+- **Realistic usage:** 1 scan per month per customer for Twitter (to stay within shared limit)
+- **Result:** ~5 new posts per month per customer for Twitter (with 20 customers max)
 
 ### 3. Storage Priority
 - **High Priority:** Scanned posts (learning data), brand images (UI library)
 - **Medium Priority:** Posts (user content), edits (learning data)
-- **Low Priority:** Leads, contact lists, rejected content
+- **Low Priority:** Leads, contact lists
 
 ## Optimization Strategies
 
@@ -74,9 +78,9 @@ This document outlines the optimized storage limits for the marketing bot applic
 - **All data:** Sorted by date (newest first)
 
 ### Smart Caching
-- **Twitter:** 24-hour cache (prevents rate limit issues)
+- **Twitter:** 30-day cache per customer (prevents exceeding shared monthly limit of 100 posts)
 - **Other platforms:** 1-hour cache (standard)
-- **Result:** Reduced API calls, less data to store
+- **Result:** Reduced API calls, stays within shared monthly limits
 
 ## Storage Breakdown per Customer (Estimated)
 
@@ -89,20 +93,33 @@ Brand Images:    20 × 150KB  = 3MB (URLs, not full images)
 Scanned Posts:   20 × 1KB    = 20KB (text)
 Scanned Images:  8 × 150KB   = 1.2MB (newest 8 only)
 Accepted:        30 × 2KB    = 60KB
-Rejected:        10 × 2KB    = 20KB
 Edits:           20 × 3KB    = 60KB
 Settings:        -            = 100KB
 ─────────────────────────────────────
-Total:                        ~4.8MB
+Total:                        ~4.6MB
 ```
 
-## For 20 Customers
+## For 20 Customers (Recommended for Free-Tier APIs)
 
 Each customer uses their own browser (separate localStorage):
-- **Per customer:** ~4.8MB
-- **Total storage:** 20 × 4.8MB = 96MB (distributed across 20 browsers)
+- **Per customer:** ~4.6MB
+- **Total storage:** 20 × 4.6MB = 92MB (distributed across 20 browsers)
 - **No server storage required** - all data in customer browsers
 - **No cost** - localStorage is free
+
+### Free-Tier API Capacity (Shared Limits - Critical!)
+**IMPORTANT:** Free-tier API limits are SHARED across ALL customers using your API key!
+
+- **Twitter:** 
+  - 100 posts per month TOTAL (shared across all customers)
+  - **Recommended: 20 customers max**
+  - 20 customers × 5 tweets/scan × 1 scan/month = 100 posts/month ✅
+  - Each customer can scan once per month (30-day cache)
+  - Alternative: 10 customers × 10 tweets/scan × 1 scan/month = 100 posts/month ✅
+  - Alternative: 25 customers × 4 tweets/scan × 1 scan/month = 100 posts/month ✅
+- **Facebook/Instagram:** More generous, can support more customers
+- **LinkedIn:** Similar to Facebook
+- **Recommendation:** Start with 20 customers on free tier, upgrade to paid APIs when you need more capacity
 
 ## When Limits Are Reached
 
@@ -137,6 +154,9 @@ If you have existing customers with larger datasets:
    - No migration needed
 
 3. **For scaling beyond 20 customers:**
-   - Current limits work for up to ~50 customers
-   - If needed, can reduce limits further (e.g., 15 posts, 10 brand images)
-   - Or implement server-side storage (requires backend)
+   - **Twitter free tier:** Max 20 customers (100 posts/month shared limit)
+   - **Options to support more customers:**
+     - Upgrade Twitter API to Basic tier ($200/month): 15K posts/month = ~300 customers
+     - Upgrade Twitter API to Pro tier ($5000/month): 1M posts/month = ~20,000 customers
+     - Reduce tweets per scan: 25 customers × 4 tweets = 100 posts/month ✅
+     - Or implement server-side storage and API key management per customer (requires backend)

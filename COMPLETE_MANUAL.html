@@ -412,7 +412,7 @@ marketing-bot/
                     </ul>
                 </li>
                 <li><strong>Total Storage:</strong> ~4.8MB per customer (fits within 5MB localStorage limit)</li>
-                <li><strong>For 20 Customers:</strong> ~96MB total, distributed across 20 browsers (no server storage needed)</li>
+                <li><strong>For 20 Customers:</strong> ~92MB total, distributed across 20 browsers (no server storage needed)</li>
             </ul>
 
             <h4>Automatic Backup System</h4>
@@ -880,7 +880,7 @@ CONTENT GENERATION FLOW (How learnedStyle is Applied):
                     <td><strong>Scanned Posts</strong></td>
                     <td>Last 20 items<br/>(images only for newest 8)<br/>(optimized for free-tier)</td>
                     <td>Oldest removed, images removed from older posts</td>
-                    <td>~1.2MB total (images), ~20KB text. Images take up space, text is more important for learning. Free-tier Twitter: 1 req/15min = ~20-40 tweets/day max</td>
+                    <td>~1.2MB total (images), ~20KB text. Images take up space, text is more important for learning. Free-tier Twitter: 100 posts/month shared (20 customers × 5 tweets = 100 posts/month max)</td>
                 </tr>
                 <tr>
                     <td><strong>learnedStyle</strong></td>
@@ -894,7 +894,7 @@ CONTENT GENERATION FLOW (How learnedStyle is Applied):
                 <strong>Total Maximum:</strong> ~70 items across all sources (30 + 20 + 20) = ~1.3MB for learning data<br/>
                 <strong>AI Analysis:</strong> All sources (scanned posts, edits, accepted content) use AI analysis if API key is available - provides deeper insights than rule-based alone<br/>
                 <strong>Storage Per Customer:</strong> ~4.8MB total (fits within 5MB localStorage limit)<br/>
-                <strong>For 20 Customers:</strong> ~96MB total, distributed across 20 browsers (no server storage needed)<br/>
+                <strong>For 20 Customers:</strong> ~92MB total, distributed across 20 browsers (no server storage needed)<br/>
                 <strong>Automatic Cleanup:</strong> Oldest items are removed when limits are reached<br/>
                 <strong>Optimized for Free-Tier:</strong> Limits based on free-tier API constraints (Twitter: 1 req/15min, etc.)<br/>
                 <strong>No Data Loss:</strong> The <code>learnedStyle</code> object (aggregated preferences) is preserved even when history is cleaned up
@@ -1180,12 +1180,15 @@ AUTO-SCAN TRIGGERS (content/page.tsx):
        ├─> Accounts changed (new account connected)
        ├─> More than 1 hour since last scan (for non-Twitter platforms)
        └─> More than 15 minutes since last scan (for Twitter - rate limit)
-           └─> BUT: Uses 24-hour cache for Twitter (free tier optimization)
+           └─> BUT: Uses 30-day cache for Twitter (free tier: 100 posts/month shared limit)
 
 2. Platform-Specific Rate Limiting:
    ├─> Twitter: 15-minute rate limit (free tier: 1 request per 15 minutes)
-   │   └─> Cache: 24 hours (free tier optimization)
-   │   └─> Prevents scans within 15 minutes
+   │   ├─> Monthly Limit: 100 posts per month TOTAL (shared across ALL customers!)
+   │   ├─> Cache: 30 days per customer (prevents exceeding shared monthly limit)
+   │   ├─> Posts per scan: 5 tweets (optimized for 20 customers max)
+   │   ├─> Recommended: 20 customers max (20 × 5 tweets = 100 posts/month)
+   │   └─> Prevents scans within 15 minutes AND within 30 days per customer
    └─> Other Platforms: 1-hour cache
        └─> Standard scanning behavior
 
@@ -1218,7 +1221,7 @@ TWITTER SCANNING (via server-side proxy):
    └─> Sends: { accessToken, userId }
    └─> Server proxies request to Twitter API v2
        └─> GET /users/{userId}/tweets
-           └─> Params: max_results=100, exclude=replies,retweets
+           └─> Params: max_results=5, exclude=replies,retweets (5 tweets optimized for free tier: 100 posts/month shared)
            └─> Expansions: attachments.media_keys
            └─> Media fields: url, preview_image_url, type
            └─> Returns: tweets + media mapping
@@ -1414,9 +1417,9 @@ TWITTER PUBLISHING (via server-side proxy):
 3. Twitter API Requirements:
    ├─> Token must be OAuth 2.0 User Context (NOT Application-Only)
    ├─> App must have "Read and write" permissions enabled
-   ├─> Free tier: 17 requests per 24 hours (very limited)
-   ├─> Basic tier ($200/month): 100 requests per 24 hours
-   └─> Pro tier ($5000/month): 100 requests per 15 minutes
+   ├─> Free tier: 100 posts per 24 hours (shared across all customers, very limited)
+   ├─> Basic tier ($200/month): 100 requests per 24 hours per user
+   └─> Pro tier ($5000/month): 100 requests per 15 minutes per user
 
 4. Error Handling:
    ├─> 403 Forbidden → Token doesn't have tweet.write permission

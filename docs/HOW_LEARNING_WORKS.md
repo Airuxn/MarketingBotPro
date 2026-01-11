@@ -287,10 +287,10 @@ The system has limits to prevent storage bloat and ensure performance:
 ### Why These Limits? (Optimized for Free-Tier APIs & 20 Customers)
 - **Performance**: Too many items slow down analysis
 - **Storage**: localStorage has size limits (~5-10MB), optimized for ~5MB per customer
-- **Free-Tier Constraints**: Twitter free tier allows 1 req/15min, ~20-40 tweets/day max
+- **Free-Tier Constraints**: Twitter free tier allows 1 req/15min, 100 posts/month TOTAL shared across all customers (20 customers max recommended: 20 × 5 tweets/scan = 100 posts/month)
 - **Relevance**: Recent data is more relevant than very old data
 - **Weighted System**: Even with limits, older items still contribute (weighted voting)
-- **20 Customers**: Each customer has separate localStorage, total ~96MB distributed
+- **20 Customers**: Each customer has separate localStorage, total ~92MB distributed (optimized for free-tier Twitter API: 100 posts/month shared limit)
 
 ### What Happens When Limits Are Reached?
 - **Automatic cleanup**: Oldest items are removed when new ones are added

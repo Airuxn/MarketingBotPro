@@ -196,24 +196,28 @@ export default function ContentPage() {
       const scanKey = JSON.stringify([connectedAdAccounts.map(a => a.accountId || ''), connectedSocialAccounts.map(a => a.userId || '')])
       const lastScanKey = sessionStorage.getItem('lastScanKey')
       
-      // Check per-platform rate limits (especially important for Twitter free tier: 1 req/15 mins)
+      // Check per-platform rate limits (especially important for Twitter free tier)
+      // Free tier limits: 1 request per 15 minutes AND 100 posts per MONTH total (SHARED across all customers!)
+      // Each scan fetches 5 tweets, so with 20 customers: 20 customers × 5 tweets = 100 posts/month
+      // Each customer can scan once per month max (to stay within shared monthly limit)
       const hasTwitter = connectedSocialAccounts.some(acc => acc.platform === 'twitter')
       const lastTwitterScanTime = sessionStorage.getItem('lastTwitterScanTime')
-      const twitterRateLimitMs = 15 * 60 * 1000 // 15 minutes for Twitter free tier
-      const twitterCacheMs = 24 * 60 * 60 * 1000 // 24 hours cache for Twitter (free tier optimization)
+      const twitterRateLimitMs = 15 * 60 * 1000 // 15 minutes minimum between requests
+      const twitterCacheMs = 30 * 24 * 60 * 60 * 1000 // 30 days cache for Twitter (free tier: 100 posts/month shared = 1 scan/month per customer)
       
-      // For Twitter: Check both rate limit (15 mins) and cache (24 hours)
+      // For Twitter: Check both rate limit (15 mins) and cache (30 days to stay within shared monthly limit)
       if (hasTwitter && lastTwitterScanTime) {
         const timeSinceLastTwitterScan = Date.now() - parseInt(lastTwitterScanTime)
         if (timeSinceLastTwitterScan < twitterRateLimitMs) {
           const minutesLeft = Math.ceil((twitterRateLimitMs - timeSinceLastTwitterScan) / 60000)
           console.log(`[Content Page] Twitter rate limit: Skipping scan (free tier allows 1 request per 15 minutes). Wait ${minutesLeft} more minute(s).`)
-          toast(`Twitter: Rate limit active. Wait ${minutesLeft} minute(s) before next scan.`, { duration: 4000, icon: '⏱️' })
+          toast(`Twitter: Rate limit active. Wait ${minutesLeft} minute(s) before next scan. Free tier: 100 posts/month shared across all customers.`, { duration: 5000, icon: '⏱️' })
           return
         }
-        // If we have cached data from less than 24 hours ago, use it instead of scanning
+        // If we have cached data from less than 30 days ago, use it instead of scanning (to stay within shared monthly limit)
         if (timeSinceLastTwitterScan < twitterCacheMs && lastScanKey === scanKey) {
-          console.log(`[Content Page] Using cached Twitter data (scanned ${Math.floor(timeSinceLastTwitterScan / 3600000)} hours ago)`)
+          const daysAgo = Math.floor(timeSinceLastTwitterScan / (24 * 60 * 60 * 1000))
+          console.log(`[Content Page] Using cached Twitter data (scanned ${daysAgo} day(s) ago). Free tier: 100 posts/month shared = 1 scan/month per customer max.`)
           return
         }
       }
@@ -324,7 +328,7 @@ export default function ContentPage() {
           )
           
           // Sort by date (newest first) and keep last 20 (optimized for free-tier APIs)
-          // Free-tier Twitter: 1 req/15min, ~1-2 scans/day with 24h cache = ~20-40 tweets/day max
+          // Free-tier Twitter: 100 posts/month shared, 30-day cache per customer = ~5 tweets/month per customer (20 customers max)
           // Remove images from older posts (keep images only for newest 8) to save storage space
           const sortedScannedPosts = uniqueScannedPosts
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -443,6 +447,16 @@ export default function ContentPage() {
       } catch (error: any) {
         console.error('Auto-scan error:', error)
         
+        // Handle Twitter 401 Unauthorized errors (expired/invalid token)
+        if (error.message?.includes('401') || error.message?.includes('Unauthorized') || error.message?.includes('expired') || error.message?.includes('invalid')) {
+          const twitterAccount = connectedSocialAccounts.find(acc => acc.platform === 'twitter')
+          if (twitterAccount) {
+            toast.error(`Twitter token expired. Please disconnect and reconnect Twitter in Settings using the OAuth popup to refresh your token.`, { duration: 10000, icon: '🔑' })
+            // Don't fail the entire scan - other platforms may have scanned successfully
+            return
+          }
+        }
+        
         // Handle Twitter rate limit errors gracefully
         if (error.isRateLimit || error.message?.includes('429') || error.message?.includes('Rate Limit') || error.message?.includes('rate limit')) {
           const twitterAccount = connectedSocialAccounts.find(acc => acc.platform === 'twitter')
@@ -453,9 +467,9 @@ export default function ContentPage() {
             const existingPosts = settings.contentPreferences?.scannedPosts || []
             const twitterPosts = existingPosts.filter(p => p.platform === 'twitter')
             if (twitterPosts.length > 0) {
-              toast(`Twitter rate limit reached. Using cached data (${twitterPosts.length} posts). Wait ${waitMinutes} minute(s) for next scan. Free tier: 1 request per 15 minutes.`, { duration: 7000, icon: '⏱️' })
+              toast(`Twitter rate limit reached. Using cached data (${twitterPosts.length} posts). Wait ${waitMinutes} minute(s) for next scan. Free tier: 100 posts/month shared across all customers.`, { duration: 7000, icon: '⏱️' })
             } else {
-              toast(`Twitter rate limit reached. Wait ${waitMinutes} minute(s) before scanning again. Free tier allows 1 request per 15 minutes.`, { duration: 7000, icon: '⚠️' })
+              toast(`Twitter rate limit reached. Wait ${waitMinutes} minute(s) before scanning again. Free tier: 100 posts/month shared across all customers.`, { duration: 7000, icon: '⚠️' })
             }
             // Don't fail the entire scan - other platforms may have scanned successfully
             return
@@ -508,7 +522,7 @@ export default function ContentPage() {
                       lastScanKey !== scanKey ||
                       !lastScanTime || 
                       (!hasTwitter && timeSinceLastScan > 3600000) || // 1 hour for non-Twitter
-                      (hasTwitter && timeSinceLastScan > 900000) // 15 minutes minimum for Twitter (rate limit check inside scanAccounts will handle cache)
+                      (hasTwitter && timeSinceLastScan > 900000) // 15 minutes minimum for Twitter (rate limit check inside scanAccounts will handle cache and monthly limit)
     
     if (shouldScan) {
       scanAccounts()

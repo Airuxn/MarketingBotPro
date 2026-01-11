@@ -23,13 +23,21 @@ export async function POST(request: Request) {
 
     // Twitter API v2 - get user tweets
     // Note: Using userId from the connected account (not 'me' endpoint)
-    // Free tier optimization: max_results=100 is the maximum allowed per request
-    // Free tier allows: 1 request per 15 minutes per user for GET /2/users/:id/tweets
-    // This request gets up to 100 tweets (excluding replies and retweets) in a single API call
-    const apiUrl = `https://api.twitter.com/2/users/${userId}/tweets?max_results=100&tweet.fields=created_at,text,public_metrics,attachments&expansions=attachments.media_keys&media.fields=url,preview_image_url,type&exclude=replies,retweets`
+    // Free tier CRITICAL LIMIT: 100 posts per MONTH total (SHARED across ALL customers!)
+    // Free tier also allows: 1 request per 15 minutes per user
+    // 
+    // Customer capacity calculation:
+    // - 20 customers × 5 tweets/scan × 1 scan/month = 100 posts/month ✅
+    // - 10 customers × 10 tweets/scan × 1 scan/month = 100 posts/month ✅
+    // - 25 customers × 4 tweets/scan × 1 scan/month = 100 posts/month ✅
+    // 
+    // Recommended: 20 customers with 5 tweets per scan (good balance)
+    const maxResults = 5 // Optimized for 20 customers: 20 customers × 5 tweets = 100 posts/month
+    const apiUrl = `https://api.twitter.com/2/users/${userId}/tweets?max_results=${maxResults}&tweet.fields=created_at,text,public_metrics,attachments&expansions=attachments.media_keys&media.fields=url,preview_image_url,type&exclude=replies,retweets`
     
     console.log(`[Scan Twitter API] Calling Twitter API for userId: ${userId}`)
-    console.log(`[Scan Twitter API] Free tier: 1 request per 15 minutes. This request fetches up to 100 tweets (excluding replies/retweets).`)
+    console.log(`[Scan Twitter API] Free tier limits: 100 posts per MONTH total (shared across all customers), 1 request per 15 minutes. Fetching ${maxResults} tweets per request.`)
+    console.log(`[Scan Twitter API] Recommended capacity: 20 customers max (20 × 5 tweets = 100 posts/month)`)
     
     const response = await fetch(apiUrl, {
       headers: {
@@ -59,9 +67,10 @@ export async function POST(request: Request) {
       } else if (response.status === 401) {
         return NextResponse.json(
           {
-            error: '401 Unauthorized - Token might be expired or invalid',
+            error: '401 Unauthorized - Token is expired or invalid. Please disconnect and reconnect your Twitter account in Settings, then reconnect using the OAuth popup to get a new token.',
             status: 401,
             details: errorMessage,
+            solution: 'Disconnect Twitter in Settings → Social Accounts, then reconnect using the "Social" (OAuth) button to refresh your token.',
           },
           { status: 401 }
         )

@@ -408,7 +408,7 @@ export const useStore = create<Store>()(
                     const prefs = state.settings.contentPreferences
                     
                     // Reduce scanned posts to last 20 (optimized for free-tier: ~1KB each text only = ~20KB total)
-                    // Free-tier Twitter: 1 req/15min, ~1-2 scans/day max with 24h cache = ~20-40 tweets/day
+                    // Free-tier Twitter: 100 posts/month shared, 30-day cache per customer = ~5 tweets/month per customer (20 customers max)
                     // Keep images only for newest 8 posts (~150KB each = ~1.2MB max for images)
                     if (prefs.scannedPosts && prefs.scannedPosts.length > 20) {
                       const sorted = [...prefs.scannedPosts]
