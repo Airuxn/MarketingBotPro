@@ -9,17 +9,16 @@
   <!-- Background circle -->
   <circle cx="256" cy="256" r="240" fill="url(#grad1)" />
   
-  <!-- Marketing/Megaphone icon -->
-  <path d="M 180 160 L 180 352 L 280 352 L 360 400 L 360 112 L 280 160 Z" fill="#ffffff" opacity="0.95"/>
-  
-  <!-- Sound waves -->
-  <path d="M 380 200 Q 400 200 400 240 Q 400 280 380 280" stroke="#ffffff" stroke-width="12" fill="none" stroke-linecap="round" opacity="0.8"/>
-  <path d="M 380 180 Q 420 180 420 240 Q 420 300 380 300" stroke="#ffffff" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.6"/>
-  
-  <!-- AI/Sparkle stars -->
-  <circle cx="320" cy="180" r="4" fill="#fbbf24"/>
-  <circle cx="340" cy="160" r="3" fill="#fbbf24"/>
-  <circle cx="350" cy="200" r="3" fill="#fbbf24"/>
-  <circle cx="330" cy="300" r="4" fill="#fbbf24"/>
-  <circle cx="340" cy="320" r="3" fill="#fbbf24"/>
+  <!-- Lightning bolt (zap) icon -->
+  <!-- Scaled and centered for 512x512 viewBox -->
+  <!-- Original path from lucide zap, scaled up and centered -->
+  <polygon 
+    points="277 64 97 288 224 288 192 448 384 224 256 224 277 64" 
+    fill="#ffffff" 
+    stroke="#ffffff" 
+    stroke-width="8" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+    opacity="0.95"
+  />
 </svg>
