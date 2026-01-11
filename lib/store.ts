@@ -663,6 +663,7 @@ async function testLocalStorageLimit(): Promise<number | null> {
             // Found the limit - return previous working size with buffer
             return Math.max(lastWorkingSize - 500 * 1024, 5 * 1024 * 1024)
           }
+          // Other error - break but keep lastWorkingSize
           break
         }
       }
@@ -676,15 +677,19 @@ async function testLocalStorageLimit(): Promise<number | null> {
             const testStr = 'x'.repeat(size - 2000)
             localStorage.setItem(testKey, testStr)
             localStorage.removeItem(testKey)
+            lastWorkingSize = size
             return Math.max(size - 500 * 1024, 5 * 1024 * 1024)
           } catch (e: any) {
-            if (e.name !== 'QuotaExceededError' && e.code !== 22 && e.code !== 1014) {
-              break
+            if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+              continue
             }
-            continue
+            // Other error - break but keep lastWorkingSize if we have one
+            break
           }
         }
       }
+      // If we get here and have a lastWorkingSize, return it
+      // Otherwise, the error will fall through to the outer catch
     }
 
     // If we got here, return best guess based on what we found
