@@ -9,8 +9,8 @@ This document explains exactly how the app scans social media posts and stores t
 **Key Points:**
 1. **Scans only recent posts** (not all posts, then filter)
 2. **Deduplicates** - Won't re-scan posts that were already scanned
-3. **Stores limited amount** - Keeps only last 20 scanned posts total
-4. **Image optimization** - Keeps images only for newest 8 posts
+3. **Stores limited amount** - Keeps only last 35 scanned posts total
+4. **Image optimization** - Keeps images only for newest 14 posts
 
 ---
 
@@ -218,7 +218,7 @@ const uniqueScannedPosts = allScannedPosts.filter((post, idx, self) =>
 
 2. **Does it scan the last images or not?**
    - Yes, scans images from all scanned posts
-   - But only keeps images for newest 8 posts after storage optimization
+   - But only keeps images for newest 14 posts after storage optimization
 
 3. **If already scanned once, does it scan again?**
    - No, deduplication prevents re-scanning same posts

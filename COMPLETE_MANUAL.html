@@ -404,15 +404,15 @@ marketing-bot/
                         <li><strong>Content Preferences:</strong>
                             <ul>
                                 <li>Accepted content (last 30) - optimized for free-tier</li>
-                                <li>Edits (last 20) - optimized for free-tier, enough for weighted voting</li>
-                                <li>Scanned posts (last 20, newest 8 keep images) - optimized for free-tier APIs</li>
+                                <li>Edits (last 35) - optimized for free-tier, enough for weighted voting</li>
+                                <li>Scanned posts (last 35, newest 14 keep images) - optimized for free-tier APIs</li>
                                 <li><strong>learnedStyle</strong> - The aggregated AI preferences (this is what AI uses!) - no limit, always preserved</li>
                             </ul>
                         </li>
                     </ul>
                 </li>
-                <li><strong>Total Storage:</strong> ~4.8MB per customer (fits within 5MB localStorage limit)</li>
-                <li><strong>For 20 Customers:</strong> ~92MB total, distributed across 20 browsers (no server storage needed)</li>
+                <li><strong>Total Storage:</strong> ~5.0MB per customer (fits within 5MB localStorage limit)</li>
+                <li><strong>For 20 Customers:</strong> ~100MB total, distributed across 20 browsers (no server storage needed)</li>
             </ul>
 
             <h4>Automatic Backup System</h4>
@@ -872,15 +872,15 @@ CONTENT GENERATION FLOW (How learnedStyle is Applied):
                 </tr>
                 <tr>
                     <td><strong>Edits</strong></td>
-                    <td>Last 20 items<br/>(optimized for free-tier)</td>
+                    <td>Last 35 items<br/>(optimized for free-tier)</td>
                     <td>Oldest removed when limit exceeded</td>
-                    <td>~60KB total, weighted voting still works with 20, most recent matter more</td>
+                    <td>~105KB total, weighted voting still works with 35, most recent matter more</td>
                 </tr>
                 <tr>
                     <td><strong>Scanned Posts</strong></td>
-                    <td>Last 20 items<br/>(images only for newest 8)<br/>(optimized for free-tier)</td>
+                    <td>Last 35 items<br/>(images only for newest 14)<br/>(optimized for free-tier)</td>
                     <td>Oldest removed, images removed from older posts</td>
-                    <td>~1.2MB total (images), ~20KB text. Images take up space, text is more important for learning. Free-tier Twitter: 100 posts/month shared (20 customers × 5 tweets = 100 posts/month max)</td>
+                    <td>~2.1MB total (images), ~35KB text. Images take up space, text is more important for learning. Free-tier Twitter: 100 posts/month shared (20 customers × 5 tweets = 100 posts/month max)</td>
                 </tr>
                 <tr>
                     <td><strong>learnedStyle</strong></td>
@@ -891,10 +891,10 @@ CONTENT GENERATION FLOW (How learnedStyle is Applied):
             </table>
 
             <div class="info">
-                <strong>Total Maximum:</strong> ~70 items across all sources (30 + 20 + 20) = ~1.3MB for learning data<br/>
+                <strong>Total Maximum:</strong> 100 items across all sources (35 + 35 + 30) = ~2.4MB for learning data<br/>
                 <strong>AI Analysis:</strong> All sources (scanned posts, edits, accepted content) use AI analysis if API key is available - provides deeper insights than rule-based alone<br/>
-                <strong>Storage Per Customer:</strong> ~4.8MB total (fits within 5MB localStorage limit)<br/>
-                <strong>For 20 Customers:</strong> ~92MB total, distributed across 20 browsers (no server storage needed)<br/>
+                <strong>Storage Per Customer:</strong> ~5.0MB total (fits within 5MB localStorage limit)<br/>
+                <strong>For 20 Customers:</strong> ~100MB total, distributed across 20 browsers (no server storage needed)<br/>
                 <strong>Automatic Cleanup:</strong> Oldest items are removed when limits are reached<br/>
                 <strong>Optimized for Free-Tier:</strong> Limits based on free-tier API constraints (Twitter: 1 req/15min, etc.)<br/>
                 <strong>No Data Loss:</strong> The <code>learnedStyle</code> object (aggregated preferences) is preserved even when history is cleaned up
@@ -1121,7 +1121,7 @@ IMAGE USAGE IN NEW POSTS:
                 <h4>Storage Limits & Cleanup:</h4>
                 <ul>
                     <li><strong>Brand Images:</strong> Last 20 images kept total (~150KB each = ~3MB max) - optimized for localStorage</li>
-                    <li><strong>Scanned Posts:</strong> Last 20 posts kept, images only for newest 8 - optimized for free-tier APIs (Twitter: 1 req/15min)</li>
+                    <li><strong>Scanned Posts:</strong> Last 35 posts kept, images only for newest 14 - optimized for free-tier APIs (Twitter: 1 req/15min)</li>
                     <li><strong>Automatic Cleanup:</strong> When localStorage is full, oldest images removed first</li>
                     <li><strong>Storage Monitoring:</strong> App detects quota exceeded and automatically cleans up</li>
                 </ul>
