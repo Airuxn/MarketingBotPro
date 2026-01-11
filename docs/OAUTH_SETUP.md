@@ -55,7 +55,16 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
    - `https://yourdomain.com/api/oauth/facebook/callback` (production)
    
    **Note:** Facebook Login now uses the JavaScript SDK (no redirect needed), but these URIs are still required for Instagram OAuth.
-5. Add "Instagram Basic Display" and "Instagram Graph API" products (if using Instagram)
+5. **Configure Allowed Domains for JavaScript SDK** (REQUIRED):
+   - Go to "Facebook Login" → "Settings"
+   - Under "Allowed Domains for the JavaScript SDK", add:
+     - `localhost` (for development)
+     - `yourdomain.com` (for production, e.g., `marketing-bot-pro.vercel.app`)
+   - **Important:** Only add the domain (no `http://` or `https://`, no paths)
+   - Click "Save Changes"
+   
+   **Note:** Without this configuration, Facebook JavaScript SDK login will NOT work. This is required for `FB.login()` to function.
+6. Add "Instagram Basic Display" and "Instagram Graph API" products (if using Instagram)
 6. Request required permissions:
    - `pages_manage_posts`
    - `pages_read_engagement`
