@@ -1646,19 +1646,26 @@ export default function SettingsPage() {
                                 <div className="flex items-center justify-between py-1 px-2 rounded bg-slate-800/30 border border-slate-700/30">
                                   <span className="text-slate-400">localStorage Limit</span>
                                   <span className="text-white font-medium text-right max-w-[60%]">
-                                    {storageQuota 
-                                      ? (() => {
-                                          const method = storageQuota.method?.toLowerCase() || ''
-                                          // Check if method string indicates tested (successfully tested)
-                                          const isTested = method.includes('tested') && !method.includes('failed') && !method.includes('blocked') && !method.includes('attempted but')
-                                          // Check if method string indicates estimated (no test or test failed)
-                                          const isEstimated = method.includes('estimated') && !isTested
-                                          return `${storageQuota.localStorageLimitMB.toFixed(1)} MB${isTested ? ' (tested)' : isEstimated ? ' (estimated)' : ''}`
-                                        })()
-                                      : storageInfo?.localStorageLimitMB 
-                                        ? `${storageInfo.localStorageLimitMB} MB (estimated)`
-                                        : '5-10 MB'
-                                    }
+                                    {(() => {
+                                      const limitMB = storageQuota?.localStorageLimitMB || storageInfo?.localStorageLimitMB || 5
+                                      const method = storageQuota?.method?.toLowerCase() || ''
+                                      
+                                      // Check if method string indicates tested (successfully tested)
+                                      // Method format: "tested (10.0 MB actual limit)"
+                                      const isTested = method.startsWith('tested') || (method.includes('tested') && !method.includes('failed') && !method.includes('blocked') && !method.includes('attempted but'))
+                                      // Check if method string indicates estimated (no test or test failed)
+                                      // Method format: "estimated (10 MB typical for Brave)" or "test blocked by browser - using Brave estimate (10 MB)"
+                                      const isEstimated = method.includes('estimated') || (!isTested && method !== '')
+                                      
+                                      let status = ''
+                                      if (isTested) {
+                                        status = ' (tested)'
+                                      } else if (isEstimated || storageInfo?.localStorageLimitMB) {
+                                        status = ' (estimated)'
+                                      }
+                                      
+                                      return `${limitMB.toFixed(1)} MB${status}`
+                                    })()}
                                   </span>
                                 </div>
                                 {storageQuota && storageQuota.totalQuotaMB > 1000 && (
