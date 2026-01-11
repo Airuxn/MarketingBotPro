@@ -36,6 +36,7 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
   const [isDragging, setIsDragging] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [imageLoadStates, setImageLoadStates] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({})
 
   // Mark as mounted on client side
   useEffect(() => {
@@ -360,48 +361,79 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
             </h4>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {autoScannedImages.map((image) => (
-              <div
-                key={image.id}
-                className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedImageUrl === image.url
-                    ? 'border-blue-500 ring-2 ring-blue-500/30'
-                    : 'border-slate-700 hover:border-slate-600'
-                }`}
-                onClick={() => onImageSelect(image.url)}
-              >
-                <img
-                  src={image.url}
-                  alt="Brand image"
-                  className="w-full h-32 object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
-                
-                {selectedImageUrl === image.url && (
-                  <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-                    <Check className="w-4 h-4" />
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                  <span className="text-white text-xs opacity-0 group-hover:opacity-100">
-                    Click to use
-                  </span>
-                </div>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    removeImage(image.id)
-                  }}
-                  className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            {autoScannedImages.map((image) => {
+              const loadState = imageLoadStates[image.id] || 'loading'
+              return (
+                <div
+                  key={image.id}
+                  className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                    selectedImageUrl === image.url
+                      ? 'border-blue-500 ring-2 ring-blue-500/30'
+                      : 'border-slate-700 hover:border-slate-600'
+                  }`}
+                  onClick={() => onImageSelect(image.url)}
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+                  {loadState === 'loading' && (
+                    <div className="w-full h-32 bg-slate-800 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
+                    </div>
+                  )}
+                  {loadState === 'error' && (
+                    <div className="w-full h-32 bg-slate-800 flex flex-col items-center justify-center p-2">
+                      <AlertCircle className="w-6 h-6 text-yellow-500 mb-1" />
+                      <span className="text-[10px] text-slate-400 text-center">Image failed to load</span>
+                      <span className="text-[9px] text-slate-500 text-center mt-1">CORS or network issue</span>
+                    </div>
+                  )}
+                  {loadState === 'loaded' && (
+                    <img
+                      src={image.url}
+                      alt="Brand image"
+                      className="w-full h-32 object-cover"
+                      crossOrigin="anonymous"
+                      onLoad={() => {
+                        setImageLoadStates(prev => ({ ...prev, [image.id]: 'loaded' }))
+                      }}
+                      onError={(e) => {
+                        console.error('[BrandImageLibrary] Image failed to load:', image.url, {
+                          platform,
+                          imageId: image.id,
+                          error: 'CORS or network issue on mobile'
+                        })
+                        setImageLoadStates(prev => ({ ...prev, [image.id]: 'error' }))
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  )}
+                  
+                  {selectedImageUrl === image.url && loadState === 'loaded' && (
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                      <Check className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  {loadState === 'loaded' && (
+                    <>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <span className="text-white text-xs opacity-0 group-hover:opacity-100">
+                          Click to use
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeImage(image.id)
+                        }}
+                        className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}
@@ -416,48 +448,76 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
             </h4>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {uploadedImages.map((image) => (
-              <div
-                key={image.id}
-                className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedImageUrl === image.url
-                    ? 'border-blue-500 ring-2 ring-blue-500/30'
-                    : 'border-slate-700 hover:border-slate-600'
-                }`}
-                onClick={() => onImageSelect(image.url)}
-              >
-                <img
-                  src={image.url}
-                  alt="Uploaded image"
-                  className="w-full h-32 object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                  }}
-                />
-                
-                {selectedImageUrl === image.url && (
-                  <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
-                    <Check className="w-4 h-4" />
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                  <span className="text-white text-xs opacity-0 group-hover:opacity-100">
-                    Click to use
-                  </span>
-                </div>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    removeImage(image.id)
-                  }}
-                  className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            {uploadedImages.map((image) => {
+              const loadState = imageLoadStates[image.id] || 'loading'
+              return (
+                <div
+                  key={image.id}
+                  className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                    selectedImageUrl === image.url
+                      ? 'border-blue-500 ring-2 ring-blue-500/30'
+                      : 'border-slate-700 hover:border-slate-600'
+                  }`}
+                  onClick={() => onImageSelect(image.url)}
                 >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+                  {loadState === 'loading' && (
+                    <div className="w-full h-32 bg-slate-800 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 text-slate-500 animate-spin" />
+                    </div>
+                  )}
+                  {loadState === 'error' && (
+                    <div className="w-full h-32 bg-slate-800 flex flex-col items-center justify-center p-2">
+                      <AlertCircle className="w-6 h-6 text-yellow-500 mb-1" />
+                      <span className="text-[10px] text-slate-400 text-center">Image failed to load</span>
+                    </div>
+                  )}
+                  {loadState === 'loaded' && (
+                    <img
+                      src={image.url}
+                      alt="Uploaded image"
+                      className="w-full h-32 object-cover"
+                      onLoad={() => {
+                        setImageLoadStates(prev => ({ ...prev, [image.id]: 'loaded' }))
+                      }}
+                      onError={(e) => {
+                        console.error('[BrandImageLibrary] Uploaded image failed to load:', image.url, {
+                          platform,
+                          imageId: image.id
+                        })
+                        setImageLoadStates(prev => ({ ...prev, [image.id]: 'error' }))
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  )}
+                  
+                  {selectedImageUrl === image.url && loadState === 'loaded' && (
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
+                      <Check className="w-4 h-4" />
+                    </div>
+                  )}
+
+                  {loadState === 'loaded' && (
+                    <>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <span className="text-white text-xs opacity-0 group-hover:opacity-100">
+                          Click to use
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeImage(image.id)
+                        }}
+                        className="absolute top-2 left-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              )
+            })}
           </div>
         </div>
       )}

@@ -236,8 +236,21 @@ export default function ContentPage() {
       setIsScanning(true)
       setHasScannedOnce(true)
       sessionStorage.setItem('lastScanKey', scanKey)
+      
+      console.log('[Content Page] Starting scan on mobile/desktop:', {
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        isMobile: typeof window !== 'undefined' ? /Mobile|Android|iPhone|iPad/.test(navigator.userAgent) : false,
+        connectedAccounts: connectedAdAccounts.length + connectedSocialAccounts.length
+      })
+      
       try {
         const result = await autoScanAllPlatforms(connectedAdAccounts as AdAccount[], connectedSocialAccounts)
+        
+        console.log('[Content Page] Scan completed:', {
+          contentFound: result.content.length,
+          imagesFound: result.images.length,
+          styleAnalyses: result.styleAnalyses.length
+        })
         
         // Update style analyses
         if (result.styleAnalyses.length > 0) {
