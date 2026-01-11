@@ -56,8 +56,22 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
     })
     
     // Separate auto-scanned images (from connected accounts) from manually uploaded
-    const autoScannedImages = savedImages
-      .filter(img => img.platform === platform && img.sourceUrl !== 'uploaded' && !img.sourceUrl.startsWith('uploaded'))
+    const platformImages = savedImages.filter(img => img.platform === platform)
+    const nonUploadedImages = platformImages.filter(img => img.sourceUrl !== 'uploaded' && !img.sourceUrl?.startsWith('uploaded'))
+    
+    console.log('[BrandImageLibrary] Filter debug:', {
+      platform,
+      totalImages: savedImages.length,
+      platformImagesCount: platformImages.length,
+      platformImages: platformImages.map(img => ({ 
+        platform: img.platform, 
+        sourceUrl: img.sourceUrl,
+        isUploaded: img.sourceUrl === 'uploaded' || img.sourceUrl?.startsWith('uploaded')
+      })),
+      nonUploadedCount: nonUploadedImages.length
+    })
+    
+    const autoScannedImages = nonUploadedImages
       .sort((a, b) => {
         const dateA = new Date(a.extractedAt || 0).getTime()
         const dateB = new Date(b.extractedAt || 0).getTime()
