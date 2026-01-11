@@ -272,6 +272,11 @@ export default function ContentPage() {
       })
       
       try {
+        console.log('[Content Page] Calling autoScanAllPlatforms with:', {
+          adAccounts: connectedAdAccounts.length,
+          socialAccounts: connectedSocialAccounts.map(acc => ({ platform: acc.platform, hasToken: !!acc.accessToken, userId: acc.userId }))
+        })
+        
         const result = await autoScanAllPlatforms(connectedAdAccounts as AdAccount[], connectedSocialAccounts)
         
         console.log('[Content Page] Scan completed:', {
@@ -280,6 +285,10 @@ export default function ContentPage() {
           styleAnalyses: result.styleAnalyses.length,
           images: result.images.map(img => ({ platform: img.platform, url: img.url.substring(0, 50) + '...', sourceId: img.sourceId }))
         })
+        
+        if (result.content.length === 0 && result.images.length === 0) {
+          console.warn('[Content Page] Scan completed but found no content or images. This might be normal if accounts have no recent posts.')
+        }
         
         // Update style analyses
         if (result.styleAnalyses.length > 0) {
@@ -509,7 +518,14 @@ export default function ContentPage() {
           toastShownRef.current = true
         }
       } catch (error: any) {
-        console.error('Auto-scan error:', error)
+        console.error('[Content Page] Auto-scan error:', error)
+        console.error('[Content Page] Error details:', {
+          message: error?.message,
+          stack: error?.stack,
+          name: error?.name,
+          isRateLimit: error?.isRateLimit,
+          waitMinutes: error?.waitMinutes
+        })
         
         // Handle Twitter 401 Unauthorized errors (expired/invalid token)
         if (error.message?.includes('401') || error.message?.includes('Unauthorized') || error.message?.includes('expired') || error.message?.includes('invalid')) {
@@ -541,12 +557,15 @@ export default function ContentPage() {
         }
         
         // Show error to user if scanning fails (for non-rate-limit errors)
+        console.error('[Content Page] Scan failed with error:', error)
+        toast.error('Failed to scan social media accounts. Check console for details.', { duration: 5000 })
         // Note: connectedAdAccounts and connectedSocialAccounts are already defined in the outer scope (line 164-165)
         const hasConnectedAccounts = connectedAdAccounts.length > 0 || connectedSocialAccounts.length > 0
         if (hasConnectedAccounts) {
           toast.error(`Scanning failed: ${error.message || 'Unknown error. Check browser console for details.'}`, { duration: 5000 })
         }
       } finally {
+        console.log('[Content Page] Scan finished - resetting state')
         setIsScanning(false)
         scanInProgressRef.current = false
         // Reset toast flag after a delay so it can show again for future scans
