@@ -422,13 +422,13 @@ export const useStore = create<Store>()(
                     }
                     
                     // Ensure limits are enforced (optimized for free-tier and 5MB localStorage per customer)
-                    // Accepted content: 25 items (~2KB each = ~50KB total)
-                    if (prefs.acceptedContent && prefs.acceptedContent.length > 25) {
-                      prefs.acceptedContent = prefs.acceptedContent.slice(-25)
+                    // Accepted content: 30 items (~2KB each = ~60KB total)
+                    if (prefs.acceptedContent && prefs.acceptedContent.length > 30) {
+                      prefs.acceptedContent = prefs.acceptedContent.slice(-30)
                     }
-                    // Edits: 30 items (~3KB each = ~90KB total) - enough for weighted voting
-                    if (prefs.edits && prefs.edits.length > 30) {
-                      prefs.edits = prefs.edits.slice(-30)
+                    // Edits: 35 items (~3KB each = ~105KB total) - enough for weighted voting
+                    if (prefs.edits && prefs.edits.length > 35) {
+                      prefs.edits = prefs.edits.slice(-35)
                     }
                   }
                   

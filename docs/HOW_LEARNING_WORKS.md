@@ -27,7 +27,7 @@ The AI learns your content style from multiple sources and uses that knowledge t
 ### 1. **When You Accept Generated Content**
 - **Trigger**: You click "Accept" on generated content
 - **What happens**: 
-  - The content is saved to `acceptedContent` history (last 25 kept, optimized for free-tier)
+  - The content is saved to `acceptedContent` history (last 30 kept, optimized for free-tier)
   - **AI Analysis (Primary Method - if API key available)**:
     - Uses **Gemini AI** (Google Generative AI) to analyze the content
     - Reads the **FULL content** to understand context and style patterns
@@ -54,7 +54,7 @@ The AI learns your content style from multiple sources and uses that knowledge t
 ### 2. **When You Edit Generated Content (MEDIUM PRIORITY)**
 - **Trigger**: You edit generated content and save it
 - **What happens**:
-  - The edit is saved to `edits` history (last 30 kept, optimized for free-tier)
+  - The edit is saved to `edits` history (last 35 kept, optimized for free-tier)
   - **AI Analysis (Primary Method - if API key available)**:
     - Uses **Gemini AI** (Google Generative AI) to analyze the edit
     - Reads the **FULL original and edited content** to understand context
@@ -123,8 +123,8 @@ All learning data is stored in the Zustand store under `settings.contentPreferen
 
 ```typescript
 {
-  acceptedContent: [...],      // Last 25 accepted items (optimized for free-tier) - LOWER PRIORITY
-    edits: [...],                // Last 30 edits (optimized for free-tier) - MEDIUM PRIORITY
+    acceptedContent: [...],      // Last 30 accepted items (optimized for free-tier) - LOWER PRIORITY
+    edits: [...],                // Last 35 edits (optimized for free-tier) - MEDIUM PRIORITY
     scannedPosts: [...],         // Last 35 scanned posts with styleAnalysis (optimized for free-tier) - HIGHEST PRIORITY
   learnedStyle: {              // Aggregated preferences
     tone: ['enthusiastic', 'personal'],
@@ -279,10 +279,10 @@ The system has limits to prevent storage bloat and ensure performance:
 
 ### Storage Limits (Rolling Window - Optimized for Free-Tier APIs)
 - **Scanned Posts**: Last **35** items kept (~35KB text + 2.1MB images for newest 14) - **HIGHEST PRIORITY**
-- **Edits**: Last **30** items kept (~90KB total, enough for weighted voting) - **MEDIUM PRIORITY**
-- **Accepted Content**: Last **25** items kept (~50KB total) - **LOWER PRIORITY**
+- **Edits**: Last **35** items kept (~105KB total, enough for weighted voting) - **MEDIUM PRIORITY**
+- **Accepted Content**: Last **30** items kept (~60KB total) - **LOWER PRIORITY**
 
-**Total Maximum**: **100 items** across all sources (~2.3MB total for learning data: 35 scanned + 30 edits + 25 accepted)
+**Total Maximum**: **100 items** across all sources (~2.4MB total for learning data: 35 scanned + 35 edits + 30 accepted)
 
 ### Why These Limits? (Optimized for Free-Tier APIs & 20 Customers)
 - **Performance**: Too many items slow down analysis
@@ -314,13 +314,13 @@ The system ensures the new item is included in aggregation:
 
 **When you accept content:**
 1. ✅ Add new item to array (in memory): `updatedAccepted = [...acceptedContent, newAccepted]`
-2. ✅ Trim array to 25 items: `trimmedAccepted = updatedAccepted.slice(-25)` (includes new item, optimized for free-tier)
+2. ✅ Trim array to 30 items: `trimmedAccepted = updatedAccepted.slice(-30)` (includes new item, optimized for free-tier)
 3. ✅ Aggregate using NEW array: `combineAllLearningSources(..., trimmedAccepted, ...)` (new item included!)
 4. ✅ Save BOTH together: `updateSettings({ acceptedContent: trimmedAccepted, learnedStyle })`
 
 **When you edit content:**
 1. ✅ Add new edit to array (in memory): `updatedEdits = [...edits, edit]`
-2. ✅ Trim array to 30 items: `updatedEdits = updatedEdits.slice(-30)` (keeps last 30, includes new edit, optimized for free-tier)
+2. ✅ Trim array to 35 items: `updatedEdits = updatedEdits.slice(-35)` (keeps last 35, includes new edit, optimized for free-tier)
 3. ✅ Aggregate using NEW array: `allEdits = updatedEdits.filter(...)` (new edit included!)
 4. ✅ Extract preferences from all edits (including new one)
 5. ✅ Aggregate all edits together
@@ -553,7 +553,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 
 ### Monthly Cost Example (If Everything Used AI):
 
-**Scenario: 30 edits, 25 accepts, 35 scans (optimized for free-tier APIs, 90 total learning inputs)**
+**Scenario: 35 edits, 30 accepts, 35 scans (optimized for free-tier APIs, 100 total learning inputs)**
 - Edits: 100 × $0.0002 = **$0.02**
 - Accepts: 200 × $0.0002 = **$0.04**
 - Scans: 500 × $0.0002 = **$0.10**
@@ -859,7 +859,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 - **AI uses learning**: Every time you generate content
 - **Results consistency**: Style is consistent, exact text varies (AI randomness)
 - **No learning during generation**: It only uses what's already learned
-- **Maximum inputs**: 25 accepted + 30 edits + 35 scanned = 90 total items (optimized for free-tier)
+- **Maximum inputs**: 30 accepted + 35 edits + 35 scanned = 100 total items (optimized for free-tier)
 - **Automatic cleanup**: Oldest items removed when limits exceeded
 - **Aggregation method**: Rule-based (uses stored AI results from edits, but combines with rule-based logic)
 - **API calls**: Only 1 per edit (not per accept/scan/aggregation)

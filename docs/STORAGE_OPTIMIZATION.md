@@ -14,10 +14,10 @@ This document outlines the optimized storage limits for the marketing bot applic
 | **Email Campaigns** | 30 | ~3KB | ~90KB | Email content and metadata |
 | **Brand Images** | 20 | ~150KB | ~3MB | Biggest storage item - stored as URLs (not base64) |
 | **Scanned Posts** | 35 | ~1KB (text) + images | ~2.2MB | Text only, newest 14 keep images. See [SCANNING_BEHAVIOR.md](SCANNING_BEHAVIOR.md) for details |
-| **Accepted Content** | 25 | ~2KB | ~50KB | AI learning data |
-| **Edits** | 30 | ~3KB | ~90KB | AI learning data with weighted voting |
+| **Accepted Content** | 30 | ~2KB | ~60KB | AI learning data |
+| **Edits** | 35 | ~3KB | ~105KB | AI learning data with weighted voting |
 | **Settings/Other** | - | - | ~100KB | API keys, preferences, etc. |
-| **Total Estimated** | - | - | **~5.0MB** | Fits within 5MB localStorage limit (100 learning inputs total: 35 scanned + 30 edits + 25 accepted) |
+| **Total Estimated** | - | - | **~5.0MB** | Fits within 5MB localStorage limit (100 learning inputs total: 35 scanned + 35 edits + 30 accepted) |
 
 ## Free-Tier API Considerations
 
@@ -65,7 +65,7 @@ This document outlines the optimized storage limits for the marketing bot applic
 - Browser localStorage: ~5-10MB per origin
 - **Safe limit:** 5MB to work across all browsers
 - Each customer uses their own browser (separate localStorage)
-- **Target:** ~5.0MB per customer (uses full 5MB localStorage limit, optimized for 100 learning inputs: 35 scanned + 30 edits + 25 accepted)
+- **Target:** ~5.0MB per customer (uses full 5MB localStorage limit, optimized for 100 learning inputs: 35 scanned + 35 edits + 30 accepted)
 
 ### 2. Free-Tier API Limits
 - **Twitter:** Very strict (1 req/15min, 100 posts/month TOTAL **SHARED** across all customers)
@@ -111,8 +111,8 @@ Email Campaigns: 30 × 3KB    = 90KB
 Brand Images:    20 × 150KB  = 3MB (URLs, not full images)
 Scanned Posts:   35 × 1KB    = 35KB (text)
 Scanned Images:  14 × 150KB  = 2.1MB (newest 14 only)
-Accepted:        25 × 2KB    = 50KB
-Edits:           30 × 3KB    = 90KB
+Accepted:        30 × 2KB    = 60KB
+Edits:           35 × 3KB    = 105KB
 Settings:        -            = 100KB
 ─────────────────────────────────────
 Total:                        ~5.0MB

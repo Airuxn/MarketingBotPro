@@ -1562,8 +1562,8 @@ export async function trackContentEdit(
       acceptedContent: [],
       edits: [],
     }
-    // Optimized for free-tier: keep last 30 edits (~3KB each = ~90KB total)
-    const updatedEdits = [...(preferences.edits || []), edit].slice(-30)
+    // Optimized for free-tier: keep last 35 edits (~3KB each = ~105KB total)
+    const updatedEdits = [...(preferences.edits || []), edit].slice(-35)
     updateSettings({
       contentPreferences: {
         ...preferences,
@@ -1720,8 +1720,8 @@ export async function trackContentEdit(
       acceptedContent: [],
       edits: [],
     }
-    // Optimized for free-tier: keep last 30 edits (~3KB each = ~90KB total)
-    const updatedEdits = [...(preferences.edits || []), edit].slice(-30)
+    // Optimized for free-tier: keep last 35 edits (~3KB each = ~105KB total)
+    const updatedEdits = [...(preferences.edits || []), edit].slice(-35)
     
     // Don't update learned preferences, but still store the edit
     updateSettings({
@@ -2346,8 +2346,8 @@ export async function trackAcceptedContent(
 
   const updatedAccepted = [...acceptedContent, newAccepted]
   
-  // Optimized for free-tier: keep last 25 accepted items (~2KB each = ~50KB total)
-  const trimmedAccepted = updatedAccepted.slice(-25)
+  // Optimized for free-tier: keep last 30 accepted items (~2KB each = ~60KB total)
+  const trimmedAccepted = updatedAccepted.slice(-30)
 
   // Re-learn style from ALL sources: scanned posts (most important), accepted content, and edits
   const scannedPosts = preferences.scannedPosts || []
