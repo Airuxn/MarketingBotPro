@@ -825,21 +825,11 @@ export default function SettingsPage() {
               <h3 className="text-base font-semibold text-white mb-2 flex-shrink-0">Getting Started</h3>
               <div className="flex-1 flex flex-col justify-between min-h-0">
                 <div className="flex items-start gap-2 flex-1">
-                  <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <CheckCircle className="w-3 h-3 text-cyan-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-white mb-0.5">1. Connect Socials</div>
-                    <p className="text-xs text-slate-400 leading-tight">Connect your social media accounts (right column) to create and manage content automatically.</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2 flex-1">
                   <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Key className="w-3 h-3 text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-white mb-0.5">2. Add API Key</div>
+                    <div className="text-xs font-semibold text-white mb-0.5">1. Add API Key</div>
                     <p className="text-xs text-slate-400 leading-tight">Add your Google Gemini API key in the middle column. Required for all AI-powered features.</p>
                   </div>
                 </div>
@@ -849,8 +839,18 @@ export default function SettingsPage() {
                     <Building className="w-3 h-3 text-purple-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-white mb-0.5">3. Business Info</div>
+                    <div className="text-xs font-semibold text-white mb-0.5">2. Business Info</div>
                     <p className="text-xs text-slate-400 leading-tight">Fill in your business name, type, and target audience. Helps AI create personalized content.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2 flex-1">
+                  <div className="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <CheckCircle className="w-3 h-3 text-cyan-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-white mb-0.5">3. Connect Socials</div>
+                    <p className="text-xs text-slate-400 leading-tight">Connect your social media accounts to create and manage content automatically.</p>
                   </div>
                 </div>
 
@@ -1157,10 +1157,10 @@ export default function SettingsPage() {
                       }`}
                     >
                       {labels[tab]} {counts[tab] > 0 && `(${counts[tab]})`}
-                    </button>
+              </button>
                   )
                 })}
-              </div>
+            </div>
               {/* Second row: Storage (right-aligned on mobile) */}
               <div className="flex justify-end">
                 <button
@@ -1179,43 +1179,43 @@ export default function SettingsPage() {
             <div className="hidden lg:flex lg:flex-nowrap lg:items-center lg:justify-between lg:gap-2">
               <div className="flex flex-nowrap gap-2">
                 {(['overview', 'accepted', 'edits', 'scanned'] as const).map((tab) => {
-                  const counts = {
-                    overview: 0,
-                    accepted: settings.contentPreferences?.acceptedContent?.length || 0,
-                    edits: settings.contentPreferences?.edits?.length || 0,
-                    scanned: settings.contentPreferences?.scannedPosts?.length || 0,
-                  }
-                  const labels = {
-                    overview: 'Overview',
-                    accepted: 'Accepted',
-                    edits: 'Edits',
-                    scanned: 'Scanned',
-                  }
-                  return (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveHistoryTab(tab)}
+                const counts = {
+                  overview: 0,
+                  accepted: settings.contentPreferences?.acceptedContent?.length || 0,
+                  edits: settings.contentPreferences?.edits?.length || 0,
+                  scanned: settings.contentPreferences?.scannedPosts?.length || 0,
+                }
+                const labels = {
+                  overview: 'Overview',
+                  accepted: 'Accepted',
+                  edits: 'Edits',
+                  scanned: 'Scanned',
+                }
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveHistoryTab(tab)}
                       className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
-                        activeHistoryTab === tab
-                          ? 'bg-purple-600 text-white'
-                          : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                      }`}
-                    >
-                      {labels[tab]} {counts[tab] > 0 && `(${counts[tab]})`}
-                    </button>
-                  )
-                })}
-              </div>
-              <button
-                onClick={() => setActiveHistoryTab('storage')}
+                      activeHistoryTab === tab
+                        ? 'bg-purple-600 text-white'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                    }`}
+                  >
+                    {labels[tab]} {counts[tab] > 0 && `(${counts[tab]})`}
+                  </button>
+                )
+              })}
+            </div>
+            <button
+              onClick={() => setActiveHistoryTab('storage')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
-                  activeHistoryTab === 'storage'
-                    ? 'bg-purple-600 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-              >
-                Storage
-              </button>
+                activeHistoryTab === 'storage'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Storage
+            </button>
             </div>
           </div>
 
