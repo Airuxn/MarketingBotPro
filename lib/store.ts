@@ -628,22 +628,6 @@ async function testLocalStorageLimit(): Promise<number | null> {
   let lastWorkingSize = 0
   
   try {
-    // First, calculate current usage to understand how much space is already used
-    let currentUsage = 0
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i)
-        if (key && key !== testKey) {
-          const value = localStorage.getItem(key)
-          if (value) {
-            currentUsage += new Blob([value]).size
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore errors calculating usage
-    }
-    
     // Clean up any previous test
     try {
       localStorage.removeItem(testKey)
@@ -651,45 +635,56 @@ async function testLocalStorageLimit(): Promise<number | null> {
       // Ignore cleanup errors
     }
 
-    // Test approach: try to write progressively larger data
-    // We test what we can ADD to localStorage (available + test size)
-    // Then we calculate the total limit as: currentUsage + maxTestSize
-    let testSizes = [2 * 1024 * 1024, 5 * 1024 * 1024, 7 * 1024 * 1024, 9 * 1024 * 1024, 10 * 1024 * 1024, 11 * 1024 * 1024, 12 * 1024 * 1024]
-    
-    for (let i = 0; i < testSizes.length; i++) {
-      const testSize = testSizes[i]
-      try {
-        const testStr = 'x'.repeat(testSize - 3000) // Leave buffer for encoding overhead
-        localStorage.setItem(testKey, testStr)
-        localStorage.removeItem(testKey)
-        lastWorkingSize = testSize
-        
-        // If this is the last size and it worked, we found a good upper bound
-        if (i === testSizes.length - 1) {
-          // Total limit = current usage + test size that worked
-          return Math.min(currentUsage + lastWorkingSize, 12 * 1024 * 1024)
-        }
-      } catch (error: any) {
-        if (error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014) {
-          // Found the limit - calculate total limit from current usage + last working test size
-          if (lastWorkingSize > 0) {
-            // Total limit = current usage + last working test size
-            return currentUsage + lastWorkingSize
+    // Binary search approach: start with estimated limit and narrow down
+    // Most browsers have 5-10MB for localStorage per origin
+    // We'll test in smaller increments to find the exact limit more accurately
+    const maxTestSize = 15 * 1024 * 1024 // Don't test beyond 15MB
+    let low = 5 * 1024 * 1024  // Start at 5MB (conservative minimum)
+    let high = maxTestSize
+    let bestGuess = 10 * 1024 * 1024 // Default to 10MB
+
+    // Quick test: try the estimated limit first
+    try {
+      const estimatedSize = 10 * 1024 * 1024
+      const testString = 'x'.repeat(estimatedSize - 2000) // Leave some buffer
+      localStorage.setItem(testKey, testString)
+      localStorage.removeItem(testKey)
+      lastWorkingSize = estimatedSize
+      
+      // If 10MB works, try slightly larger
+      for (let size = 11 * 1024 * 1024; size <= 12 * 1024 * 1024; size += 500 * 1024) {
+        try {
+          const testStr = 'x'.repeat(size - 2000)
+          localStorage.setItem(testKey, testStr)
+          localStorage.removeItem(testKey)
+          lastWorkingSize = size
+        } catch (error: any) {
+          if (error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014) {
+            // Found the limit - return previous working size with buffer
+            return Math.max(lastWorkingSize - 500 * 1024, 5 * 1024 * 1024)
           }
-          // If even 2MB fails, localStorage is nearly full
-          // Estimate based on current usage (should be close to limit)
-          return Math.max(currentUsage, 5 * 1024 * 1024)
-        } else {
-          // Other error - continue to next size
-          console.warn('[Storage Test] Non-quota error testing size:', testSize, error)
-          continue
+          break
         }
       }
-    }
-    
-    // If we got here and found a working size, calculate total limit
-    if (lastWorkingSize > 0) {
-      return Math.min(currentUsage + lastWorkingSize, 12 * 1024 * 1024)
+      
+      return Math.max(lastWorkingSize - 500 * 1024, 5 * 1024 * 1024)
+    } catch (error: any) {
+      // If 10MB doesn't work, try smaller
+      if (error.name === 'QuotaExceededError' || error.code === 22 || error.code === 1014) {
+        for (let size = 8 * 1024 * 1024; size >= 5 * 1024 * 1024; size -= 500 * 1024) {
+          try {
+            const testStr = 'x'.repeat(size - 2000)
+            localStorage.setItem(testKey, testStr)
+            localStorage.removeItem(testKey)
+            return Math.max(size - 500 * 1024, 5 * 1024 * 1024)
+          } catch (e: any) {
+            if (e.name !== 'QuotaExceededError' && e.code !== 22 && e.code !== 1014) {
+              break
+            }
+            continue
+          }
+        }
+      }
     }
 
     // If we got here, return best guess based on what we found
