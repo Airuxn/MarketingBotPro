@@ -86,6 +86,15 @@ A modern, enterprise-grade Progressive Web App (PWA) that automates marketing ta
 - **Automatic backups** - Last 5 backups stored automatically
 - **Protect your data** - Never lose data when clearing browser cache
 
+### 🆓 Free-Tier API Optimization
+- **Optimized for free-tier social media APIs** - Runs entirely on free-tier APIs
+- **Twitter/X**: Free tier support (100 posts/month shared, 20 customers max recommended)
+- **Facebook/Instagram**: Free tier (unlimited customers, per-user limits)
+- **LinkedIn**: Free tier (supports thousands of customers, 100K calls/day)
+- **Smart caching** - Optimized cache strategies to stay within free-tier limits
+- **Storage optimization** - All data fits within browser localStorage (~5MB per customer)
+- **No paid APIs required** - Fully functional on free-tier APIs (except Twitter for >20 customers)
+
 ## 🚀 Quick Start
 
 ### Prerequisites

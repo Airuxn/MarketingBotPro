@@ -37,13 +37,27 @@ This document outlines the optimized storage limits for the marketing bot applic
   - **Storage Impact:** ~20 scanned posts kept per customer (optimized to 20 total, but only ~5 new per month per customer)
 
 ### Facebook/Instagram Free Tier
-- More generous rate limits than Twitter
-- Similar scanning strategy (24-hour cache)
-- **Storage Impact:** ~20-30 scanned posts per month
+- **Rate Limit:** ~200 requests per hour per user access token
+- **Limit Type:** **Per-user access token** (each customer has their own quota - NO shared limit!)
+- **Monthly Limit:** None (only hourly rate limit)
+- **Customer Capacity:** **Unlimited** (each customer has their own token)
+- **Scanning Strategy:** 
+  - 1-hour cache (can scan more frequently than Twitter)
+  - ~50 posts per scan (Facebook), ~100 posts per scan (Instagram)
+  - Can scan multiple times per day (within hourly rate limit)
+  - **Storage Impact:** ~20-30 scanned posts per month (kept, but can scan more frequently)
+- **Paid Options:** No official paid tier (API is free with rate limits)
 
 ### LinkedIn Free Tier
-- Similar to Facebook
-- **Storage Impact:** ~20-30 scanned posts per month
+- **Rate Limit:** Up to 100,000 calls per day per application
+- **Limit Type:** **Per-application** (very generous, supports thousands of customers)
+- **Monthly Limit:** None (only daily rate limit)
+- **Customer Capacity:** **~4,000+ customers** (100K calls/day ÷ 24 scans/day = ~4,166 customers)
+- **Scanning Strategy:** 
+  - 1-hour cache (can scan frequently)
+  - No explicit limit in code (uses API default)
+  - **Storage Impact:** ~20-30 scanned posts per month (kept)
+- **Paid Options:** No official paid tier for standard API (API is free with rate limits)
 
 ## Why These Limits?
 
@@ -53,11 +67,16 @@ This document outlines the optimized storage limits for the marketing bot applic
 - Each customer uses their own browser (separate localStorage)
 - **Target:** ~4.6MB per customer (leaves 400KB buffer)
 
-### 2. Free-Tier API Limits (SHARED across all customers!)
-- **Twitter:** Very strict (1 req/15min, 100 posts/month TOTAL shared)
-- **Other platforms:** More generous but still rate-limited
-- **Realistic usage:** 1 scan per month per customer for Twitter (to stay within shared limit)
-- **Result:** ~5 new posts per month per customer for Twitter (with 20 customers max)
+### 2. Free-Tier API Limits
+- **Twitter:** Very strict (1 req/15min, 100 posts/month TOTAL **SHARED** across all customers)
+  - **Realistic usage:** 1 scan per month per customer (to stay within shared limit)
+  - **Result:** ~5 new posts per month per customer (with 20 customers max)
+- **Facebook/Instagram:** Per-user limits (each customer has their own quota - NO shared limit!)
+  - **Realistic usage:** Multiple scans per day per customer (within hourly rate limit)
+  - **Result:** Can scan frequently, no customer limit needed
+- **LinkedIn:** Per-application limit (100K calls/day - very generous)
+  - **Realistic usage:** Multiple scans per day per customer
+  - **Result:** Can support thousands of customers
 
 ### 3. Storage Priority
 - **High Priority:** Scanned posts (learning data), brand images (UI library)

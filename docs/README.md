@@ -20,6 +20,8 @@ This directory contains essential project documentation.
 - **[Architecture](ARCHITECTURE.md)** - System architecture and design decisions
 - **[Node.js Upgrade](UPGRADE_NODE.md)** - Node.js version requirements
 - **[Scaling to Multi-User](SCALING_TO_MULTI_USER.md)** - Multi-user SaaS architecture
+- **[API Limits Summary](API_LIMITS_SUMMARY.md)** - Free-tier API limits for all platforms
+- **[Storage Optimization](STORAGE_OPTIMIZATION.md)** - Storage limits optimized for free-tier APIs
 
 ## Main Documentation
 
