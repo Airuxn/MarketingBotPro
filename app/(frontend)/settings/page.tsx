@@ -820,7 +820,7 @@ export default function SettingsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start lg:h-[503px]">
           {/* Left Column - Getting Started */}
-          <div className="lg:col-span-1 lg:h-[503px] order-2 lg:order-1">
+          <div className="lg:col-span-1 lg:h-[503px] order-1 lg:order-1">
             <div className="glass rounded-xl p-3 border border-slate-700/50 h-full flex flex-col">
               <h3 className="text-base font-semibold text-white mb-2 flex-shrink-0">Getting Started</h3>
               <div className="flex-1 flex flex-col justify-between min-h-0">
@@ -878,7 +878,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Middle Column - Form Fields */}
-          <div className="lg:col-span-1 lg:h-[503px] order-1 lg:order-2">
+          <div className="lg:col-span-1 lg:h-[503px] order-2 lg:order-2">
             <div className="glass rounded-xl p-3 h-full flex flex-col">
               <div className="flex-1 space-y-2.5 overflow-y-auto">
           {/* API Key */}
@@ -1677,10 +1677,10 @@ export default function SettingsPage() {
                       
                       return (
                         <>
-                          {/* Two Column Layout - Swapped */}
-                          <div className="grid grid-cols-2 gap-3 items-stretch">
-                            {/* Storage Details Card - Now on Left */}
-                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col h-full">
+                          {/* Stacked Layout - Storage Details on top, Storage Usage below */}
+                          <div className="flex flex-col gap-3">
+                            {/* Storage Details Card - On Top */}
+                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col">
                               <h5 className="text-xs font-semibold text-white mb-2.5 flex items-center space-x-1.5">
                                 <div className="p-1 rounded bg-purple-500/20 border border-purple-500/30">
                                   <Database className="w-2.5 h-2.5 text-purple-400" />
@@ -1741,7 +1741,7 @@ export default function SettingsPage() {
                               </div>
                             </div>
 
-                            {/* Main Storage Card - Combined Stats & Progress - Now on Right */}
+                            {/* Main Storage Card - Combined Stats & Progress - Below Storage Details */}
                             <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center space-x-2">
