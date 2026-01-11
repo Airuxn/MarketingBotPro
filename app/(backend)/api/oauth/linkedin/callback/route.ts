@@ -68,8 +68,11 @@ export async function GET(request: Request) {
     })
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.json()
-      throw new Error(errorData.error_description || 'Failed to exchange code for token')
+      const errorData = await tokenResponse.json().catch(() => ({ error: 'Unknown error' }))
+      console.error('[LinkedIn OAuth Callback] Token exchange failed:', errorData)
+      console.error('[LinkedIn OAuth Callback] Status:', tokenResponse.status)
+      console.error('[LinkedIn OAuth Callback] Redirect URI used:', finalRedirectUri)
+      throw new Error(errorData.error_description || errorData.error || 'Failed to exchange code for token')
     }
 
     const tokenData = await tokenResponse.json()
