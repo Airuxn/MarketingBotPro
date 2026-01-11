@@ -5,6 +5,7 @@ import { Toaster, toast as toastManager } from 'react-hot-toast'
 import { LanguageProvider } from '@/lib/language-context'
 import { HydrationProvider } from '@/lib/hydration-provider'
 import { Navigation } from '@/components/Navigation'
+import { MobileDebugConsole } from '@/components/MobileDebugConsole'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -166,6 +167,7 @@ export default function RootLayout({
                 },
               }}
             />
+            <MobileDebugConsole />
           </LanguageProvider>
         </HydrationProvider>
       </body>
