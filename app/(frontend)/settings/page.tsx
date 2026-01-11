@@ -1493,7 +1493,7 @@ export default function SettingsPage() {
                       return (
                         <>
                           {/* Two Column Layout - Swapped */}
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-2 gap-3 items-stretch">
                             {/* Storage Details Card - Now on Left */}
                             <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col h-full">
                               <h5 className="text-xs font-semibold text-white mb-2.5 flex items-center space-x-1.5">
