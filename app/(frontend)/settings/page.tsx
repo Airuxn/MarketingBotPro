@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Settings as SettingsIcon, Key, Building, Target, Save, Brain, TrendingUp, Eye, CheckCircle, XCircle, Facebook, Instagram, Linkedin, Twitter, Loader2, Sparkles, HardDrive, Database, RefreshCw, AlertCircle, CheckCircle2, Zap, X, Search, Download, Upload } from 'lucide-react'
-import { useStore, getStorageUsage, getStorageQuota, useStore as store } from '@/lib/store'
+import { useStore, getStorageUsage, getStorageQuota } from '@/lib/store'
 import toast from 'react-hot-toast'
 import { useLanguage } from '@/lib/language-context'
 import { AdPlatform } from '@/lib/ad-platforms'
@@ -286,7 +286,9 @@ export default function SettingsPage() {
                   const userId = userInfo.id
                   
                   // Save the account
-                  const currentSocialAccounts = settings.socialAccounts || []
+                  // Get the LATEST settings from the store (not from closure - settings might be stale)
+                  const currentStoreState = useStore.getState()
+                  const currentSocialAccounts = currentStoreState.settings.socialAccounts || []
                   const newAccount = {
                     platform: 'facebook' as const,
                     accessToken,
