@@ -1708,10 +1708,11 @@ export default function SettingsPage() {
                                         setStorageInfo(info)
                                       }
                                     }}
-                                    className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50"
+                                    className="flex items-center space-x-1 px-2 py-1 rounded-lg hover:bg-red-500/20 transition-colors text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50 text-xs font-medium"
                                     title="Clear all learning data"
                                   >
-                                    <X className="w-3.5 h-3.5" />
+                                    <X className="w-3 h-3" />
+                                    <span>Clear All Data</span>
                                   </button>
                                   <button
                                     onClick={async () => {
