@@ -1072,26 +1072,6 @@ export default function SettingsPage() {
                 <Brain className="w-5 h-5 text-purple-400" />
                 <h3 className="text-lg font-semibold text-white">AI Learning History</h3>
               </div>
-              <button
-                onClick={() => {
-                  if (confirm('Are you sure you want to clear ALL learning data? This will reset the AI\'s learned preferences and cannot be undone.')) {
-                    const { updateSettings } = useStore.getState()
-                    updateSettings({
-                      contentPreferences: {
-                        acceptedContent: [],
-                        edits: [],
-                        scannedPosts: [],
-                        learnedStyle: {},
-                      },
-                    })
-                    toast.success('All learning data cleared. AI will start learning from scratch.')
-                  }
-                }}
-                className="text-xs text-red-400 hover:text-red-300 font-medium transition-colors px-2 py-1 border border-red-500/30 rounded hover:bg-red-500/10"
-                title="Clear all learning data"
-              >
-              Clear All
-              </button>
             </div>
             
           {/* Tabs */}
@@ -1810,7 +1790,7 @@ export default function SettingsPage() {
                               </div>
 
                               {/* Export/Import Buttons */}
-                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/30">
+                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/30 mb-2">
                                 <button
                                   onClick={() => {
                                     try {
@@ -1882,6 +1862,32 @@ export default function SettingsPage() {
                                   />
                                 </label>
                               </div>
+
+                              {/* Clear All Button */}
+                              <button
+                                onClick={() => {
+                                  if (confirm('Are you sure you want to clear ALL learning data? This will reset the AI\'s learned preferences and cannot be undone.')) {
+                                    const { updateSettings } = useStore.getState()
+                                    updateSettings({
+                                      contentPreferences: {
+                                        acceptedContent: [],
+                                        edits: [],
+                                        scannedPosts: [],
+                                        learnedStyle: {},
+                                      },
+                                    })
+                                    toast.success('All learning data cleared. AI will start learning from scratch.')
+                                    // Refresh storage info after clearing
+                                    const info = getStorageUsage()
+                                    setStorageInfo(info)
+                                  }
+                                }}
+                                className="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 transition-all text-red-400 hover:text-red-300 text-xs font-medium"
+                                title="Clear all learning data"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                <span>Clear All Learning Data</span>
+                              </button>
                             </div>
                           </div>
 
