@@ -277,7 +277,8 @@ export default function ContentPage() {
         console.log('[Content Page] Scan completed:', {
           contentFound: result.content.length,
           imagesFound: result.images.length,
-          styleAnalyses: result.styleAnalyses.length
+          styleAnalyses: result.styleAnalyses.length,
+          images: result.images.map(img => ({ platform: img.platform, url: img.url.substring(0, 50) + '...', sourceId: img.sourceId }))
         })
         
         // Update style analyses
@@ -407,9 +408,21 @@ export default function ContentPage() {
         }
 
         // Update brand images - sort by date and keep most recent
+        console.log('[Content Page] Processing images:', {
+          imagesFromScan: result.images.length,
+          existingImages: (settings.brandImages || []).length,
+          willUpdate: result.images.length > 0
+        })
+        
         if (result.images.length > 0) {
           const { updateSettings } = useStore.getState()
           const existingImages = settings.brandImages || []
+          
+          console.log('[Content Page] Existing brand images:', existingImages.map(img => ({
+            platform: img.platform,
+            url: img.url?.substring(0, 50) + '...',
+            sourceUrl: img.sourceUrl
+          })))
           
           // Normalize URLs by removing query parameters for better deduplication
           const normalizeUrl = (url: string) => {
@@ -465,7 +478,17 @@ export default function ContentPage() {
           // Fits within 5MB localStorage per customer
           const finalImages = Object.values(platformGroups).flat().slice(-20)
           
+          console.log('[Content Page] Saving brand images:', {
+            totalImages: finalImages.length,
+            byPlatform: Object.entries(platformGroups).map(([platform, imgs]) => ({ platform, count: imgs.length })),
+            images: finalImages.map(img => ({ platform: img.platform, url: img.url?.substring(0, 50) + '...', id: img.id }))
+          })
+          
           updateSettings({ brandImages: finalImages })
+          
+          console.log('[Content Page] Brand images saved successfully!')
+        } else {
+          console.log('[Content Page] No images to save from scan')
         }
 
         setLastScanned(new Date().toISOString())

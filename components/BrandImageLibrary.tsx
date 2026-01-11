@@ -49,6 +49,12 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
     
     const savedImages = settings.brandImages || []
     
+    console.log('[BrandImageLibrary] Loading images:', {
+      totalImages: savedImages.length,
+      currentPlatform: platform,
+      allImages: savedImages.map(img => ({ platform: img.platform, sourceUrl: img.sourceUrl, url: img.url?.substring(0, 50) + '...' }))
+    })
+    
     // Separate auto-scanned images (from connected accounts) from manually uploaded
     const autoScannedImages = savedImages
       .filter(img => img.platform === platform && img.sourceUrl !== 'uploaded' && !img.sourceUrl.startsWith('uploaded'))
@@ -66,6 +72,13 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
         const dateB = new Date(b.extractedAt || 0).getTime()
         return dateB - dateA // Newest first
       })
+    
+    console.log('[BrandImageLibrary] Filtered images:', {
+      platform,
+      autoScannedCount: autoScannedImages.length,
+      uploadedCount: uploadedImages.length,
+      autoScanned: autoScannedImages.map(img => ({ id: img.id, platform: img.platform, url: img.url?.substring(0, 50) + '...' }))
+    })
     
     // Combine: auto-scanned first, then uploaded
     setImages([...autoScannedImages, ...uploadedImages])
