@@ -1743,8 +1743,8 @@ export async function trackContentEdit(
     edits: [],
   }
 
-  // Store the edit (optimized for free-tier: keep last 30 edits, ~3KB each = ~90KB total)
-  const updatedEdits = [...(preferences.edits || []), edit].slice(-30) // Keep last 30 edits
+  // Store the edit (optimized for free-tier: keep last 35 edits, ~3KB each = ~105KB total)
+  const updatedEdits = [...(preferences.edits || []), edit].slice(-35) // Keep last 35 edits
 
   // SUPERSMART: Aggregate learned preferences from ALL edits, not just the latest
   // Use weighted voting where recent edits have more weight, but all edits contribute
