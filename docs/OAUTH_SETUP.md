@@ -184,17 +184,77 @@ You can also connect Twitter using a manual token:
 
 ### LinkedIn
 
+#### Step 1: Create a LinkedIn Developer Account
+
 1. Go to [LinkedIn Developers](https://www.linkedin.com/developers/)
-2. Create a new app
-3. In "Auth" tab, add redirect URLs:
-   - `http://localhost:3000/api/oauth/linkedin/callback` (development)
-   - `https://yourdomain.com/api/oauth/linkedin/callback` (production)
-4. Request required scopes:
-   - `openid`
-   - `profile`
-   - `email`
-   - `w_member_social`
-5. Copy Client ID and Client Secret to `.env.local`
+2. Sign in with your LinkedIn account
+3. If you don't have a developer account yet:
+   - Click "Join now" or "Apply"
+   - Fill out the application form
+   - Accept LinkedIn's Developer Terms
+   - Wait for approval (usually instant or within a few hours)
+
+#### Step 2: Create an App
+
+1. Once you're on the [LinkedIn Developers Dashboard](https://www.linkedin.com/developers/apps)
+2. Click "Create app"
+3. Fill in the app details:
+   - **App name**: Your application name (e.g., "Marketing Bot Pro")
+   - **LinkedIn Page**: Select or create a LinkedIn Page for your app
+   - **Privacy policy URL**: Your app's privacy policy URL (required)
+   - **App logo**: Upload a logo (optional but recommended)
+   - **App usage**: Describe what your app does
+4. Accept LinkedIn's Developer Agreement
+5. Click "Create app"
+
+#### Step 3: Configure OAuth 2.0
+
+1. After creating the app, you'll be on the app's dashboard
+2. Go to the "Auth" tab
+3. Under "Redirect URLs", add:
+   - `http://localhost:3000/api/oauth/linkedin/callback` (for development)
+   - `https://yourdomain.com/api/oauth/linkedin/callback` (for production, e.g., `https://marketing-bot-pro.vercel.app/api/oauth/linkedin/callback`)
+4. **Important:** Click "Update" after adding each URL
+5. Under "OAuth 2.0 settings", note your:
+   - **Client ID**: This is your `LINKEDIN_CLIENT_ID`
+   - **Client Secret**: This is your `LINKEDIN_CLIENT_SECRET` (click "Show" to reveal)
+
+#### Step 4: Request Required Permissions (Products)
+
+1. Go to the "Products" tab
+2. Request the following products (if not already available):
+   - **Sign In with LinkedIn using OpenID Connect** (for `openid`, `profile`, `email` scopes)
+   - **Share on LinkedIn** (for `w_member_social` scope - allows posting content)
+3. Fill out any required forms for each product
+4. Wait for approval (may take a few hours to a day for some products)
+
+**Note:** `w_member_social` requires "Share on LinkedIn" product approval. This allows your app to post content to LinkedIn on behalf of users.
+
+#### Step 5: Required OAuth 2.0 Scopes
+
+Your app should request these scopes:
+- `openid` - OpenID Connect authentication
+- `profile` - Read basic profile information
+- `email` - Read email address
+- `w_member_social` - Post, comment, and share on LinkedIn (requires "Share on LinkedIn" product approval)
+
+#### Step 6: Add Environment Variables
+
+Add the following to your `.env.local` file:
+```env
+LINKEDIN_CLIENT_ID=your_linkedin_client_id_here
+LINKEDIN_CLIENT_SECRET=your_linkedin_client_secret_here
+```
+
+#### Step 7: For Production/Vercel Deployment
+
+1. Update the redirect URL in your LinkedIn app settings to your production URL:
+   - `https://yourdomain.com/api/oauth/linkedin/callback`
+2. Add the environment variables to your Vercel project:
+   - Go to your Vercel project settings
+   - Navigate to "Environment Variables"
+   - Add `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET`
+   - Redeploy your application
 
 ## Testing
 
