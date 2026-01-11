@@ -1689,24 +1689,49 @@ export default function SettingsPage() {
                                   </div>
                                   <h4 className="text-sm font-semibold text-white">Storage Usage</h4>
                                 </div>
-                                <button
-                                  onClick={async () => {
-                                    const info = getStorageUsage()
-                                    setStorageInfo(info)
-                                    try {
-                                      const quota = await getStorageQuota()
-                                      if (quota) {
-                                        setStorageQuota(quota)
+                                <div className="flex items-center space-x-1.5">
+                                  <button
+                                    onClick={() => {
+                                      if (confirm('Are you sure you want to clear ALL learning data? This will reset the AI\'s learned preferences and cannot be undone.')) {
+                                        const { updateSettings } = useStore.getState()
+                                        updateSettings({
+                                          contentPreferences: {
+                                            acceptedContent: [],
+                                            edits: [],
+                                            scannedPosts: [],
+                                            learnedStyle: {},
+                                          },
+                                        })
+                                        toast.success('All learning data cleared. AI will start learning from scratch.')
+                                        // Refresh storage info after clearing
+                                        const info = getStorageUsage()
+                                        setStorageInfo(info)
                                       }
-                                    } catch (err) {
-                                      console.error('Error refreshing quota:', err)
-                                    }
-                                  }}
-                                  className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors text-cyan-400 hover:text-cyan-300 border border-slate-700/50"
-                                  title="Refresh"
-                                >
-                                  <RefreshCw className="w-3.5 h-3.5" />
-                                </button>
+                                    }}
+                                    className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors text-red-400 hover:text-red-300 border border-red-500/30 hover:border-red-500/50"
+                                    title="Clear all learning data"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      const info = getStorageUsage()
+                                      setStorageInfo(info)
+                                      try {
+                                        const quota = await getStorageQuota()
+                                        if (quota) {
+                                          setStorageQuota(quota)
+                                        }
+                                      } catch (err) {
+                                        console.error('Error refreshing quota:', err)
+                                      }
+                                    }}
+                                    className="p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors text-cyan-400 hover:text-cyan-300 border border-slate-700/50"
+                                    title="Refresh"
+                                  >
+                                    <RefreshCw className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
                               </div>
 
                               {/* Stats Row */}
@@ -1790,7 +1815,7 @@ export default function SettingsPage() {
                               </div>
 
                               {/* Export/Import Buttons */}
-                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/30 mb-2">
+                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/30">
                                 <button
                                   onClick={() => {
                                     try {
@@ -1862,32 +1887,6 @@ export default function SettingsPage() {
                                   />
                                 </label>
                               </div>
-
-                              {/* Clear All Button */}
-                              <button
-                                onClick={() => {
-                                  if (confirm('Are you sure you want to clear ALL learning data? This will reset the AI\'s learned preferences and cannot be undone.')) {
-                                    const { updateSettings } = useStore.getState()
-                                    updateSettings({
-                                      contentPreferences: {
-                                        acceptedContent: [],
-                                        edits: [],
-                                        scannedPosts: [],
-                                        learnedStyle: {},
-                                      },
-                                    })
-                                    toast.success('All learning data cleared. AI will start learning from scratch.')
-                                    // Refresh storage info after clearing
-                                    const info = getStorageUsage()
-                                    setStorageInfo(info)
-                                  }
-                                }}
-                                className="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 hover:border-red-500/50 transition-all text-red-400 hover:text-red-300 text-xs font-medium"
-                                title="Clear all learning data"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                                <span>Clear All Learning Data</span>
-                              </button>
                             </div>
                           </div>
 
