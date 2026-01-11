@@ -38,6 +38,21 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imageLoadStates, setImageLoadStates] = useState<Record<string, 'loading' | 'loaded' | 'error'>>({})
 
+  // Helper function to get image URL (use proxy for Instagram/Facebook to avoid CORS)
+  const getImageUrl = (url: string, imgPlatform: string) => {
+    // For Instagram and Facebook, use proxy to avoid CORS issues
+    if (imgPlatform === 'instagram' || imgPlatform === 'facebook') {
+      // Check if URL is already a data URL or relative URL
+      if (url.startsWith('data:') || url.startsWith('/')) {
+        return url
+      }
+      // Use proxy for external Instagram/Facebook images
+      return `/api/proxy-image?url=${encodeURIComponent(url)}`
+    }
+    // For other platforms, use direct URL
+    return url
+  }
+
   // Mark as mounted on client side
   useEffect(() => {
     setIsMounted(true)
@@ -96,7 +111,45 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
     
     // Combine: auto-scanned first, then uploaded
     setImages([...autoScannedImages, ...uploadedImages])
+    
+    // Initialize load states for all images
+    const initialLoadStates: Record<string, 'loading' | 'loaded' | 'error'> = {}
+    ;[...autoScannedImages, ...uploadedImages].forEach(img => {
+      initialLoadStates[img.id] = 'loading'
+    })
+    setImageLoadStates(initialLoadStates)
   }, [settings.brandImages, platform, isMounted])
+  
+  // Preload images to check if they load successfully
+  useEffect(() => {
+    images.forEach(image => {
+      const currentState = imageLoadStates[image.id]
+      if (!currentState || currentState === 'loading') {
+        const img = new Image()
+        img.onload = () => {
+          setImageLoadStates(prev => {
+            // Only update if still in loading state
+            if (prev[image.id] === 'loading' || !prev[image.id]) {
+              return { ...prev, [image.id]: 'loaded' }
+            }
+            return prev
+          })
+        }
+        img.onerror = () => {
+          console.error('[BrandImageLibrary] Image preload failed:', image.url)
+          setImageLoadStates(prev => {
+            // Only update if still in loading state
+            if (prev[image.id] === 'loading' || !prev[image.id]) {
+              return { ...prev, [image.id]: 'error' }
+            }
+            return prev
+          })
+        }
+        img.src = getImageUrl(image.url, image.platform)
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [images])
 
   const extractFromLink = async () => {
     if (!linkUrl.trim()) return
@@ -414,10 +467,9 @@ export function BrandImageLibrary({ onImageSelect, onMediaSelect, selectedImageU
                   )}
                   {loadState === 'loaded' && (
                 <img
-                  src={image.url}
+                  src={getImageUrl(image.url, image.platform)}
                   alt="Brand image"
                   className="w-full h-32 object-cover"
-                      crossOrigin="anonymous"
                       onLoad={() => {
                         setImageLoadStates(prev => ({ ...prev, [image.id]: 'loaded' }))
                       }}
