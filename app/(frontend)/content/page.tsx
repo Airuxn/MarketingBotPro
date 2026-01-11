@@ -1291,65 +1291,36 @@ export default function ContentPage() {
               if (connectedSocialAccounts.length === 0 && !isScanning) return null
               
               return (
-                <div className="lg:hidden glass rounded-xl p-2 border border-green-500/30 bg-gradient-to-br from-green-500/10 to-blue-500/10 relative overflow-hidden flex-shrink-0">
+                <div className="lg:hidden glass rounded-lg p-1.5 border border-green-500/30 bg-gradient-to-br from-green-500/10 to-blue-500/10 relative overflow-hidden flex-shrink-0">
                   {/* Decorative gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
                   
                   <div className="relative w-full">
-                    {/* Header */}
-                    <div className="flex items-center mb-1">
-                      <div className="flex items-center space-x-1">
-                        <CheckCircle className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
-                        <h3 className="text-[10px] font-bold text-white">Connected Social</h3>
-                </div>
-              </div>
-              
                     {isScanning ? (
-                      <div className="flex items-center space-x-1.5">
-                        <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin flex-shrink-0" />
-                        <p className="text-xs text-blue-300">Scanning...</p>
-                </div>
+                      <div className="flex items-center space-x-1">
+                        <Loader2 className="w-3 h-3 text-blue-400 animate-spin flex-shrink-0" />
+                        <p className="text-[10px] text-blue-300">Scanning...</p>
+                      </div>
                     ) : connectedSocialAccounts.length > 0 ? (
-                      <div className="space-y-1.5">
-                        {/* Platform badges - compact */}
-                        <div className="flex flex-wrap gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        {/* Platform badges - very compact, icons only */}
+                        <div className="flex items-center gap-1">
                           {connectedSocialAccounts.map((acc) => {
                             const Icon = platformIcons[acc.platform]
-                            const platformNames: Record<string, string> = {
-                              facebook: 'Facebook',
-                              instagram: 'Instagram',
-                              twitter: 'Twitter/X',
-                              linkedin: 'LinkedIn',
-                            }
                             return (
-                              <div
-                                key={acc.platform}
-                                className="flex items-center space-x-1 px-1.5 py-0.5 bg-slate-800/50 rounded border border-slate-700/50"
-                              >
-                                {Icon && <Icon className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
-                                <span className="text-[10px] font-medium text-white">
-                                  {platformNames[acc.platform] || acc.platform}
-                                </span>
-                </div>
+                              Icon && (
+                                <div
+                                  key={acc.platform}
+                                  className="flex items-center justify-center"
+                                  title={acc.platform}
+                                >
+                                  <Icon className="w-3.5 h-3.5 text-purple-400" />
+                                </div>
+                              )
                             )
                           })}
                         </div>
-
-                        {/* Stats - compact */}
-                        {hasScannedPosts && (
-                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-700/50 mt-1.5">
-                            <div className="flex items-center space-x-1">
-                              <Sparkles className="w-3 h-3 text-purple-400 flex-shrink-0" />
-                              <p className="text-[10px] font-medium text-slate-300">
-                                {scannedPosts.length} {scannedPosts.length === 1 ? 'post' : 'posts'}
-                        </p>
-                      </div>
-                            <div className="inline-flex items-center px-1.5 py-0.5 bg-green-500/30 rounded border border-green-500/50">
-                              <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></div>
-                              <span className="text-[9px] font-semibold text-green-300">Active</span>
-                    </div>
-                          </div>
-                        )}
                       </div>
                     ) : null}
                   </div>
@@ -1586,18 +1557,18 @@ export default function ContentPage() {
             <button
               onClick={() => handleGenerate()}
               disabled={isGenerating || isRegenerating || !prompt.trim()}
-              className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 animate-gradient text-white py-2.5 lg:py-3 px-3 lg:px-4 rounded-xl font-bold text-xs lg:text-sm hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5 lg:space-x-2 shadow-lg hover:shadow-xl relative overflow-hidden group flex-shrink-0"
+              className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-size-200 animate-gradient text-white py-2.5 lg:py-3 px-3 lg:px-4 rounded-xl font-bold text-sm lg:text-sm hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5 lg:space-x-2 shadow-lg hover:shadow-xl relative overflow-hidden group flex-shrink-0"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
               {isGenerating || isRegenerating ? (
                 <>
                   <Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin relative z-10" />
-                  <span className="relative z-10 text-[10px] lg:text-sm">{isRegenerating ? 'Regenerating...' : 'Creating Magic...'}</span>
+                  <span className="relative z-10 text-sm lg:text-sm">{isRegenerating ? 'Regenerating...' : 'Creating Magic...'}</span>
                 </>
               ) : (
                 <>
                   <Zap className="w-4 h-4 lg:w-5 lg:h-5 relative z-10" />
-                  <span className="relative z-10 text-[10px] lg:text-sm">{t('generateContent')}</span>
+                  <span className="relative z-10 text-sm lg:text-sm">{t('generateContent')}</span>
                   <Star className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-yellow-300 relative z-10" />
                 </>
               )}
@@ -1803,34 +1774,36 @@ export default function ContentPage() {
 
         {/* Brand Image Library Modal */}
         {showLibraryModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowLibraryModal(false)}>
-            <div className="glass rounded-xl border-2 border-purple-500/30 p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white flex items-center space-x-2">
-                  <Sparkles className="w-5 h-5 text-purple-400" />
+          <div className="fixed inset-0 z-50 flex items-end lg:items-center justify-center p-0 lg:p-4 bg-black/80 backdrop-blur-sm" onClick={() => setShowLibraryModal(false)}>
+            <div className="glass rounded-t-2xl lg:rounded-xl border-t-2 lg:border-2 border-purple-500/30 p-3 lg:p-6 max-w-4xl w-full h-[95vh] lg:max-h-[90vh] overflow-y-auto flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-3 lg:mb-4 flex-shrink-0">
+                <h2 className="text-base lg:text-xl font-bold text-white flex items-center space-x-1.5 lg:space-x-2">
+                  <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-purple-400" />
                   <span>Brand Image Library</span>
                 </h2>
                 <button
                   onClick={() => setShowLibraryModal(false)}
-                  className="p-2 hover:bg-slate-700/50 rounded-lg transition-colors"
+                  className="p-1.5 lg:p-2 hover:bg-slate-700/50 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-slate-400" />
+                  <X className="w-4 h-4 lg:w-5 lg:h-5 text-slate-400" />
                 </button>
               </div>
-              <BrandImageLibrary
-                onImageSelect={(url) => {
-                  setSelectedBrandImage(url)
-                  setSelectedMedia(null)
-                  setShowLibraryModal(false)
-                }}
-                onMediaSelect={(media) => {
-                  setSelectedMedia(media)
-                  setSelectedBrandImage(null)
-                  setShowLibraryModal(false)
-                }}
-                selectedImageUrl={selectedBrandImage || undefined}
-                platform={contentType === 'ad' ? adPlatform : platform}
-              />
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                <BrandImageLibrary
+                  onImageSelect={(url) => {
+                    setSelectedBrandImage(url)
+                    setSelectedMedia(null)
+                    setShowLibraryModal(false)
+                  }}
+                  onMediaSelect={(media) => {
+                    setSelectedMedia(media)
+                    setSelectedBrandImage(null)
+                    setShowLibraryModal(false)
+                  }}
+                  selectedImageUrl={selectedBrandImage || undefined}
+                  platform={contentType === 'ad' ? adPlatform : platform}
+                />
+              </div>
             </div>
           </div>
         )}

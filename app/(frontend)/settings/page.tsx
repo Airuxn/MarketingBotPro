@@ -829,7 +829,7 @@ export default function SettingsPage() {
                     <CheckCircle className="w-3 h-3 text-cyan-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-white mb-0.5">3. Connect Socials</div>
+                    <div className="text-xs font-semibold text-white mb-0.5">1. Connect Socials</div>
                     <p className="text-xs text-slate-400 leading-tight">Connect your social media accounts (right column) to create and manage content automatically.</p>
                   </div>
                 </div>
@@ -839,7 +839,7 @@ export default function SettingsPage() {
                     <Key className="w-3 h-3 text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-white mb-0.5">1. Add API Key</div>
+                    <div className="text-xs font-semibold text-white mb-0.5">2. Add API Key</div>
                     <p className="text-xs text-slate-400 leading-tight">Add your Google Gemini API key in the middle column. Required for all AI-powered features.</p>
                   </div>
                 </div>
@@ -849,7 +849,7 @@ export default function SettingsPage() {
                     <Building className="w-3 h-3 text-purple-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-semibold text-white mb-0.5">2. Business Info</div>
+                    <div className="text-xs font-semibold text-white mb-0.5">3. Business Info</div>
                     <p className="text-xs text-slate-400 leading-tight">Fill in your business name, type, and target audience. Helps AI create personalized content.</p>
                   </div>
                 </div>
