@@ -1,15 +1,17 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { getOAuthUrls } from '@/lib/vercel-url'
 
 // This route uses cookies, so it must be dynamic
 export const dynamic = 'force-dynamic'
 
 const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID
 const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET
-const REDIRECT_URI = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 'http://localhost:3000/api/oauth/facebook/callback'
-const LINKEDIN_REDIRECT_URI = REDIRECT_URI.replace('/facebook/callback', '/linkedin/callback')
 
 export async function GET(request: Request) {
+  // Get URLs using helper function - NEVER uses localhost on Vercel
+  const { baseUrl, redirectUri: finalRedirectUri } = getOAuthUrls(request, '/api/oauth/linkedin/callback')
+
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
@@ -17,13 +19,13 @@ export async function GET(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_error=${encodeURIComponent(error)}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent(error)}`
     )
   }
 
   if (!code) {
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_error=no_code`
+      `${baseUrl}/settings?oauth_error=no_code`
     )
   }
 
@@ -46,7 +48,7 @@ export async function GET(request: Request) {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: LINKEDIN_REDIRECT_URI,
+        redirect_uri: finalRedirectUri,
         client_id: LINKEDIN_CLIENT_ID!,
         client_secret: LINKEDIN_CLIENT_SECRET!,
       }),
@@ -102,12 +104,12 @@ export async function GET(request: Request) {
     })
 
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_success=linkedin`
+      `${baseUrl}/settings?oauth_success=linkedin`
     )
   } catch (error: any) {
     console.error('LinkedIn OAuth error:', error)
     return NextResponse.redirect(
-      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/settings?oauth_error=${encodeURIComponent(error.message || 'oauth_failed')}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent(error.message || 'oauth_failed')}`
     )
   }
 }

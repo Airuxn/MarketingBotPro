@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { getOAuthUrls } from '@/lib/vercel-url'
 
 const LINKEDIN_CLIENT_ID = process.env.LINKEDIN_CLIENT_ID
 const LINKEDIN_CLIENT_SECRET = process.env.LINKEDIN_CLIENT_SECRET
-const REDIRECT_URI = process.env.NEXT_PUBLIC_OAUTH_REDIRECT_URI || 'http://localhost:3000/api/oauth/linkedin/callback'
 
 export async function GET(request: Request) {
+  // Get URLs using helper function - NEVER uses localhost on Vercel
+  const { baseUrl, redirectUri: finalRedirectUri } = getOAuthUrls(request, '/api/oauth/linkedin/callback')
+
   if (!LINKEDIN_CLIENT_ID) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     return NextResponse.redirect(
       `${baseUrl}/settings?oauth_error=${encodeURIComponent('LinkedIn OAuth not configured. Please set LINKEDIN_CLIENT_ID in environment variables. See docs/OAUTH_SETUP.md for setup instructions.')}`
     )
@@ -26,12 +28,10 @@ export async function GET(request: Request) {
 
   const scopes = ['openid', 'profile', 'email', 'w_member_social'].join(' ')
   
-  const linkedinRedirectUri = `${REDIRECT_URI.replace('/facebook/callback', '/linkedin/callback')}`
-  
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
     `response_type=code` +
     `&client_id=${LINKEDIN_CLIENT_ID}` +
-    `&redirect_uri=${encodeURIComponent(linkedinRedirectUri)}` +
+    `&redirect_uri=${encodeURIComponent(finalRedirectUri)}` +
     `&state=${state}` +
     `&scope=${encodeURIComponent(scopes)}`
 
