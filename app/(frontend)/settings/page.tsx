@@ -269,66 +269,69 @@ export default function SettingsPage() {
         
         const FB = (window as any).FB
         
-        FB.login(async (response: any) => {
+        FB.login((response: any) => {
           if (response.authResponse) {
             const accessToken = response.authResponse.accessToken
             
             // Get user info
-            FB.api('/me', { fields: 'id,name' }, async (userInfo: any) => {
-              try {
-                const userId = userInfo.id
-                
-                // Save the account
-                const currentSocialAccounts = settings.socialAccounts || []
-                const newAccount = {
-                  platform: 'facebook' as const,
-                  accessToken,
-                  userId,
-                  connected: true,
-                  connectedAt: new Date().toISOString(),
-                }
-                
-                // For Meta platforms (Facebook/Instagram), connect both with the same token
-                let updated: typeof currentSocialAccounts = []
-                updated = currentSocialAccounts.filter((acc) => acc.platform !== 'facebook' && acc.platform !== 'instagram')
-                updated.push(newAccount)
-                
-                // Try to connect Instagram with the same token
+            FB.api('/me', { fields: 'id,name' }, (userInfo: any) => {
+              // Use async IIFE to handle async operations inside callback
+              (async () => {
                 try {
-                  const pagesResponse = await fetch(
-                    `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,instagram_business_account{id,username}`
-                  )
+                  const userId = userInfo.id
                   
-                  if (pagesResponse.ok) {
-                    const pagesData = await pagesResponse.json()
-                    const pages = pagesData.data || []
+                  // Save the account
+                  const currentSocialAccounts = settings.socialAccounts || []
+                  const newAccount = {
+                    platform: 'facebook' as const,
+                    accessToken,
+                    userId,
+                    connected: true,
+                    connectedAt: new Date().toISOString(),
+                  }
+                  
+                  // For Meta platforms (Facebook/Instagram), connect both with the same token
+                  let updated: typeof currentSocialAccounts = []
+                  updated = currentSocialAccounts.filter((acc) => acc.platform !== 'facebook' && acc.platform !== 'instagram')
+                  updated.push(newAccount)
+                  
+                  // Try to connect Instagram with the same token
+                  try {
+                    const pagesResponse = await fetch(
+                      `https://graph.facebook.com/v18.0/me/accounts?access_token=${accessToken}&fields=id,name,instagram_business_account{id,username}`
+                    )
                     
-                    for (const page of pages) {
-                      if (page.instagram_business_account?.id) {
-                        updated.push({
-                          platform: 'instagram',
-                          accessToken, // Same token as Facebook
-                          userId: page.instagram_business_account.id,
-                          connected: true,
-                          connectedAt: new Date().toISOString(),
-                        })
-                        break
+                    if (pagesResponse.ok) {
+                      const pagesData = await pagesResponse.json()
+                      const pages = pagesData.data || []
+                      
+                      for (const page of pages) {
+                        if (page.instagram_business_account?.id) {
+                          updated.push({
+                            platform: 'instagram',
+                            accessToken, // Same token as Facebook
+                            userId: page.instagram_business_account.id,
+                            connected: true,
+                            connectedAt: new Date().toISOString(),
+                          })
+                          break
+                        }
                       }
                     }
+                  } catch (error) {
+                    console.error('Failed to connect Instagram:', error)
+                    // Continue even if Instagram connection fails
                   }
-                } catch (error) {
-                  console.error('Failed to connect Instagram:', error)
-                  // Continue even if Instagram connection fails
+                  
+                  updateSettings({ socialAccounts: updated })
+                  toast.success('Facebook connected successfully!')
+                  setIsConnecting(null)
+                } catch (error: any) {
+                  console.error('Facebook connection error:', error)
+                  toast.error(`Failed to connect: ${error.message}`)
+                  setIsConnecting(null)
                 }
-                
-                updateSettings({ socialAccounts: updated })
-                toast.success('Facebook connected successfully!')
-                setIsConnecting(null)
-              } catch (error: any) {
-                console.error('Facebook connection error:', error)
-                toast.error(`Failed to connect: ${error.message}`)
-                setIsConnecting(null)
-              }
+              })()
             })
           } else {
             // User cancelled login
