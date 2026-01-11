@@ -1536,15 +1536,16 @@ export default function SettingsPage() {
                                     </span>
                                   </div>
                                 )}
-                                <div className="pt-2 mt-2 border-t border-slate-700/30 text-xs text-slate-400 leading-relaxed">
-                                  <strong className="text-slate-300 font-medium">Note:</strong> Data is stored locally in your browser (localStorage). 
-                                  {storageQuota?.totalQuotaMB && storageQuota.totalQuotaMB > 1000 && (
-                                    <> Your browser has {storageQuota.totalQuotaMB.toFixed(0)} MB total storage available, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB.toFixed(1)} MB limit per origin.</>
-                                  )}
-                                  {!storageQuota?.totalQuotaMB || storageQuota.totalQuotaMB <= 1000 ? (
-                                    <> Data is not synced across devices.</>
-                                  ) : null}
-                                </div>
+                              </div>
+                              <div className="pt-2 mt-2 border-t border-slate-700/30 text-xs text-slate-400 leading-relaxed">
+                                <strong className="text-slate-300 font-medium">Note:</strong> Data is stored locally in your browser (localStorage). 
+                                {storageQuota?.totalQuotaMB && storageQuota.totalQuotaMB > 1000 && (
+                                  <> Your browser has {storageQuota.totalQuotaMB.toFixed(0)} MB total storage available, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB.toFixed(1)} MB limit per origin.</>
+                                )}
+                                {!storageQuota?.totalQuotaMB || storageQuota.totalQuotaMB <= 1000 ? (
+                                  <> Data is not synced across devices.</>
+                                ) : null}
+                              </div>
                               </div>
                             </div>
 
