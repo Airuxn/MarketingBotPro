@@ -34,7 +34,7 @@ This document outlines the optimized storage limits for the marketing bot applic
   - 30-day cache per customer (prevents exceeding shared monthly limit)
   - Each customer can scan once per month max
   - 5 tweets per scan per customer
-  - **Storage Impact:** ~20 scanned posts kept per customer (optimized to 20 total, but only ~5 new per month per customer)
+  - **Storage Impact:** ~35 scanned posts kept per customer (optimized to 35 total, but only ~5 new per month per customer)
 
 ### Facebook/Instagram Free Tier
 - **Rate Limit:** ~200 requests per hour per user access token
@@ -87,8 +87,8 @@ This document outlines the optimized storage limits for the marketing bot applic
 
 ### Image Storage
 - **Brand Images:** Stored as URLs (original social media URLs) - saves ~150KB per image
-- **Scanned Posts:** Only newest 8 keep images, older posts remove images
-- **Result:** Max ~1.2MB for images (vs 7-10MB if all stored)
+- **Scanned Posts:** Only newest 14 keep images, older posts remove images
+- **Result:** Max ~2.1MB for images (vs 7-10MB if all stored)
 
 ### Automatic Cleanup
 - Oldest items removed first when limits exceeded

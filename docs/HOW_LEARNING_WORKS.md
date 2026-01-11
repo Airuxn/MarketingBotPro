@@ -113,7 +113,7 @@ The AI learns your content style from multiple sources and uses that knowledge t
     - Content structure patterns
   - Updates `learnedStyle` immediately
   - **Priority**: Scanned posts have **HIGHEST PRIORITY** (they're your actual posted content!)
-  - **Storage**: Last 20 scanned posts kept (optimized for free-tier APIs), newest 8 keep images
+  - **Storage**: Last 35 scanned posts kept (optimized for free-tier APIs), newest 14 keep images
   - **Note**: AI is used if API key is available - provides much deeper insights from your actual content!
 
 ## How Learning is Stored
@@ -123,9 +123,9 @@ All learning data is stored in the Zustand store under `settings.contentPreferen
 
 ```typescript
 {
-  acceptedContent: [...],      // Last 30 accepted items (optimized for free-tier) - LOWER PRIORITY
-  edits: [...],                // Last 20 edits (optimized for free-tier) - MEDIUM PRIORITY
-  scannedPosts: [...],         // Last 20 scanned posts with styleAnalysis (optimized for free-tier) - HIGHEST PRIORITY
+  acceptedContent: [...],      // Last 25 accepted items (optimized for free-tier) - LOWER PRIORITY
+    edits: [...],                // Last 30 edits (optimized for free-tier) - MEDIUM PRIORITY
+    scannedPosts: [...],         // Last 35 scanned posts with styleAnalysis (optimized for free-tier) - HIGHEST PRIORITY
   learnedStyle: {              // Aggregated preferences
     tone: ['enthusiastic', 'personal'],
     length: 'medium',
@@ -859,7 +859,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 - **AI uses learning**: Every time you generate content
 - **Results consistency**: Style is consistent, exact text varies (AI randomness)
 - **No learning during generation**: It only uses what's already learned
-- **Maximum inputs**: 30 accepted + 20 edits + 20 scanned = 70 total items (optimized for free-tier)
+- **Maximum inputs**: 25 accepted + 30 edits + 35 scanned = 90 total items (optimized for free-tier)
 - **Automatic cleanup**: Oldest items removed when limits exceeded
 - **Aggregation method**: Rule-based (uses stored AI results from edits, but combines with rule-based logic)
 - **API calls**: Only 1 per edit (not per accept/scan/aggregation)
