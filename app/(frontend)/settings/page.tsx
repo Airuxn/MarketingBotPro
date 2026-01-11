@@ -1128,8 +1128,8 @@ export default function SettingsPage() {
             </div>
             
           {/* Tabs */}
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-slate-700/50 pb-2">
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-nowrap items-center gap-1.5 mb-4 border-b border-slate-700/50 pb-2 overflow-x-auto">
+            <div className="flex flex-nowrap gap-1.5 flex-1 min-w-0">
               {(['overview', 'accepted', 'edits', 'scanned'] as const).map((tab) => {
                 const counts = {
                   overview: 0,
@@ -1147,7 +1147,7 @@ export default function SettingsPage() {
                   <button
                     key={tab}
                     onClick={() => setActiveHistoryTab(tab)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
                       activeHistoryTab === tab
                         ? 'bg-purple-600 text-white'
                         : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
@@ -1160,7 +1160,7 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={() => setActiveHistoryTab('storage')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+              className={`px-2 py-1.5 text-xs font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ml-auto ${
                 activeHistoryTab === 'storage'
                   ? 'bg-purple-600 text-white'
                   : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
