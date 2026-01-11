@@ -9,6 +9,12 @@ export async function GET(request: Request) {
   // Get URLs using helper function - NEVER uses localhost on Vercel
   const { baseUrl, redirectUri: finalRedirectUri } = getOAuthUrls(request, '/api/oauth/linkedin/callback')
 
+  console.log('[LinkedIn OAuth] ========== START ==========')
+  console.log('[LinkedIn OAuth] Request URL:', request.url)
+  console.log('[LinkedIn OAuth] Final Redirect URI:', finalRedirectUri)
+  console.log('[LinkedIn OAuth] Client ID:', LINKEDIN_CLIENT_ID ? 'set' : 'NOT SET')
+  console.log('[LinkedIn OAuth] ========== END ==========')
+
   if (!LINKEDIN_CLIENT_ID) {
     return NextResponse.redirect(
       `${baseUrl}/settings?oauth_error=${encodeURIComponent('LinkedIn OAuth not configured. Please set LINKEDIN_CLIENT_ID in environment variables. See docs/OAUTH_SETUP.md for setup instructions.')}`
@@ -34,6 +40,8 @@ export async function GET(request: Request) {
     `&redirect_uri=${encodeURIComponent(finalRedirectUri)}` +
     `&state=${state}` +
     `&scope=${encodeURIComponent(scopes)}`
+
+  console.log('[LinkedIn OAuth] Redirecting to LinkedIn with redirect_uri:', finalRedirectUri)
 
   return NextResponse.redirect(authUrl)
 }

@@ -15,17 +15,30 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
+  const error_description = searchParams.get('error_description')
   const state = searchParams.get('state')
 
+  console.log('[LinkedIn OAuth Callback] ========== START ==========')
+  console.log('[LinkedIn OAuth Callback] Request URL:', request.url)
+  console.log('[LinkedIn Callback] Code:', code ? 'present' : 'missing')
+  console.log('[LinkedIn Callback] Error:', error || 'none')
+  console.log('[LinkedIn Callback] Error Description:', error_description || 'none')
+  console.log('[LinkedIn Callback] State:', state || 'none')
+  console.log('[LinkedIn Callback] Final Redirect URI:', finalRedirectUri)
+  console.log('[LinkedIn OAuth Callback] ========== END ==========')
+
   if (error) {
+    const errorMessage = error_description || error
+    console.error('[LinkedIn OAuth Callback] Error from LinkedIn:', errorMessage)
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_error=${encodeURIComponent(error)}`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent(errorMessage)}`
     )
   }
 
   if (!code) {
+    console.error('[LinkedIn OAuth Callback] No authorization code received')
     return NextResponse.redirect(
-      `${baseUrl}/settings?oauth_error=no_code`
+      `${baseUrl}/settings?oauth_error=${encodeURIComponent('No authorization code received from LinkedIn')}`
     )
   }
 
