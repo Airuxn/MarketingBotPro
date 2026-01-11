@@ -338,7 +338,7 @@ export default function SettingsPage() {
             toast.error('Facebook login was cancelled')
             setIsConnecting(null)
           }
-        }, { scope: 'public_profile,user_posts,pages_show_list,pages_read_engagement,pages_read_user_content,pages_manage_posts,pages_manage_metadata' })
+        }, { scope: 'public_profile,pages_show_list,pages_read_engagement,pages_read_user_content,pages_manage_posts,pages_manage_metadata' })
       } catch (error: any) {
         console.error('Facebook SDK error:', error)
         toast.error(`Failed to initialize Facebook login: ${error.message}`)
