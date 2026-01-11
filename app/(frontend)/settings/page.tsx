@@ -1647,13 +1647,14 @@ export default function SettingsPage() {
                                   <span className="text-slate-400">localStorage Limit</span>
                                   <span className="text-white font-medium text-right max-w-[60%]">
                                     {storageQuota 
-                                      ? `${storageQuota.localStorageLimitMB.toFixed(1)} MB ${
-                                          storageQuota.method?.includes('tested') 
-                                            ? '(tested)' 
-                                            : storageQuota.method?.includes('estimated')
-                                              ? '(estimated)'
-                                              : ''
-                                        }` 
+                                      ? (() => {
+                                          const method = storageQuota.method?.toLowerCase() || ''
+                                          // Check if method string indicates tested (successfully tested)
+                                          const isTested = method.includes('tested') && !method.includes('failed') && !method.includes('blocked') && !method.includes('attempted but')
+                                          // Check if method string indicates estimated (no test or test failed)
+                                          const isEstimated = method.includes('estimated') && !isTested
+                                          return `${storageQuota.localStorageLimitMB.toFixed(1)} MB${isTested ? ' (tested)' : isEstimated ? ' (estimated)' : ''}`
+                                        })()
                                       : storageInfo?.localStorageLimitMB 
                                         ? `${storageInfo.localStorageLimitMB} MB (estimated)`
                                         : '5-10 MB'
