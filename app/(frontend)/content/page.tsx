@@ -1304,6 +1304,7 @@ export default function ContentPage() {
                     ) : connectedSocialAccounts.length > 0 ? (
                       <div className="flex items-center gap-1.5">
                         <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        <span className="text-[10px] font-semibold text-white">Connected Socials:</span>
                         {/* Platform badges - very compact, icons only */}
                         <div className="flex items-center gap-1">
                           {connectedSocialAccounts.map((acc) => {
