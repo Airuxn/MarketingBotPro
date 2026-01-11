@@ -748,33 +748,12 @@ export async function getStorageQuota(): Promise<{
     // Fallback to estimated
   }
 
-  // Try to test actual localStorage limit (this should always be attempted)
-  // NOTE: localStorage limit cannot be queried directly from browser APIs
+  // Use browser-detected localStorage limit
+  // localStorage limit cannot be queried directly from browser APIs
   // StorageManager API only provides TOTAL storage quota, not localStorage-specific limit
   // localStorage has its own ~5-10MB limit per origin that browsers don't expose
-  // The browser detection estimate (10MB for Brave/Chrome, 5MB for Safari) is usually accurate
-  let testAttempted = false
-  let testedLimit: number | null = null
-  try {
-    testedLimit = await testLocalStorageLimit()
-    testAttempted = true
-    if (testedLimit !== null && testedLimit > 0) {
-      localStorageLimitMB = testedLimit / (1024 * 1024)
-      localStorageLimitMethod = 'tested'
-    } else {
-      // Test failed - use browser-specific estimate (these are well-known and accurate)
-      // Brave/Chrome: 10MB, Safari: 5MB, Firefox: 10MB, Edge: 10MB
-      // These values are standard across browsers and don't need testing
-      localStorageLimitMB = detected.localStorageLimitMB
-      localStorageLimitMethod = 'browser_estimate'
-    }
-  } catch (error) {
-    testAttempted = true
-    console.error('[Storage] Error testing localStorage limit:', error)
-    // Use browser-specific estimate (well-known values, accurate)
-    localStorageLimitMB = detected.localStorageLimitMB
-    localStorageLimitMethod = 'browser_estimate'
-  }
+  // Browser detection provides accurate limits: Brave/Chrome: 10MB, Safari: 5MB, Firefox: 10MB, Edge: 10MB
+  localStorageLimitMB = detected.localStorageLimitMB
 
   // Calculate usage from our app's localStorage (this is what matters for us)
   try {
