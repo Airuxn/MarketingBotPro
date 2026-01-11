@@ -78,6 +78,12 @@ When you select a brand image:
 - **Storage**: Images stored as base64 or URLs in Zustand
 - **Editing**: Canvas API for real image manipulation
 - **Platform Adaptation**: Automatic resizing/cropping per platform specs
+- **Image Loading**: 
+  - Loading states with spinners while images load
+  - Error handling with placeholders when images fail to load
+  - CORS-aware with `crossOrigin="anonymous"` attribute
+  - Graceful fallback for network issues or blocked images
+  - Console logging for debugging image loading issues
 
 ## 🎯 Result
 

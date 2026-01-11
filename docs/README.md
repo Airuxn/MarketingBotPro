@@ -14,6 +14,7 @@ This directory contains essential project documentation.
 - **[Brand Images](BRAND_IMAGES.md)** - Using the brand image library
 - **[Media Features](MEDIA_FEATURES.md)** - Media handling and optimization
 - **[How Learning Works](HOW_LEARNING_WORKS.md)** - AI learning system explained
+- **[Mobile Debugging](MOBILE_DEBUGGING.md)** - Mobile debug console and remote log viewer
 
 ## Technical
 
@@ -21,7 +22,8 @@ This directory contains essential project documentation.
 - **[Node.js Upgrade](UPGRADE_NODE.md)** - Node.js version requirements
 - **[Scaling to Multi-User](SCALING_TO_MULTI_USER.md)** - Multi-user SaaS architecture
 - **[API Limits Summary](API_LIMITS_SUMMARY.md)** - Free-tier API limits for all platforms
-- **[Storage Optimization](STORAGE_OPTIMIZATION.md)** - Storage limits optimized for free-tier APIs
+- **[Storage Optimization](STORAGE_OPTIMIZATION.md)** - Storage limits optimized for free-tier APIs (browser detection)
+- **[Scanning Behavior](SCANNING_BEHAVIOR.md)** - How social media scanning works
 
 ## Main Documentation
 

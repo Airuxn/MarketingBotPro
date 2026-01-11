@@ -62,10 +62,14 @@ This document outlines the optimized storage limits for the marketing bot applic
 ## Why These Limits?
 
 ### 1. localStorage Constraints
-- Browser localStorage: ~5-10MB per origin
-- **Safe limit:** 5MB to work across all browsers
+- Browser localStorage: ~5-10MB per origin (varies by browser)
+- **Browser-specific limits:**
+  - **Brave/Chrome/Edge/Firefox/Opera:** ~10MB per origin
+  - **Safari/Samsung Internet:** ~5MB per origin
+- **Detection method:** Browser detection (not testing) - uses known browser limits
 - Each customer uses their own browser (separate localStorage)
-- **Target:** ~5.0MB per customer (uses full 5MB localStorage limit, optimized for 100 learning inputs: 35 scanned + 35 edits + 30 accepted)
+- **Target:** ~5.0MB per customer (works across all browsers, optimized for 100 learning inputs: 35 scanned + 35 edits + 30 accepted)
+- **Display:** Settings page shows detected browser and its standard localStorage limit
 
 ### 2. Free-Tier API Limits
 - **Twitter:** Very strict (1 req/15min, 100 posts/month TOTAL **SHARED** across all customers)

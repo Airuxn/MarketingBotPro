@@ -79,12 +79,21 @@ A modern, enterprise-grade Progressive Web App (PWA) that automates marketing ta
 - Offline support
 - Fast loading with optimized assets
 - Native app-like experience
+- **Mobile-optimized** - Improved image loading with error handling and placeholders
+- **CORS-aware** - Handles cross-origin image loading issues gracefully
 
 ### 💾 Data Backup & Restore
 - **Export all data** - Download JSON backup files
 - **Import/Restore** - Upload backup files to restore data
 - **Automatic backups** - Last 5 backups stored automatically
 - **Protect your data** - Never lose data when clearing browser cache
+
+### 🐛 Mobile Debugging
+- **Mobile Debug Console** - View console logs directly on your phone
+- **Remote Log Viewer** - View mobile logs on your computer in real-time
+- **Auto-enabled on mobile** - Debug console appears automatically on mobile devices
+- **Filter by log type** - Filter errors, warnings, and info logs
+- **Download logs** - Export logs as text file for analysis
 
 ### 🆓 Free-Tier API Optimization
 - **Optimized for free-tier social media APIs** - Runs entirely on free-tier APIs
