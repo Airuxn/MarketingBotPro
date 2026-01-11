@@ -40,7 +40,7 @@ export default function SettingsPage() {
   })
   const [isConnecting, setIsConnecting] = useState<string | null>(null)
   const [hasHandledCallback, setHasHandledCallback] = useState(false)
-  const [activeHistoryTab, setActiveHistoryTab] = useState<'overview' | 'accepted' | 'edits' | 'rejected' | 'scanned' | 'storage'>('overview')
+  const [activeHistoryTab, setActiveHistoryTab] = useState<'overview' | 'accepted' | 'edits' | 'scanned' | 'storage'>('overview')
   const [showAllItems, setShowAllItems] = useState<Record<string, boolean>>({})
   const [storageInfo, setStorageInfo] = useState<ReturnType<typeof getStorageUsage> | null>(null)
   const [storageQuota, setStorageQuota] = useState<Awaited<ReturnType<typeof getStorageQuota>> | null>(null)
@@ -927,7 +927,6 @@ export default function SettingsPage() {
                     updateSettings({
                       contentPreferences: {
                         acceptedContent: [],
-                        rejectedContent: [],
                         edits: [],
                         scannedPosts: [],
                         learnedStyle: {},
@@ -946,19 +945,17 @@ export default function SettingsPage() {
           {/* Tabs */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4 border-b border-slate-700/50 pb-2">
             <div className="flex flex-wrap gap-2">
-              {(['overview', 'accepted', 'edits', 'rejected', 'scanned'] as const).map((tab) => {
+              {(['overview', 'accepted', 'edits', 'scanned'] as const).map((tab) => {
                 const counts = {
                   overview: 0,
                   accepted: settings.contentPreferences?.acceptedContent?.length || 0,
                   edits: settings.contentPreferences?.edits?.length || 0,
-                  rejected: settings.contentPreferences?.rejectedContent?.length || 0,
                   scanned: settings.contentPreferences?.scannedPosts?.length || 0,
                 }
                 const labels = {
                   overview: 'Overview',
                   accepted: 'Accepted',
                   edits: 'Edits',
-                  rejected: 'Rejected',
                   scanned: 'Scanned',
                 }
                 return (
@@ -1036,10 +1033,6 @@ export default function SettingsPage() {
                     <div className="glass rounded p-2 border border-purple-500/30 text-center">
                       <div className="text-lg font-bold text-purple-400">{settings.contentPreferences?.edits?.length || 0}</div>
                       <div className="text-[10px] text-slate-300 mt-0.5">Edits</div>
-            </div>
-                    <div className="glass rounded p-2 border border-red-500/30 text-center">
-                      <div className="text-lg font-bold text-red-400">{settings.contentPreferences?.rejectedContent?.length || 0}</div>
-                      <div className="text-[10px] text-slate-300 mt-0.5">Rejected</div>
                     </div>
                     <div className="glass rounded p-2 border border-blue-500/30 text-center">
                       <div className="text-lg font-bold text-blue-400">{settings.contentPreferences?.scannedPosts?.length || 0}</div>
@@ -1173,7 +1166,6 @@ export default function SettingsPage() {
                               contentPreferences: {
                               ...(currentSettings.contentPreferences || {}),
                               acceptedContent: currentSettings.contentPreferences?.acceptedContent || [],
-                              rejectedContent: currentSettings.contentPreferences?.rejectedContent || [],
                                 edits: [],
                               },
                             })
@@ -1434,54 +1426,6 @@ export default function SettingsPage() {
                 )
               )}
 
-              {/* Rejected Content Tab */}
-              {activeHistoryTab === 'rejected' && (
-                settings.contentPreferences?.rejectedContent && settings.contentPreferences.rejectedContent.length > 0 ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-xs font-semibold text-white flex items-center space-x-2">
-                        <span className="text-red-400">✗</span>
-                        <span>Rejected Content ({settings.contentPreferences.rejectedContent.length})</span>
-                      </h4>
-                      <button
-                        onClick={() => {
-                          const { updateSettings } = useStore.getState()
-                          updateSettings({
-                            contentPreferences: {
-                              ...settings.contentPreferences,
-                              acceptedContent: settings.contentPreferences?.acceptedContent || [],
-                              rejectedContent: [],
-                            },
-                          })
-                          toast.success('Rejected content history cleared')
-                        }}
-                        className="text-[10px] text-red-400 hover:text-red-300 font-medium transition-colors px-2 py-1 border border-red-500/30 rounded hover:bg-red-500/10"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                    <div className="space-y-2 max-h-[450px] overflow-y-auto">
-                      {(settings.contentPreferences?.rejectedContent || [])
-                        .slice()
-                        .reverse()
-                        .map((rejected, idx) => (
-                          <div key={idx} className="border-l-2 border-red-400/50 pl-3 py-2 glass rounded-r bg-red-500/10">
-                            <div className="text-xs text-slate-400 mb-1">
-                              {new Date(rejected.rejectedAt || Date.now()).toLocaleDateString()} - {rejected.platform} ({rejected.contentType})
-                            </div>
-                            <div className="text-xs text-slate-300 line-clamp-2">{rejected.content}</div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-slate-400">
-                    <XCircle className="w-8 h-8 mx-auto mb-2 text-slate-500" />
-                    <p className="text-xs">No rejected content yet. Reject generated content to see it here.</p>
-                  </div>
-                )
-              )}
-
               {/* Scanned Posts Tab */}
               {activeHistoryTab === 'scanned' && (
                 settings.contentPreferences?.scannedPosts && settings.contentPreferences.scannedPosts.length > 0 ? (
@@ -1498,7 +1442,6 @@ export default function SettingsPage() {
                             contentPreferences: {
                               ...settings.contentPreferences,
                               acceptedContent: settings.contentPreferences?.acceptedContent || [],
-                              rejectedContent: settings.contentPreferences?.rejectedContent || [],
                               scannedPosts: [],
                             },
                           })

@@ -27,8 +27,15 @@ The AI learns your content style from multiple sources and uses that knowledge t
 ### 1. **When You Accept Generated Content**
 - **Trigger**: You click "Accept" on generated content
 - **What happens**: 
-  - The content is saved to `acceptedContent` history (last 50 kept)
-  - **Rule-Based Analysis (No AI)**:
+  - The content is saved to `acceptedContent` history (last 30 kept, optimized for free-tier)
+  - **AI Analysis (Primary Method - if API key available)**:
+    - Uses **Gemini AI** (Google Generative AI) to analyze the content
+    - Reads the **FULL content** to understand context and style patterns
+    - Extracts preferences: tone, length, hashtags, emojis, CTAs, structure
+    - Provides insights about style patterns and preferences
+    - Tries multiple models: `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-pro`
+    - Requires your Gemini API key (from Settings)
+  - **Rule-Based Analysis (Fallback - always runs)**:
     - **What is "rule-based"?** A programming approach using predefined rules, patterns, and logic (not AI/ML)
     - Uses pattern matching and keyword detection (no Gemini API)
     - Analyzes content length (word count)
@@ -37,14 +44,18 @@ The AI learns your content style from multiple sources and uses that knowledge t
     - Detects tone using keyword matching (e.g., "excited" → enthusiastic, "professional" → professional)
     - Detects CTA patterns (regex for "learn more", "get started", etc.)
     - **How it works**: If content contains keyword X, then apply rule Y (e.g., if "excited" found → add "enthusiastic" tone)
+  - **Combined Results**:
+    - AI preferences **override** rule-based preferences when both available
+    - Rule-based analysis always runs as baseline (even if AI succeeds)
+    - AI provides deeper insights, rule-based ensures availability
   - Updates `learnedStyle` immediately
-  - **Note**: No AI is used - fast, always available, no API costs, works offline
+  - **Note**: AI is used if API key is available - provides deeper insights than rule-based alone
 
-### 2. **When You Edit Generated Content**
+### 2. **When You Edit Generated Content (MEDIUM PRIORITY)**
 - **Trigger**: You edit generated content and save it
 - **What happens**:
-  - The edit is saved to `edits` history (last 30 kept)
-  - **AI Analysis (Primary Method)**:
+  - The edit is saved to `edits` history (last 20 kept, optimized for free-tier)
+  - **AI Analysis (Primary Method - if API key available)**:
     - Uses **Gemini AI** (Google Generative AI) to analyze the edit
     - Reads the **FULL original and edited content** to understand context
     - Understands **WHY** you made changes (not just what changed)
@@ -52,9 +63,9 @@ The AI learns your content style from multiple sources and uses that knowledge t
     - Provides insights about what was wrong with original and why edited is better
     - Tries multiple models: `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-pro`
     - Requires your Gemini API key (from Settings)
-  - **Rule-Based Analysis (Fallback)**:
+  - **Rule-Based Analysis (Fallback - always runs)**:
     - **What is "rule-based"?** A programming approach using predefined rules, patterns, and logic (not AI/ML)
-    - If AI analysis fails (quota exceeded, no API key, etc.), uses rule-based analysis
+    - Always runs as baseline (even if AI succeeds)
     - Analyzes text changes: additions, removals, modifications
     - Detects patterns: length changes, hashtag usage, emoji usage
     - Uses: regex patterns, keyword matching, word counting, statistical analysis
@@ -62,30 +73,37 @@ The AI learns your content style from multiple sources and uses that knowledge t
   - **Combined Results**:
     - AI preferences **override** rule-based preferences when both available
     - AI insights are prioritized (understand full context)
-    - Rule-based fills gaps if AI fails
+    - Rule-based fills gaps if AI fails or is unavailable
   - Updates `learnedStyle` immediately
-  - **Priority**: Edits have higher weight than accepted content (you actively changed things!)
+  - **Priority**: Edits have **MEDIUM PRIORITY** (higher than accepted, lower than scanned posts - you actively changed things!)
+  - **Weighted Voting**: All edits contribute to learning, recent edits have more weight
 
-### 3. **When You Reject Generated Content**
-- **Trigger**: You click "Reject" on generated content
+### 3. **When Social Media Accounts Are Scanned (HIGHEST PRIORITY)**
+- **Trigger**: You connect Facebook/Instagram/Twitter/LinkedIn and posts are automatically scanned
 - **What happens**:
-  - The content is saved to `rejectedContent` history (last 20 kept)
-  - **Does NOT learn from rejections** (just records what you don't like)
-  - Helps track patterns but doesn't directly update `learnedStyle`
-
-### 4. **When Social Media Accounts Are Scanned**
-- **Trigger**: You connect Facebook/Instagram/etc. and posts are automatically scanned
-- **What happens**:
-  - Posts are analyzed for style using **rule-based analysis** (no AI)
-  - **What is "rule-based"?** A programming approach using predefined rules, patterns, and logic (not AI/ML)
-  - Uses `analyzeContent()` function with pattern matching:
-    - Detects tone using keyword matching (if content contains "excited" → add "enthusiastic" tone)
-    - Analyzes structure using rules (if content has `\n\n` → "multi-paragraph", if has `•` → "list-based")
-    - Extracts hashtags using regex: `/#\w+/g`
-    - Detects CTAs using regex patterns: `/learn more|get started|sign up/gi`
-    - Calculates length statistics (min, max, average word count) using simple math
-    - Detects emoji usage using unicode regex: `[\u{1F300}-\u{1F9FF}]`
-  - Each post gets a `styleAnalysis` object
+  - Posts are extracted from your social media accounts
+  - **AI Analysis (Primary Method - if API key available)**:
+    - Uses **Gemini AI** (Google Generative AI) to analyze each scanned post
+    - Reads the **FULL content** to understand context and extract style preferences
+    - Extracts preferences: tone, length, hashtags, emojis, CTAs, structure
+    - Provides insights about style patterns from your actual posted content
+    - Tries multiple models: `gemini-2.0-flash` → `gemini-1.5-flash` → `gemini-pro`
+    - Requires your Gemini API key (from Settings)
+    - AI preferences are stored per post for aggregation
+  - **Rule-Based Analysis (Fallback - always runs)**:
+    - **What is "rule-based"?** A programming approach using predefined rules, patterns, and logic (not AI/ML)
+    - Uses `analyzeContent()` function with pattern matching:
+      - Detects tone using keyword matching (if content contains "excited" → add "enthusiastic" tone)
+      - Analyzes structure using rules (if content has `\n\n` → "multi-paragraph", if has `•` → "list-based")
+      - Extracts hashtags using regex: `/#\w+/g`
+      - Detects CTAs using regex patterns: `/learn more|get started|sign up/gi`
+      - Calculates length statistics (min, max, average word count) using simple math
+      - Detects emoji usage using unicode regex: `[\u{1F300}-\u{1F9FF}]`
+  - Each post gets a `styleAnalysis` object (rule-based) and optionally `aiPreferences` (AI-based)
+  - **Combined Results**:
+    - AI preferences **override** rule-based preferences when both available
+    - AI analysis provides deeper insights from your actual posted content
+    - Rule-based analysis ensures availability even without API key
   - All scanned posts are aggregated to learn:
     - Most common content length
     - Average hashtag usage
@@ -94,8 +112,9 @@ The AI learns your content style from multiple sources and uses that knowledge t
     - Preferred CTAs
     - Content structure patterns
   - Updates `learnedStyle` immediately
-  - **Priority**: Scanned posts have HIGHEST priority (they're your actual posted content!)
-  - **Note**: No AI is used - fast, always available, no API costs, works offline
+  - **Priority**: Scanned posts have **HIGHEST PRIORITY** (they're your actual posted content!)
+  - **Storage**: Last 20 scanned posts kept (optimized for free-tier APIs), newest 8 keep images
+  - **Note**: AI is used if API key is available - provides much deeper insights from your actual content!
 
 ## How Learning is Stored
 
@@ -104,10 +123,9 @@ All learning data is stored in the Zustand store under `settings.contentPreferen
 
 ```typescript
 {
-  acceptedContent: [...],      // Last 50 accepted items
-  rejectedContent: [...],      // Last 20 rejected items
-  edits: [...],                // Last 30 edits
-  scannedPosts: [...],         // Last 50 scanned posts with styleAnalysis
+  acceptedContent: [...],      // Last 30 accepted items (optimized for free-tier) - LOWER PRIORITY
+  edits: [...],                // Last 20 edits (optimized for free-tier) - MEDIUM PRIORITY
+  scannedPosts: [...],         // Last 20 scanned posts with styleAnalysis (optimized for free-tier) - HIGHEST PRIORITY
   learnedStyle: {              // Aggregated preferences
     tone: ['enthusiastic', 'personal'],
     length: 'medium',
@@ -151,13 +169,27 @@ When you click "Generate Content":
 - **Using learned preferences happens DURING generation** (when you click Generate)
 - **No new learning happens during generation** - it just uses what's already learned
 
-## Learning Priority Order
+## Learning Priority Order (All Sources Use AI if Available!)
 
 When multiple sources exist, the system combines them with this priority:
 
-1. **Scanned Posts** (Highest Priority) - Your actual posted content
-2. **Edits** (Medium Priority) - You actively changed things
+1. **Scanned Posts** (Highest Priority) - Your actual posted content on social media
+   - Uses **AI analysis** if API key available (primary method)
+   - Falls back to **rule-based analysis** if no API key
+   - These represent your real style that's already working
+
+2. **Edits** (Medium Priority) - You actively changed things!
+   - Uses **AI analysis** if API key available (primary method)
+   - AI understands WHY you changed (not just what changed)
+   - Falls back to **rule-based analysis** if no API key
+   - Uses weighted voting (all edits contribute, recent ones have more weight)
+
 3. **Accepted Content** (Lower Priority) - You accepted as-is
+   - Uses **AI analysis** if API key available (primary method)
+   - Falls back to **rule-based analysis** if no API key
+   - Shows what you approve without changes
+
+**Important**: All sources use AI analysis if your Gemini API key is available, providing deeper insights than rule-based analysis alone. Rule-based analysis always runs as a baseline fallback, ensuring the system works even without an API key.
 
 The system uses weighted voting to combine preferences from all sources.
 
@@ -245,19 +277,20 @@ When combining all sources:
 
 The system has limits to prevent storage bloat and ensure performance:
 
-### Storage Limits (Rolling Window)
-- **Accepted Content**: Last **50** items kept (oldest removed when limit exceeded)
-- **Rejected Content**: Last **20** items kept
-- **Edits**: Last **30** items kept
-- **Scanned Posts**: Last **50** items kept
+### Storage Limits (Rolling Window - Optimized for Free-Tier APIs)
+- **Scanned Posts**: Last **20** items kept (~20KB text + 1.2MB images for newest 8) - **HIGHEST PRIORITY**
+- **Edits**: Last **20** items kept (~60KB total, enough for weighted voting) - **MEDIUM PRIORITY**
+- **Accepted Content**: Last **30** items kept (~60KB total) - **LOWER PRIORITY**
 
-**Total Maximum**: 150 items across all sources
+**Total Maximum**: ~70 items across all sources (~1.3MB total for learning data)
 
-### Why These Limits?
+### Why These Limits? (Optimized for Free-Tier APIs & 20 Customers)
 - **Performance**: Too many items slow down analysis
-- **Storage**: localStorage has size limits (~5-10MB)
+- **Storage**: localStorage has size limits (~5-10MB), optimized for ~5MB per customer
+- **Free-Tier Constraints**: Twitter free tier allows 1 req/15min, ~20-40 tweets/day max
 - **Relevance**: Recent data is more relevant than very old data
 - **Weighted System**: Even with limits, older items still contribute (weighted voting)
+- **20 Customers**: Each customer has separate localStorage, total ~96MB distributed
 
 ### What Happens When Limits Are Reached?
 - **Automatic cleanup**: Oldest items are removed when new ones are added
@@ -281,13 +314,13 @@ The system ensures the new item is included in aggregation:
 
 **When you accept content:**
 1. ✅ Add new item to array (in memory): `updatedAccepted = [...acceptedContent, newAccepted]`
-2. ✅ Trim array to 50 items: `trimmedAccepted = updatedAccepted.slice(-50)` (includes new item)
+2. ✅ Trim array to 30 items: `trimmedAccepted = updatedAccepted.slice(-30)` (includes new item, optimized for free-tier)
 3. ✅ Aggregate using NEW array: `combineAllLearningSources(..., trimmedAccepted, ...)` (new item included!)
 4. ✅ Save BOTH together: `updateSettings({ acceptedContent: trimmedAccepted, learnedStyle })`
 
 **When you edit content:**
 1. ✅ Add new edit to array (in memory): `updatedEdits = [...edits, edit]`
-2. ✅ Trim array to 30 items: `updatedEdits = updatedEdits.slice(-30)` (keeps last 30, includes new edit)
+2. ✅ Trim array to 20 items: `updatedEdits = updatedEdits.slice(-20)` (keeps last 20, includes new edit, optimized for free-tier)
 3. ✅ Aggregate using NEW array: `allEdits = updatedEdits.filter(...)` (new edit included!)
 4. ✅ Extract preferences from all edits (including new one)
 5. ✅ Aggregate all edits together
@@ -520,7 +553,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 
 ### Monthly Cost Example (If Everything Used AI):
 
-**Scenario: 100 edits, 200 accepts, 500 scans (all with text + images)**
+**Scenario: 20 edits, 30 accepts, 20 scans (optimized for free-tier APIs)**
 - Edits: 100 × $0.0002 = **$0.02**
 - Accepts: 200 × $0.0002 = **$0.04**
 - Scans: 500 × $0.0002 = **$0.10**
@@ -571,7 +604,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 
 **Monthly Totals (30 days):**
 - **Generate**: 8 × 30 = 240 posts/month per user
-- **Edit**: 3 × 30 = 90 edits/month per user
+- **Edit**: 3 × 20 = 60 edits/month per user (optimized limit)
 - **Accept**: 5 × 30 = 150 accepts/month per user
 - **Scan**: 0.5 × 30 = 15 scans/month per user
 
@@ -704,7 +737,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 ### Cost Breakdown for 50 Clients:
 
 **Image Analysis (from scanned posts):**
-- Initial scan: 50 posts × 1 image each = 50 images
+- Initial scan: 20 posts × 1 image each (newest 8 keep images) = ~8 images in storage
 - Weekly updates: 5 new images/week = 20 images/month
 - **Total: 70 images/month per user**
 - Cost: 70 × $0.000035 = **$0.0025/month per user**
@@ -826,7 +859,7 @@ The `learnedStyle` object (shown as "Current Learned Preferences") is created by
 - **AI uses learning**: Every time you generate content
 - **Results consistency**: Style is consistent, exact text varies (AI randomness)
 - **No learning during generation**: It only uses what's already learned
-- **Maximum inputs**: 50 accepted + 20 rejected + 30 edits + 50 scanned = 150 total items
+- **Maximum inputs**: 30 accepted + 20 edits + 20 scanned = 70 total items (optimized for free-tier)
 - **Automatic cleanup**: Oldest items removed when limits exceeded
 - **Aggregation method**: Rule-based (uses stored AI results from edits, but combines with rule-based logic)
 - **API calls**: Only 1 per edit (not per accept/scan/aggregation)

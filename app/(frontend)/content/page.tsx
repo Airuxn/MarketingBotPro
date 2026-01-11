@@ -12,7 +12,7 @@ import { CreateAdDialog } from '@/components/CreateAdDialog'
 import { PlatformPreview } from '@/components/PlatformPreview'
 import { StyleAnalysis, generateStylePrompt } from '@/lib/content-analyzer'
 import { analyzeContentPerformance, generatePerformancePrompt } from '@/lib/content-performance-analyzer'
-import { generateLearningPrompt, trackAcceptedContent, trackRejectedContent, trackContentEdit, containsInappropriateContent } from '@/lib/content-learner'
+import { generateLearningPrompt, trackAcceptedContent, trackContentEdit, containsInappropriateContent } from '@/lib/content-learner'
 import { AdPlatform, AdAccount } from '@/lib/ad-platforms'
 import { useLanguage } from '@/lib/language-context'
 import toast from 'react-hot-toast'
@@ -240,10 +240,22 @@ export default function ContentPage() {
           setStyleAnalyses(result.styleAnalyses)
         }
 
-        // Save scanned posts with style analyses to store
+        // Save scanned posts with style analyses to store (with AI analysis if available)
         if (result.content.length > 0) {
           const { updateSettings } = useStore.getState()
-          const scannedPosts = result.content
+          
+          // First, do rule-based analysis (already done in auto-scanner)
+          let scannedPosts: Array<{
+            id: string
+            platform: string
+            content: string
+            images?: string[]
+            createdAt: string
+            styleAnalysis: any
+            engagement?: any
+            aiPreferences?: Partial<any>
+            aiInsights?: string[]
+          }> = result.content
             .filter(item => item.styleAnalysis) // Only posts with style analysis
             .map(item => ({
               id: item.id,
@@ -255,6 +267,55 @@ export default function ContentPage() {
               engagement: item.engagement,
             }))
           
+          // Add AI analysis for scanned posts if API key is available (AI analysis for all sources!)
+          if (settings.geminiApiKey && scannedPosts.length > 0) {
+            console.log('[Content Page] Adding AI analysis for scanned posts...')
+            const { analyzeContentWithAI } = await import('@/lib/content-learner')
+            
+            // Save original posts for fallback
+            const originalScannedPosts = [...scannedPosts]
+            
+            // Analyze each scanned post with AI (batch process, don't await all to avoid blocking)
+            const aiAnalysisPromises = scannedPosts.map(async (post) => {
+              try {
+                const aiAnalysis = await analyzeContentWithAI(
+                  post.content,
+                  'post', // All scanned posts are posts
+                  post.platform,
+                  settings.geminiApiKey
+                )
+                return {
+                  ...post,
+                  aiPreferences: aiAnalysis.preferences && Object.keys(aiAnalysis.preferences).length > 0 
+                    ? aiAnalysis.preferences 
+                    : undefined,
+                  aiInsights: aiAnalysis.insights && aiAnalysis.insights.length > 0 
+                    ? aiAnalysis.insights 
+                    : undefined,
+                }
+              } catch (error: any) {
+                console.error(`[Content Page] AI analysis failed for post ${post.id}:`, error.message)
+                // Continue with rule-based analysis only if AI fails
+                return post
+              }
+            })
+            
+            // Wait for all AI analyses to complete (but don't block if some fail)
+            scannedPosts = await Promise.allSettled(aiAnalysisPromises).then(results =>
+              results.map((result, idx) => {
+                if (result.status === 'fulfilled') {
+                  return result.value
+                } else {
+                  // If AI analysis failed, keep the original post with rule-based analysis only
+                  console.error(`[Content Page] AI analysis failed for post:`, result.reason)
+                  return originalScannedPosts[idx] // Return original post
+                }
+              })
+            )
+            
+            console.log(`[Content Page] AI analysis completed for ${scannedPosts.filter((p: any) => p.aiPreferences).length} scanned posts`)
+          }
+          
           // Merge with existing scanned posts, keep unique by ID, newest first
           const existingScannedPosts = settings.contentPreferences?.scannedPosts || []
           const allScannedPosts = [...scannedPosts, ...existingScannedPosts]
@@ -262,23 +323,25 @@ export default function ContentPage() {
             idx === self.findIndex(p => p.id === post.id && p.platform === post.platform)
           )
           
-          // Sort by date (newest first) and keep last 30
-          // Remove images from older posts (keep images only for newest 15) to save storage space
+          // Sort by date (newest first) and keep last 20 (optimized for free-tier APIs)
+          // Free-tier Twitter: 1 req/15min, ~1-2 scans/day with 24h cache = ~20-40 tweets/day max
+          // Remove images from older posts (keep images only for newest 8) to save storage space
           const sortedScannedPosts = uniqueScannedPosts
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            .slice(0, 30)
-            .map((post, idx) => idx < 15 ? post : { ...post, images: undefined })
+            .slice(0, 20)
+            .map((post, idx) => idx < 8 ? post : { ...post, images: undefined })
           
           // IMPORTANT: Learn from scanned posts! This is the PRIMARY source for new users
+          // AI analysis is now included if available, providing deeper insights than rule-based only
           const { combineAllLearningSources } = await import('@/lib/content-learner')
           const existingPreferences = settings.contentPreferences || {
             acceptedContent: [],
-            rejectedContent: [],
             edits: [],
             scannedPosts: [],
           }
           
           // Combine all learning sources: scanned posts (highest priority), accepted content, and edits
+          // All sources now use AI analysis if API key is available!
           const learnedStyle = combineAllLearningSources(
             sortedScannedPosts,
             existingPreferences.acceptedContent,
@@ -341,19 +404,21 @@ export default function ContentPage() {
             return dateB - dateA
           })
           
-          // Group by platform and keep last 20 per platform
+          // Group by platform and keep last 10 per platform (optimized for free-tier: ~150KB each = ~1.5MB max per platform)
+          // Free-tier APIs: Limited scanning, fewer images extracted
           const platformGroups: Record<string, typeof sortedImages> = {}
           sortedImages.forEach(img => {
             if (!platformGroups[img.platform]) {
               platformGroups[img.platform] = []
             }
-            if (platformGroups[img.platform].length < 20) {
+            if (platformGroups[img.platform].length < 10) {
               platformGroups[img.platform].push(img)
             }
           })
           
-          // Flatten back to array and limit total to 50 images max (compressed for library, ~100-200KB each)
-          const finalImages = Object.values(platformGroups).flat().slice(-50)
+          // Flatten back to array and limit total to 20 images max (optimized: ~150KB each = ~3MB max total)
+          // Fits within 5MB localStorage per customer
+          const finalImages = Object.values(platformGroups).flat().slice(-20)
           
           updateSettings({ brandImages: finalImages })
         }
@@ -627,8 +692,8 @@ export default function ContentPage() {
             prompt || 'Post edit',
             updateSettings,
             settings
-          )
-          toast.success('✓ Post updated!', { duration: 6000 })
+          ).catch(err => console.error('Learning error:', err))
+          toast.success('✓ Post updated! The AI is learning from this content...', { duration: 6000 })
         } else {
           // No changes made, just confirm
           toast.success('✓ Post confirmed (no changes made)', { duration: 5000 })
@@ -690,8 +755,8 @@ export default function ContentPage() {
         prompt,
         updateSettings,
         settings
-      )
-      toast.success('✓ Content accepted! The AI will learn from this preference and improve future generations.', { duration: 8000 })
+      ).catch(err => console.error('Learning error:', err))
+      toast.success('✓ Content accepted! The AI is learning from this content and will improve future generations.', { duration: 8000 })
     }
     
     // Update generated content to edited version if edited
@@ -752,24 +817,8 @@ export default function ContentPage() {
     toast.success('Edit saved! Click "I\'m Happy - Use This" to learn from your changes.', { duration: 7000 })
   }
 
-  const handleRejectContent = () => {
-    if (!generatedContent || !currentPrompt) return
-
-    const platformName = contentType === 'ad' ? adPlatform : platform
-    const { updateSettings } = useStore.getState()
-    
-    trackRejectedContent(
-      generatedContent,
-      contentType,
-      platformName,
-      prompt,
-      updateSettings,
-      settings
-    )
-
-    // Automatically regenerate
-    handleRegenerate()
-  }
+  // Removed handleRejectContent - rejected content tracking is not needed
+  // Content with offensive words cannot be created in the first place due to filtering
 
   const convertMediaToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {

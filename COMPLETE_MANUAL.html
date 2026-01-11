@@ -391,27 +391,28 @@ marketing-bot/
                 <code>marketing-bot-storage</code>. This includes:
             </p>
             <ul>
-                <li><strong>Posts:</strong> Last 100 posts (drafts, scheduled, posted)</li>
-                <li><strong>Leads:</strong> Last 200 leads</li>
-                <li><strong>Contact Lists:</strong> Up to 100 lists with contacts</li>
-                <li><strong>Email Campaigns:</strong> Last 50 campaigns</li>
+                <li><strong>Posts:</strong> Last 50 posts (drafts, scheduled, posted) - optimized for free-tier</li>
+                <li><strong>Leads:</strong> Last 50 leads - optimized for free-tier</li>
+                <li><strong>Contact Lists:</strong> Up to 20 lists with contacts - optimized for storage</li>
+                <li><strong>Email Campaigns:</strong> Last 30 campaigns - optimized for free-tier</li>
                 <li><strong>Settings:</strong> All user settings including:
                     <ul>
                         <li>Gemini API key</li>
                         <li>Business information</li>
                         <li>Connected social accounts (tokens stored securely)</li>
-                        <li>Brand images (up to 50 images)</li>
+                        <li>Brand images (up to 20 images, ~150KB each = ~3MB max) - optimized for localStorage</li>
                         <li><strong>Content Preferences:</strong>
                             <ul>
-                                <li>Accepted content (last 50)</li>
-                                <li>Rejected content (last 20)</li>
-                                <li>Edits (last 30)</li>
-                                <li>Scanned posts (last 30, newest 15 keep images)</li>
-                                <li><strong>learnedStyle</strong> - The aggregated AI preferences (this is what AI uses!)</li>
+                                <li>Accepted content (last 30) - optimized for free-tier</li>
+                                <li>Edits (last 20) - optimized for free-tier, enough for weighted voting</li>
+                                <li>Scanned posts (last 20, newest 8 keep images) - optimized for free-tier APIs</li>
+                                <li><strong>learnedStyle</strong> - The aggregated AI preferences (this is what AI uses!) - no limit, always preserved</li>
                             </ul>
                         </li>
                     </ul>
                 </li>
+                <li><strong>Total Storage:</strong> ~4.8MB per customer (fits within 5MB localStorage limit)</li>
+                <li><strong>For 20 Customers:</strong> ~96MB total, distributed across 20 browsers (no server storage needed)</li>
             </ul>
 
             <h4>Automatic Backup System</h4>
@@ -455,7 +456,6 @@ Key Store Structure:
     socialAccounts?: SocialAccount[]  // Connected social accounts
     contentPreferences?: {      // AI LEARNING DATA (Most Important!)
       acceptedContent: ContentPreference[]
-      rejectedContent: ContentPreference[]
       edits: ContentEdit[]
       scannedPosts: ScannedPost[]
       learnedStyle: LearnedStyle  // ← THIS IS WHAT AI USES!
@@ -565,14 +565,17 @@ LEARNING TIMELINE (Complete Flow):
 1. CONNECT SOCIAL ACCOUNT
    └─> Auto-scan triggered (Content page loads)
        └─> scanTwitterAccount() / scanFacebookAccount() / etc.
-           └─> analyzeContent() [RULE-BASED - No AI]
-               └─> styleAnalysis created
-                   └─> Scanned post saved to settings.contentPreferences.scannedPosts
-                       └─> combineAllLearningSources() called IMMEDIATELY
-                           └─> learnFromScannedPosts() [RULE-BASED]
-                               └─> learnedStyle updated
-                                   └─> Saved to localStorage
-                                       ✅ LEARNING COMPLETE (Scanned posts have HIGHEST priority)
+           ├─> analyzeContent() [RULE-BASED - always runs]
+           │   └─> styleAnalysis created (rule-based baseline)
+           └─> analyzeContentWithAI() [AI ANALYSIS if API key available - primary method]
+               └─> aiPreferences created (AI-based, deeper insights)
+           └─> Scanned post saved with both styleAnalysis (rule-based) and aiPreferences (AI if available)
+               └─> combineAllLearningSources() called IMMEDIATELY
+                   ├─> Uses AI preferences if available (prioritizes AI)
+                   └─> Falls back to rule-based analysis (learnFromScannedPosts) if no AI
+                       └─> learnedStyle updated
+                           └─> Saved to localStorage
+                               ✅ LEARNING COMPLETE (Scanned posts have HIGHEST priority, AI or rule-based)
 
 2. GENERATE CONTENT
    └─> User enters prompt
@@ -602,19 +605,20 @@ LEARNING TIMELINE (Complete Flow):
 4. ACCEPT GENERATED CONTENT
    └─> User clicks "Accept"
        └─> trackAcceptedContent() called
-           └─> analyzeContent() [RULE-BASED - No AI]
-               └─> Content saved to settings.contentPreferences.acceptedContent
-                   └─> combineAllLearningSources() called IMMEDIATELY
-                       └─> learnFromAcceptedContent() [RULE-BASED]
-                           └─> learnedStyle updated
-                               └─> Saved to localStorage
-                                   ✅ LEARNING COMPLETE (Accepted content has LOWER priority)
+           ├─> analyzeContentWithAI() [AI ANALYSIS if API key available - primary method]
+           │   └─> aiPreferences created (AI-based, deeper insights)
+           ├─> analyzeContent() [RULE-BASED fallback - always runs]
+           │   └─> ruleBasedPreferences created (rule-based baseline)
+           └─> Content saved with both aiPreferences (AI if available) and ruleBasedPreferences (always)
+               └─> combineAllLearningSources() called IMMEDIATELY
+                   ├─> Uses AI preferences if available (prioritizes AI)
+                   └─> Falls back to rule-based (learnFromAcceptedContent) if no AI
+                       └─> learnedStyle updated
+                           └─> Saved to localStorage
+                               ✅ LEARNING COMPLETE (Accepted content has LOWER priority, AI or rule-based)
 
 5. REJECT GENERATED CONTENT
-   └─> User clicks "Reject"
-       └─> trackRejectedContent() called
-           └─> Content saved to settings.contentPreferences.rejectedContent
-               └─> ❌ NO LEARNING HAPPENS (just records what you don't like)
+   └─> REMOVED: Rejected content tracking is unnecessary because content with offensive words cannot be created in the first place due to filtering
             </div>
 
             <h3>2.3 Priority Order: How Different Sources Are Combined</h3>
@@ -623,25 +627,27 @@ LEARNING TIMELINE (Complete Flow):
                 <ol>
                     <li><strong>Scanned Posts</strong> (Highest Priority) - Your actual posted content on social media
                         <ul>
+                            <li><strong>AI analysis if API key available</strong> (primary method) - provides deeper insights from your actual content</li>
+                            <li>Rule-based fallback if no API key (fast, free, effective)</li>
                             <li>These represent your real style that's already working</li>
                             <li>Primary source for new users who connect accounts</li>
-                            <li>Rule-based analysis only (fast, free, effective)</li>
                         </ul>
                     </li>
                     <li><strong>Edits</strong> (Medium Priority) - You actively changed things!
                         <ul>
-                            <li>AI analysis if API key available (understands WHY you changed)</li>
+                            <li><strong>AI analysis if API key available</strong> (primary method) - understands WHY you changed (not just what changed)</li>
                             <li>Rule-based fallback if no API key</li>
                             <li>Uses weighted voting (all edits contribute, recent ones have more weight)</li>
                         </ul>
                     </li>
                     <li><strong>Accepted Content</strong> (Lower Priority) - You accepted as-is
                         <ul>
-                            <li>Rule-based analysis only (no AI needed)</li>
+                            <li><strong>AI analysis if API key available</strong> (primary method) - extracts style preferences from approved content</li>
+                            <li>Rule-based fallback if no API key</li>
                             <li>Shows what you approve without changes</li>
                         </ul>
                     </li>
-                    <li><strong>Rejected Content</strong> - Does NOT learn (just records what you don't like)</li>
+                    <li><strong>Rejected Content</strong> - REMOVED: Content with offensive words cannot be created in the first place due to filtering, so rejected content tracking is unnecessary</li>
                 </ol>
             </div>
 
@@ -673,24 +679,33 @@ Key Points:
             <h4>How Final Combination Works</h4>
             <div class="code-block">
                 <code>
-Final Merge Priority (Rule-Based):
+Final Merge Priority (AI Preferences Prioritized, Rule-Based Fallback):
 
-1. Scanned posts style → HIGHEST PRIORITY
-   If scanned posts have "enthusiastic" tone → Use "enthusiastic"
+1. Scanned posts style → HIGHEST PRIORITY (AI or rule-based)
+   - Uses AI preferences if available (prioritizes AI insights)
+   - Falls back to rule-based if no AI
+   - If scanned posts have "enthusiastic" tone → Use "enthusiastic"
    
-2. Edits style → FILLS GAPS if scanned doesn't have that preference
-   If scanned posts don't have tone preference, use edits tone
+2. Edits style → MEDIUM PRIORITY (AI or rule-based)
+   - Uses AI preferences if available (understands WHY changes were made)
+   - Falls back to rule-based if no AI
+   - FILLS GAPS if scanned doesn't have that preference
+   - If scanned posts don't have tone preference, use edits tone
    
-3. Accepted content → FILLS REMAINING GAPS
-   Only used if scanned and edits don't have that preference
+3. Accepted content → LOWER PRIORITY (AI or rule-based)
+   - Uses AI preferences if available (extracts style from approved content)
+   - Falls back to rule-based if no AI
+   - FILLS REMAINING GAPS
+   - Only used if scanned and edits don't have that preference
 
 Example:
-- Scanned posts: "enthusiastic" tone, "medium" length
-- Edits: "professional" tone, "short" length
-- Accepted: "casual" tone, "long" length
+- Scanned posts (AI): "enthusiastic" tone, "medium" length
+- Edits (AI): "professional" tone, "short" length
+- Accepted (rule-based): "casual" tone, "long" length
 
-Result: "enthusiastic" tone (from scanned), "medium" length (from scanned)
+Result: "enthusiastic" tone (from scanned - AI), "medium" length (from scanned - AI)
         Edits and accepted only used if scanned doesn't have that preference
+        AI preferences always override rule-based preferences when both available
                 </code>
             </div>
 
@@ -704,19 +719,19 @@ Result: "enthusiastic" tone (from scanned), "medium" length (from scanned)
                 </tr>
                 <tr>
                     <td><strong>Scan Social Posts</strong></td>
-                    <td><span class="badge badge-rule">Rule-Based</span></td>
-                    <td>0 API calls</td>
+                    <td><span class="badge badge-ai">AI (Primary if API key)</span><br/><span class="badge badge-rule">Rule-Based (Fallback)</span></td>
+                    <td>1 API call per scanned post<br/>(if API key available)</td>
                     <td>When you connect account or on content page load</td>
                 </tr>
                 <tr>
                     <td><strong>Accept Generated Content</strong></td>
-                    <td><span class="badge badge-rule">Rule-Based</span></td>
-                    <td>0 API calls</td>
+                    <td><span class="badge badge-ai">AI (Primary if API key)</span><br/><span class="badge badge-rule">Rule-Based (Fallback)</span></td>
+                    <td>1 API call per acceptance<br/>(if API key available)</td>
                     <td>When you click "Accept" on generated content</td>
                 </tr>
                 <tr>
                     <td><strong>Edit Generated Content</strong></td>
-                    <td><span class="badge badge-ai">AI (Primary)</span><br/><span class="badge badge-rule">Rule-Based (Fallback)</span></td>
+                    <td><span class="badge badge-ai">AI (Primary if API key)</span><br/><span class="badge badge-rule">Rule-Based (Fallback)</span></td>
                     <td>1 API call per edit<br/>(if API key available)</td>
                     <td>When you edit content and save it</td>
                 </tr>
@@ -724,7 +739,7 @@ Result: "enthusiastic" tone (from scanned), "medium" length (from scanned)
                     <td><strong>Aggregate Preferences</strong></td>
                     <td><span class="badge badge-rule">Rule-Based</span></td>
                     <td>0 API calls</td>
-                    <td>Immediately after accept/edit/scan (uses stored AI results)</td>
+                    <td>Immediately after accept/edit/scan (uses stored AI results, prioritizes AI preferences)</td>
                 </tr>
                 <tr>
                     <td><strong>Generate Content</strong></td>
@@ -735,15 +750,15 @@ Result: "enthusiastic" tone (from scanned), "medium" length (from scanned)
             </table>
 
             <div class="info">
-                <h4>Key Insight: AI is NOT called during aggregation!</h4>
+                <h4>Key Insight: AI Analysis Happens During Accept/Edit/Scan, NOT During Aggregation!</h4>
                 <p>
-                    When you accept/edit/scan content, the system immediately aggregates preferences. However, 
-                    <strong>aggregation itself is rule-based</strong>. It uses:
+                    When you accept/edit/scan content, the system immediately analyzes and aggregates preferences. However, 
+                    <strong>aggregation itself is rule-based</strong> (weighted voting, priority merging). It uses:
                 </p>
                 <ul>
-                    <li><strong>For edits:</strong> Stored AI analysis results (<code>edit.aiPreferences</code>) - already analyzed, no new AI call</li>
-                    <li><strong>For scanned posts:</strong> Stored rule-based analysis (<code>post.styleAnalysis</code>) - already analyzed</li>
-                    <li><strong>For accepted content:</strong> Quick rule-based analysis - no AI needed</li>
+                    <li><strong>For edits:</strong> Stored AI analysis results (<code>edit.aiPreferences</code>) - already analyzed during edit, AI preferences prioritized over rule-based</li>
+                    <li><strong>For scanned posts:</strong> Stored AI preferences (<code>post.aiPreferences</code>) if available, or rule-based analysis (<code>post.styleAnalysis</code>) - AI preferences prioritized</li>
+                    <li><strong>For accepted content:</strong> Stored AI preferences (<code>accepted.aiPreferences</code>) if available, or rule-based analysis - AI preferences prioritized</li>
                 </ul>
                 <p>
                     <strong>Result:</strong> Only 1 AI call per edit (for analysis). Aggregation uses stored results, 
@@ -851,39 +866,37 @@ CONTENT GENERATION FLOW (How learnedStyle is Applied):
                 </tr>
                 <tr>
                     <td><strong>Accepted Content</strong></td>
-                    <td>Last 50 items</td>
+                    <td>Last 30 items<br/>(optimized for free-tier)</td>
                     <td>Oldest removed when limit exceeded</td>
-                    <td>Performance, storage limits, recent data more relevant</td>
-                </tr>
-                <tr>
-                    <td><strong>Rejected Content</strong></td>
-                    <td>Last 20 items</td>
-                    <td>Oldest removed when limit exceeded</td>
-                    <td>Just tracking patterns, less important than accepted</td>
+                    <td>~60KB total, performance, storage limits, recent data more relevant</td>
                 </tr>
                 <tr>
                     <td><strong>Edits</strong></td>
-                    <td>Last 30 items</td>
+                    <td>Last 20 items<br/>(optimized for free-tier)</td>
                     <td>Oldest removed when limit exceeded</td>
-                    <td>Weighted voting still works with 30, most recent matter more</td>
+                    <td>~60KB total, weighted voting still works with 20, most recent matter more</td>
                 </tr>
                 <tr>
                     <td><strong>Scanned Posts</strong></td>
-                    <td>Last 30 items<br/>(images only for newest 15)</td>
+                    <td>Last 20 items<br/>(images only for newest 8)<br/>(optimized for free-tier)</td>
                     <td>Oldest removed, images removed from older posts</td>
-                    <td>Images take up space, text is more important for learning</td>
+                    <td>~1.2MB total (images), ~20KB text. Images take up space, text is more important for learning. Free-tier Twitter: 1 req/15min = ~20-40 tweets/day max</td>
                 </tr>
                 <tr>
                     <td><strong>learnedStyle</strong></td>
                     <td>No limit</td>
                     <td>Aggregated summary, always small</td>
-                    <td>This is just a small object with preferences, not full content</td>
+                    <td>This is just a small object with preferences, not full content. Always preserved even when history is cleaned up</td>
                 </tr>
             </table>
 
             <div class="info">
-                <strong>Total Maximum:</strong> 130 items across all sources (50 + 20 + 30 + 30)<br/>
+                <strong>Total Maximum:</strong> ~70 items across all sources (30 + 20 + 20) = ~1.3MB for learning data<br/>
+                <strong>AI Analysis:</strong> All sources (scanned posts, edits, accepted content) use AI analysis if API key is available - provides deeper insights than rule-based alone<br/>
+                <strong>Storage Per Customer:</strong> ~4.8MB total (fits within 5MB localStorage limit)<br/>
+                <strong>For 20 Customers:</strong> ~96MB total, distributed across 20 browsers (no server storage needed)<br/>
                 <strong>Automatic Cleanup:</strong> Oldest items are removed when limits are reached<br/>
+                <strong>Optimized for Free-Tier:</strong> Limits based on free-tier API constraints (Twitter: 1 req/15min, etc.)<br/>
                 <strong>No Data Loss:</strong> The <code>learnedStyle</code> object (aggregated preferences) is preserved even when history is cleaned up
             </div>
 
@@ -945,13 +958,9 @@ CONTENT GENERATION COMPLETE FLOW:
            ├─> ACCEPT (content is good as-is)
            │   └─> User clicks "Accept"
            │       └─> trackAcceptedContent() called
-           │           ├─> analyzeContent() [RULE-BASED]
-           │           └─> Content saved → learnedStyle updated → ✅ LEARNING HAPPENS
-           │
-           ├─> REJECT (content is not good)
-           │   └─> User clicks "Reject"
-           │       └─> trackRejectedContent() called
-           │           └─> Content saved → ❌ NO LEARNING (just records what you don't like)
+           │           ├─> analyzeContentWithAI() [AI ANALYSIS if API key available - primary method]
+           │           ├─> analyzeContent() [RULE-BASED fallback]
+           │           └─> Content saved with AI preferences → learnedStyle updated → ✅ LEARNING HAPPENS (AI or rule-based)
            │
            └─> REGENERATE (try again with same prompt)
                └─> Goes back to step 3 (new generation, but uses same learnedStyle)
@@ -1005,14 +1014,16 @@ IMAGE SCANNING & STORAGE FLOW:
                  images: [url1, url2, ...],  // ← Images stored here
                  createdAt: post.created_at,
                  engagement: { likes, comments, shares },
-                 styleAnalysis: { ... }  // ← Style analysis here
+                 styleAnalysis: { ... },  // ← Rule-based style analysis (always present)
+                 aiPreferences: { ... },  // ← AI preferences (if API key available - primary method)
+                 aiInsights: [...]        // ← AI insights (if API key available)
                }
 
 4. STORAGE TO STATE
    └─> All scanned content saved to:
        settings.contentPreferences.scannedPosts[]
-       └─> Last 30 scanned posts kept
-           └─> Images kept for newest 15 posts (to save storage space)
+       └─> Last 20 scanned posts kept (optimized for free-tier APIs)
+           └─> Images kept for newest 8 posts only (to save storage space)
                └─> Older posts: images removed but content and styleAnalysis kept
 
 5. BRAND IMAGE LIBRARY
@@ -1021,12 +1032,13 @@ IMAGE SCANNING & STORAGE FLOW:
        └─> Each image saved as:
            {
              id: 'auto-{platform}-{sourceId}-{index}',
-             url: imageUrl,  // ← Actual image URL
+             url: imageUrl,  // ← Actual image URL (stored as URL, not base64)
              sourceUrl: '{platform}://{sourceId}',
              platform: 'twitter' | 'facebook' | etc,
              extractedAt: ISO timestamp
            }
-       └─> Last 50 brand images kept (grouped by platform, 20 per platform max)
+       └─> Last 20 brand images kept total (optimized: ~150KB each = ~3MB max, fits within 5MB localStorage)
+           └─> Grouped by platform, max 10 per platform
            └─> Used for: Selecting images when creating new posts
                 </code>
             </div>
@@ -1108,8 +1120,8 @@ IMAGE USAGE IN NEW POSTS:
 
                 <h4>Storage Limits & Cleanup:</h4>
                 <ul>
-                    <li><strong>Brand Images:</strong> Last 50 images kept (20 per platform max)</li>
-                    <li><strong>Scanned Posts:</strong> Last 30 posts kept, images only for newest 15</li>
+                    <li><strong>Brand Images:</strong> Last 20 images kept total (~150KB each = ~3MB max) - optimized for localStorage</li>
+                    <li><strong>Scanned Posts:</strong> Last 20 posts kept, images only for newest 8 - optimized for free-tier APIs (Twitter: 1 req/15min)</li>
                     <li><strong>Automatic Cleanup:</strong> When localStorage is full, oldest images removed first</li>
                     <li><strong>Storage Monitoring:</strong> App detects quota exceeded and automatically cleans up</li>
                 </ul>

@@ -127,13 +127,6 @@ export interface Store {
         acceptedAt: string
         prompt: string
       }>
-      rejectedContent?: Array<{
-        content: string
-        contentType: 'post' | 'email' | 'ad'
-        platform: string
-        rejectedAt: string
-        prompt: string
-      }>
       edits?: Array<{
         originalContent: string
         editedContent: string
@@ -210,15 +203,16 @@ export const useStore = create<Store>()(
       addPost: (post) =>
         set((state) => {
           const updatedPosts = [...state.posts, post]
-          // Limit to last 100 posts (keep posted/scheduled, remove oldest drafts first)
+          // Limit to last 50 posts (optimized for free-tier: ~2KB each = ~100KB total)
+          // Free-tier: Limited posting capabilities, fewer posts created
           let trimmedPosts = updatedPosts
-          if (updatedPosts.length > 100) {
+          if (updatedPosts.length > 50) {
             const sorted = [...updatedPosts].sort((a, b) => {
               if (a.status === 'draft' && b.status !== 'draft') return 1
               if (a.status !== 'draft' && b.status === 'draft') return -1
               return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             })
-            trimmedPosts = sorted.slice(0, 100)
+            trimmedPosts = sorted.slice(0, 50)
           }
           return {
             posts: trimmedPosts,
@@ -239,8 +233,8 @@ export const useStore = create<Store>()(
       addLead: (lead) =>
         set((state) => {
           const updatedLeads = [...state.leads, lead]
-          // Limit to last 200 leads (small data, ~0.5KB each)
-          const trimmedLeads = updatedLeads.length > 200 ? updatedLeads.slice(-200) : updatedLeads
+          // Limit to last 50 leads (optimized for free-tier: ~0.5KB each = ~25KB total)
+          const trimmedLeads = updatedLeads.length > 50 ? updatedLeads.slice(-50) : updatedLeads
           return {
             leads: trimmedLeads,
             stats: {
@@ -261,7 +255,8 @@ export const useStore = create<Store>()(
         set((state) => {
           const updatedLists = [...state.contactLists, list]
           // Limit to 100 contact lists (can contain many leads, ~5KB each = ~500KB max)
-          const trimmedLists = updatedLists.length > 100 ? updatedLists.slice(-100) : updatedLists
+          // Limit to 20 contact lists (optimized: ~5KB each = ~100KB total, can contain many contacts)
+          const trimmedLists = updatedLists.length > 20 ? updatedLists.slice(-20) : updatedLists
           return {
             contactLists: trimmedLists,
           }
@@ -309,8 +304,8 @@ export const useStore = create<Store>()(
       addEmailCampaign: (campaign) =>
         set((state) => {
           const updatedCampaigns = [...state.emailCampaigns, campaign]
-          // Limit to last 50 email campaigns (~3KB each)
-          const trimmedCampaigns = updatedCampaigns.length > 50 ? updatedCampaigns.slice(-50) : updatedCampaigns
+          // Limit to last 30 email campaigns (optimized: ~3KB each = ~90KB total)
+          const trimmedCampaigns = updatedCampaigns.length > 30 ? updatedCampaigns.slice(-30) : updatedCampaigns
           return {
             emailCampaigns: trimmedCampaigns,
             stats: {
@@ -412,59 +407,65 @@ export const useStore = create<Store>()(
                   if (state?.settings?.contentPreferences) {
                     const prefs = state.settings.contentPreferences
                     
-                    // Reduce scanned posts to last 25 (remove images from old ones to save space)
-                    if (prefs.scannedPosts && prefs.scannedPosts.length > 25) {
+                    // Reduce scanned posts to last 20 (optimized for free-tier: ~1KB each text only = ~20KB total)
+                    // Free-tier Twitter: 1 req/15min, ~1-2 scans/day max with 24h cache = ~20-40 tweets/day
+                    // Keep images only for newest 8 posts (~150KB each = ~1.2MB max for images)
+                    if (prefs.scannedPosts && prefs.scannedPosts.length > 20) {
                       const sorted = [...prefs.scannedPosts]
                         .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-                      const kept = sorted.slice(0, 25)
-                      // Remove images from older posts to save space (keep images for newest 10)
+                      const kept = sorted.slice(0, 20)
+                      // Remove images from older posts to save space (keep images for newest 8 only)
                       const cleaned = kept.map((post: any, idx: number) => 
-                        idx < 10 ? post : { ...post, images: undefined }
+                        idx < 8 ? post : { ...post, images: undefined }
                       )
                       prefs.scannedPosts = cleaned
                     }
                     
-                    // Ensure limits are enforced (healthy limits for localStorage)
-                    if (prefs.acceptedContent && prefs.acceptedContent.length > 50) {
-                      prefs.acceptedContent = prefs.acceptedContent.slice(-50)
+                    // Ensure limits are enforced (optimized for free-tier and 5MB localStorage per customer)
+                    // Accepted content: 30 items (~2KB each = ~60KB total)
+                    if (prefs.acceptedContent && prefs.acceptedContent.length > 30) {
+                      prefs.acceptedContent = prefs.acceptedContent.slice(-30)
                     }
-                    if (prefs.edits && prefs.edits.length > 30) {
-                      prefs.edits = prefs.edits.slice(-30)
-                    }
-                    if (prefs.rejectedContent && prefs.rejectedContent.length > 20) {
-                      prefs.rejectedContent = prefs.rejectedContent.slice(-20)
+                    // Edits: 20 items (~3KB each = ~60KB total) - enough for weighted voting
+                    if (prefs.edits && prefs.edits.length > 20) {
+                      prefs.edits = prefs.edits.slice(-20)
                     }
                   }
                   
-                  // Limit brand images to last 50 (compressed for library preview, ~100-200KB each = ~5-10MB max)
-                  if (state?.settings?.brandImages && state.settings.brandImages.length > 50) {
-                    state.settings.brandImages = state.settings.brandImages.slice(-50)
+                  // Limit brand images to last 20 (optimized for free-tier: ~150KB each = ~3MB max, fits within 5MB localStorage)
+                  // Free-tier APIs: Twitter (1 req/15min), limited scanning means fewer images
+                  if (state?.settings?.brandImages && state.settings.brandImages.length > 20) {
+                    state.settings.brandImages = state.settings.brandImages.slice(-20)
                   }
                   
-                  // Limit posts to last 100 (important user content, but can grow large)
-                  if (state?.posts && state.posts.length > 100) {
+                  // Limit posts to last 50 (optimized for free-tier: ~2KB each = ~100KB total)
+                  // Free-tier: Limited posting capabilities, fewer posts created
+                  if (state?.posts && state.posts.length > 50) {
                     // Keep posted/scheduled posts, remove oldest drafts first
                     const sorted = [...state.posts].sort((a, b) => {
                       if (a.status === 'draft' && b.status !== 'draft') return 1
                       if (a.status !== 'draft' && b.status === 'draft') return -1
                       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                     })
-                    state.posts = sorted.slice(0, 100)
+                    state.posts = sorted.slice(0, 50)
                   }
                   
-                  // Limit leads to last 200 (small but can accumulate)
-                  if (state?.leads && state.leads.length > 200) {
-                    state.leads = state.leads.slice(-200)
+                  // Limit leads to last 50 (optimized for free-tier: ~0.5KB each = ~25KB total)
+                  // Free-tier: Limited lead capture capabilities
+                  if (state?.leads && state.leads.length > 50) {
+                    state.leads = state.leads.slice(-50)
                   }
                   
-                  // Limit contact lists to 100 (can contain many leads, ~5KB each)
-                  if (state?.contactLists && state.contactLists.length > 100) {
-                    state.contactLists = state.contactLists.slice(-100)
+                  // Limit contact lists to 20 (optimized for free-tier: ~5KB each = ~100KB total)
+                  // Contact lists can contain many contacts, reducing limit to save storage
+                  if (state?.contactLists && state.contactLists.length > 20) {
+                    state.contactLists = state.contactLists.slice(-20)
                   }
                   
-                  // Limit email campaigns to 50
-                  if (state?.emailCampaigns && state.emailCampaigns.length > 50) {
-                    state.emailCampaigns = state.emailCampaigns.slice(-50)
+                  // Limit email campaigns to 30 (optimized for free-tier: ~3KB each = ~90KB total)
+                  // Free-tier: Limited email sending capabilities
+                  if (state?.emailCampaigns && state.emailCampaigns.length > 30) {
+                    state.emailCampaigns = state.emailCampaigns.slice(-30)
                   }
                   
                   // Try saving again with cleaned data
@@ -829,7 +830,6 @@ export function getStorageUsage() {
           scannedPosts: 0,
           acceptedContent: 0,
           edits: 0,
-          rejectedContent: 0,
         },
         browser: detected.browser,
         localStorageLimitMB: detected.localStorageLimitMB,
@@ -877,9 +877,6 @@ export function getStorageUsage() {
         if (prefs.edits) {
           breakdown.edits = new Blob([JSON.stringify(prefs.edits)]).size
         }
-        if (prefs.rejectedContent) {
-          breakdown.rejectedContent = new Blob([JSON.stringify(prefs.rejectedContent)]).size
-        }
       }
     }
     
@@ -896,7 +893,6 @@ export function getStorageUsage() {
         scannedPosts: state.settings?.contentPreferences?.scannedPosts?.length || 0,
         acceptedContent: state.settings?.contentPreferences?.acceptedContent?.length || 0,
         edits: state.settings?.contentPreferences?.edits?.length || 0,
-        rejectedContent: state.settings?.contentPreferences?.rejectedContent?.length || 0,
       },
       browser: detected.browser,
       localStorageLimitMB: detected.localStorageLimitMB,

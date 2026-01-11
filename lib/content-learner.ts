@@ -86,6 +86,10 @@ export interface ContentPreference {
   timestamp?: string
   acceptedAt?: string
   prompt: string
+  // AI analysis results (if API key available)
+  aiPreferences?: Partial<LearnedStyle> // AI-extracted preferences
+  aiInsights?: string[] // AI insights about style patterns
+  ruleBasedPreferences?: any // Rule-based analysis (fallback)
 }
 
 export interface ContentEdit {
@@ -1556,10 +1560,10 @@ export async function trackContentEdit(
     // User added sensitive content - don't learn from this
     const preferences = currentSettings.contentPreferences || {
       acceptedContent: [],
-      rejectedContent: [],
       edits: [],
     }
-    const updatedEdits = [...(preferences.edits || []), edit].slice(-30)
+    // Optimized for free-tier: keep last 20 edits (~3KB each = ~60KB total)
+    const updatedEdits = [...(preferences.edits || []), edit].slice(-20)
     updateSettings({
       contentPreferences: {
         ...preferences,
@@ -1714,10 +1718,10 @@ export async function trackContentEdit(
     // The AI analysis will have marked this as inappropriateAdded, so preferences won't be learned
     const preferences = currentSettings.contentPreferences || {
       acceptedContent: [],
-      rejectedContent: [],
       edits: [],
     }
-    const updatedEdits = [...(preferences.edits || []), edit].slice(-30)
+    // Optimized for free-tier: keep last 20 edits (~3KB each = ~60KB total)
+    const updatedEdits = [...(preferences.edits || []), edit].slice(-20)
     
     // Don't update learned preferences, but still store the edit
     updateSettings({
@@ -1736,12 +1740,11 @@ export async function trackContentEdit(
   
   const preferences = currentSettings.contentPreferences || {
     acceptedContent: [],
-    rejectedContent: [],
     edits: [],
   }
 
-  // Store the edit
-  const updatedEdits = [...(preferences.edits || []), edit].slice(-30) // Keep last 30 edits
+  // Store the edit (optimized for free-tier: keep last 20 edits, ~3KB each = ~60KB total)
+  const updatedEdits = [...(preferences.edits || []), edit].slice(-20) // Keep last 20 edits
 
   // SUPERSMART: Aggregate learned preferences from ALL edits, not just the latest
   // Use weighted voting where recent edits have more weight, but all edits contribute
@@ -2142,7 +2145,7 @@ export function learnFromScannedPosts(
  */
 export function combineAllLearningSources(
   scannedPosts?: Array<{
-    styleAnalysis: {
+    styleAnalysis?: {
       tone: string[]
       structure: string[]
       hashtagStyle: string[]
@@ -2151,45 +2154,89 @@ export function combineAllLearningSources(
       emojiUsage: boolean
       formatting: string[]
     }
+    aiPreferences?: Partial<LearnedStyle> // AI analysis results if available
+    aiInsights?: string[] // AI insights if available
   }>,
   acceptedContent?: ContentPreference[],
   edits?: ContentEdit[]
 ): LearnedStyle {
   // Priority: Scanned posts > Edits > Accepted content
-  // Scanned posts are most important for new users (they have existing content)
+  // All sources now use AI analysis if API key is available!
+  // AI preferences take priority over rule-based analysis
   
   console.log('[combineAllLearningSources] Starting combination...')
   console.log('[combineAllLearningSources] Scanned posts:', scannedPosts?.length || 0)
   console.log('[combineAllLearningSources] Accepted content:', acceptedContent?.length || 0)
   console.log('[combineAllLearningSources] Edits:', edits?.length || 0)
   
-  const scannedStyle = scannedPosts && scannedPosts.length > 0 
-    ? learnFromScannedPosts(scannedPosts)
-    : {}
+  // Get scanned style - prioritize AI preferences if available, fallback to rule-based
+  let scannedStyle: Partial<LearnedStyle> = {}
+  if (scannedPosts && scannedPosts.length > 0) {
+    // Check if any scanned posts have AI preferences
+    const postsWithAI = scannedPosts.filter(sp => sp.aiPreferences && Object.keys(sp.aiPreferences).length > 0)
+    
+    if (postsWithAI.length > 0) {
+      // Use AI preferences from scanned posts (aggregate them)
+      console.log(`[combineAllLearningSources] Using AI preferences from ${postsWithAI.length} scanned posts`)
+      const aiPreferencesArray = postsWithAI.map(sp => sp.aiPreferences!)
+      scannedStyle = aggregatePreferencesFromEdits(aiPreferencesArray, postsWithAI.length)
+    } else {
+      // Fallback to rule-based analysis
+      console.log('[combineAllLearningSources] Using rule-based analysis for scanned posts')
+      const postsWithStyleAnalysis = scannedPosts.filter(sp => sp.styleAnalysis) as Array<{
+        styleAnalysis: {
+          tone: string[]
+          structure: string[]
+          hashtagStyle: string[]
+          callToAction: string[]
+          length: { min: number; max: number; average: number }
+          emojiUsage: boolean
+          formatting: string[]
+        }
+      }>
+      scannedStyle = learnFromScannedPosts(postsWithStyleAnalysis)
+    }
+  }
   
   console.log('[combineAllLearningSources] Scanned style:', scannedStyle)
   
-  const acceptedStyle = acceptedContent && acceptedContent.length > 0
-    ? learnFromAcceptedContent(acceptedContent)
-    : {}
+  // Get accepted style - prioritize AI preferences if available, fallback to rule-based
+  let acceptedStyle: Partial<LearnedStyle> = {}
+  if (acceptedContent && acceptedContent.length > 0) {
+    // Check if any accepted content has AI preferences
+    const acceptedWithAI = acceptedContent.filter(ac => ac.aiPreferences && Object.keys(ac.aiPreferences).length > 0)
+    
+    if (acceptedWithAI.length > 0) {
+      // Use AI preferences from accepted content (aggregate them)
+      console.log(`[combineAllLearningSources] Using AI preferences from ${acceptedWithAI.length} accepted items`)
+      const aiPreferencesArray = acceptedWithAI.map(ac => ac.aiPreferences!)
+      acceptedStyle = aggregatePreferencesFromEdits(aiPreferencesArray, acceptedWithAI.length)
+    } else {
+      // Fallback to rule-based analysis
+      console.log('[combineAllLearningSources] Using rule-based analysis for accepted content')
+      acceptedStyle = learnFromAcceptedContent(acceptedContent)
+    }
+  }
   
-  // For edits, we need to aggregate them
+  // For edits, prioritize AI preferences if available, fallback to rule-based
   let editStyle: Partial<LearnedStyle> = {}
   if (edits && edits.length > 0) {
     const editAnalyses = edits.map(e => {
       if (e.aiPreferences && Object.keys(e.aiPreferences).length > 0) {
+        // Use AI preferences if available
         return e.aiPreferences
       }
+      // Fallback to rule-based analysis
       const quickAnalysis = analyzeEdit(e)
       return quickAnalysis.preferences
     })
     editStyle = aggregatePreferencesFromEdits(editAnalyses, edits.length)
   }
-
+  
   // Merge with priority: scanned > edits > accepted
-  // Scanned posts are weighted highest because they represent actual posted content
+  // AI preferences are already included if available, rule-based is fallback
   const combined: LearnedStyle = {
-    // Tone: combine all sources
+    // Tone: combine all sources (AI or rule-based)
     tone: mergeTonePreferences(
       scannedStyle.tone,
       mergeTonePreferences(editStyle.tone, acceptedStyle.tone)
@@ -2211,15 +2258,15 @@ export function combineAllLearningSources(
       mergeArrayPreferences(editStyle.structure, acceptedStyle.structure)
     ),
   }
-
+  
   console.log('[combineAllLearningSources] Final combined style:', combined)
   return combined
 }
 
 /**
- * Track accepted content
+ * Track accepted content and learn from it using AI analysis if available
  */
-export function trackAcceptedContent(
+export async function trackAcceptedContent(
   content: string,
   contentType: 'post' | 'email' | 'ad',
   platform: string,
@@ -2229,7 +2276,6 @@ export function trackAcceptedContent(
 ) {
   const preferences = currentSettings.contentPreferences || {
     acceptedContent: [],
-    rejectedContent: [],
     scannedPosts: [],
     edits: [],
   }
@@ -2239,18 +2285,69 @@ export function trackAcceptedContent(
     ? preferences.acceptedContent 
     : []
 
+  // AI Analysis if API key available
+  let aiPreferences: Partial<LearnedStyle> | undefined = undefined
+  let aiInsights: string[] | undefined = undefined
+  
+  if (currentSettings.geminiApiKey) {
+    try {
+      console.log('[Accept Content] Starting AI analysis...')
+      const aiAnalysis = await analyzeContentWithAI(
+        content,
+        contentType,
+        platform,
+        currentSettings.geminiApiKey
+      )
+      aiPreferences = aiAnalysis.preferences
+      aiInsights = aiAnalysis.insights
+      console.log('[Accept Content] AI analysis completed:', {
+        preferencesCount: Object.keys(aiPreferences).length,
+        insightsCount: aiInsights.length
+      })
+    } catch (error: any) {
+      console.error('[Accept Content] AI analysis failed:', error.message)
+      // Continue with rule-based analysis if AI fails
+    }
+  }
+
+  // Rule-based analysis (always runs, as fallback if AI not available)
+  const { analyzeContent } = await import('./content-analyzer')
+  const ruleBasedAnalysis = analyzeContent(content)
+  
+  // Convert rule-based analysis length from { min, max, average } to 'short' | 'medium' | 'long'
+  const ruleBasedLength: 'short' | 'medium' | 'long' | undefined = ruleBasedAnalysis.length
+    ? (ruleBasedAnalysis.length.average < 50 ? 'short' : ruleBasedAnalysis.length.average < 150 ? 'medium' : 'long')
+    : undefined
+  
+  // Combine AI and rule-based preferences (AI takes priority)
+  const combinedPreferences: Partial<LearnedStyle> = {
+    tone: ruleBasedAnalysis.tone,
+    structure: ruleBasedAnalysis.structure,
+    ctaStyle: ruleBasedAnalysis.callToAction,
+    length: ruleBasedLength,
+    hashtagUsage: ruleBasedAnalysis.hashtagStyle.length === 0 ? 'none' 
+      : ruleBasedAnalysis.hashtagStyle.length < 2 ? 'minimal'
+      : ruleBasedAnalysis.hashtagStyle.length < 5 ? 'moderate'
+      : 'heavy',
+    emojiUsage: ruleBasedAnalysis.emojiUsage ? 'minimal' : 'none',
+    ...aiPreferences, // AI preferences override rule-based
+  }
+
   const newAccepted = {
     content,
     contentType,
     platform,
     acceptedAt: new Date().toISOString(),
     prompt,
+    aiPreferences: aiPreferences && Object.keys(aiPreferences).length > 0 ? aiPreferences : undefined,
+    aiInsights: aiInsights && aiInsights.length > 0 ? aiInsights : undefined,
+    ruleBasedPreferences: ruleBasedAnalysis,
   }
 
   const updatedAccepted = [...acceptedContent, newAccepted]
   
-  // Keep only last 50 accepted items to avoid storage bloat
-  const trimmedAccepted = updatedAccepted.slice(-50)
+  // Optimized for free-tier: keep last 30 accepted items (~2KB each = ~60KB total)
+  const trimmedAccepted = updatedAccepted.slice(-30)
 
   // Re-learn style from ALL sources: scanned posts (most important), accepted content, and edits
   const scannedPosts = preferences.scannedPosts || []
@@ -2267,43 +2364,166 @@ export function trackAcceptedContent(
 }
 
 /**
- * Track rejected content
+ * Use AI to analyze content and extract style preferences
+ * Used for scanned posts and accepted content
  */
-export function trackRejectedContent(
+export async function analyzeContentWithAI(
   content: string,
   contentType: 'post' | 'email' | 'ad',
   platform: string,
-  prompt: string,
-  updateSettings: (settings: Partial<Store['settings']>) => void,
-  currentSettings: Store['settings']
-) {
-  const preferences = currentSettings.contentPreferences || {
-    acceptedContent: [],
-    rejectedContent: [],
+  apiKey?: string
+): Promise<{
+  preferences: Partial<LearnedStyle>
+  insights: string[]
+}> {
+  try {
+    console.log('[AI Content Analysis] Starting analyzeContentWithAI...')
+    console.log('[AI Content Analysis] API key provided:', !!apiKey)
+    
+    if (!apiKey) {
+      console.warn('[AI Content Analysis] No API key provided')
+      return { preferences: {}, insights: [] }
+    }
+
+    console.log('[AI Content Analysis] Initializing Google Generative AI...')
+    const { GoogleGenerativeAI } = await import('@google/generative-ai')
+    const genAI = new GoogleGenerativeAI(apiKey)
+    console.log('[AI Content Analysis] Google Generative AI initialized successfully')
+    
+    const analysisPrompt = `Analyze the content below and extract style preferences in JSON format.
+
+CONTENT: ${content}
+
+CONTEXT: ${contentType} for ${platform}
+
+TASK: Analyze this content and identify the user's style preferences:
+1. Tone (enthusiastic, professional, personal, casual, etc.)
+2. Content length (short, medium, long)
+3. Hashtag usage (none, minimal, moderate, heavy)
+4. Emoji usage (none, minimal, moderate)
+5. Structure patterns (question-based, benefit-focused, list-based, etc.)
+6. Call-to-action style
+
+Return ONLY valid JSON in this exact format (no markdown, no extra text):
+{
+  "preferences": {
+    "tone": ["enthusiastic", "personal"],
+    "length": "medium",
+    "hashtagUsage": "minimal",
+    "emojiUsage": "none",
+    "structure": ["question-based", "benefit-focused"],
+    "ctaStyle": ["learn more", "get started"]
+  },
+  "insights": ["insight 1 about style", "insight 2 about patterns"]
+}
+
+CRITICAL: Return ONLY the JSON object, nothing else.`
+
+    // Try multiple models in order of preference
+    const modelNames = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-pro']
+    let lastError: any = null
+    
+    for (const modelName of modelNames) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName })
+        const result = await model.generateContent(analysisPrompt)
+        const response = await result.response
+        const text = response.text()
+        
+        console.log(`[AI Content Analysis] Model ${modelName} response length:`, text.length)
+        
+        // Try to parse JSON from response
+        let jsonText: string | null = null
+        
+        // Try markdown code block first
+        const codeBlockMatch = text.match(/```(?:json)?\s*(\{[\s\S]*?\})\s*```/s)
+        if (codeBlockMatch && codeBlockMatch[1]) {
+          jsonText = codeBlockMatch[1].trim()
+        } else {
+          // Try balanced brace matching
+          let braceCount = 0
+          let startIdx = -1
+          for (let i = 0; i < text.length; i++) {
+            if (text[i] === '{') {
+              if (startIdx === -1) startIdx = i
+              braceCount++
+            } else if (text[i] === '}') {
+              braceCount--
+              if (braceCount === 0 && startIdx !== -1) {
+                jsonText = text.substring(startIdx, i + 1)
+                break
+              }
+            }
+          }
+          
+          // Fallback: regex
+          if (!jsonText) {
+            const jsonMatch = text.match(/\{[\s\S]*\}/)
+            if (jsonMatch && jsonMatch[0]) {
+              jsonText = jsonMatch[0]
+            }
+          }
+        }
+        
+        if (jsonText && jsonText.trim().startsWith('{')) {
+          try {
+            const parsed = JSON.parse(jsonText)
+            console.log('[AI Content Analysis] Successfully parsed JSON')
+            
+            const result = {
+              preferences: parsed.preferences || {},
+              insights: parsed.insights || [],
+            }
+            
+            // Filter out empty strings
+            const validInsights = (result.insights || []).filter((i: string) => i && i.trim().length > 0)
+            result.insights = validInsights
+            
+            if (Object.keys(result.preferences).length > 0 || result.insights.length > 0) {
+              console.log('[AI Content Analysis] ✅ Success - got meaningful results')
+              return result
+            }
+            
+            lastError = new Error('AI returned empty results')
+            continue
+          } catch (parseError: any) {
+            console.error(`[AI Content Analysis] JSON parse error:`, parseError.message)
+            lastError = parseError
+            continue
+          }
+        } else {
+          console.warn(`[AI Content Analysis] No valid JSON found in response`)
+          lastError = new Error('No JSON found in response')
+          continue
+        }
+      } catch (modelError: any) {
+        console.warn(`[AI Content Analysis] Model ${modelName} failed:`, modelError.message)
+        lastError = modelError
+        
+        // Check for quota/rate limit errors
+        const errorMessage = modelError.message || String(modelError)
+        if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('rate limit')) {
+          throw modelError
+        }
+        
+        if (!modelError.message?.includes('not found') && !modelError.message?.includes('404')) {
+          break
+        }
+      }
+    }
+    
+    console.warn('[AI Content Analysis] All models failed, returning empty results')
+    return { preferences: {}, insights: [] }
+  } catch (error: any) {
+    console.error('[AI Content Analysis] Fatal error:', error)
+    const errorMessage = error?.message || String(error)
+    if (errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403')) {
+      throw new Error('Invalid API key - please check your Gemini API key in Settings')
+    }
+    if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('rate limit')) {
+      throw error
+    }
   }
-
-  // Ensure rejectedContent is always an array
-  const rejectedContent = Array.isArray(preferences.rejectedContent) 
-    ? preferences.rejectedContent 
-    : []
-
-  const newRejected = {
-    content,
-    contentType,
-    platform,
-    rejectedAt: new Date().toISOString(),
-    prompt,
-  }
-
-  const updatedRejected = [...rejectedContent, newRejected]
   
-  // Keep only last 20 rejected items
-  const trimmedRejected = updatedRejected.slice(-20)
-
-  updateSettings({
-    contentPreferences: {
-      ...preferences,
-      rejectedContent: trimmedRejected,
-    },
-  })
+  return { preferences: {}, insights: [] }
 }

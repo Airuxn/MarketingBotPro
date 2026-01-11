@@ -44,7 +44,6 @@ export default function AnalyticsPage() {
       console.log('[Analytics] Triggering learning from scanned posts on page load...')
       const existingPreferences = settings.contentPreferences || {
         acceptedContent: [],
-        rejectedContent: [],
         edits: [],
         scannedPosts: [],
       }
@@ -275,7 +274,6 @@ export default function AnalyticsPage() {
                             const scannedPosts = settings.contentPreferences?.scannedPosts || []
                             const existingPreferences = settings.contentPreferences || {
                               acceptedContent: [],
-                              rejectedContent: [],
                               edits: [],
                               scannedPosts: [],
                             }
