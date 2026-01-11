@@ -1800,9 +1800,9 @@ export default function SettingsPage() {
                                 <span>
                                   {storageQuota 
                                     ? `${storageQuota.localStorageLimitMB.toFixed(1)} MB ${
-                                        storageQuota.method?.includes('tested') 
+                                        storageQuota.method && storageQuota.method.toLowerCase().includes('tested') && !storageQuota.method.toLowerCase().includes('failed') && !storageQuota.method.toLowerCase().includes('blocked')
                                           ? '(tested)' 
-                                          : storageQuota.method?.includes('estimated')
+                                          : storageQuota.method && (storageQuota.method.toLowerCase().includes('estimated') || storageQuota.method.toLowerCase().includes('typical'))
                                             ? '(estimated)'
                                             : ''
                                       }`
