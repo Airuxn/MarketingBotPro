@@ -1273,6 +1273,90 @@ export default function ContentPage() {
             </div>
             </div>
 
+            {/* Connected Social Accounts Status - Mobile: Under Type & Platform */}
+            {(contentType === 'post' || contentType === 'ad') && (() => {
+              const adAccounts = settings.adAccounts || []
+              const socialAccounts = settings.socialAccounts || []
+              const connectedSocialAccounts = socialAccounts.filter(acc => acc.connected && acc.accessToken)
+              const scannedPosts = settings.contentPreferences?.scannedPosts || []
+              const hasScannedPosts = scannedPosts.length > 0
+              const lastScanTime = isMounted ? sessionStorage.getItem('lastScanTime') : null
+              const platformIcons: Record<string, any> = {
+                facebook: Facebook,
+                instagram: Instagram,
+                twitter: Twitter,
+                linkedin: Linkedin,
+              }
+              
+              if (connectedSocialAccounts.length === 0 && !isScanning) return null
+              
+              return (
+                <div className="lg:hidden glass rounded-xl p-2 border border-green-500/30 bg-gradient-to-br from-green-500/10 to-blue-500/10 relative overflow-hidden flex-shrink-0">
+                  {/* Decorative gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
+                  
+                  <div className="relative w-full">
+                    {/* Header */}
+                    <div className="flex items-center mb-1">
+                      <div className="flex items-center space-x-1">
+                        <CheckCircle className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                        <h3 className="text-[10px] font-bold text-white">Connected Social</h3>
+                </div>
+              </div>
+              
+                    {isScanning ? (
+                      <div className="flex items-center space-x-1.5">
+                        <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin flex-shrink-0" />
+                        <p className="text-xs text-blue-300">Scanning...</p>
+                </div>
+                    ) : connectedSocialAccounts.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {/* Platform badges - compact */}
+                        <div className="flex flex-wrap gap-1">
+                          {connectedSocialAccounts.map((acc) => {
+                            const Icon = platformIcons[acc.platform]
+                            const platformNames: Record<string, string> = {
+                              facebook: 'Facebook',
+                              instagram: 'Instagram',
+                              twitter: 'Twitter/X',
+                              linkedin: 'LinkedIn',
+                            }
+                            return (
+                              <div
+                                key={acc.platform}
+                                className="flex items-center space-x-1 px-1.5 py-0.5 bg-slate-800/50 rounded border border-slate-700/50"
+                              >
+                                {Icon && <Icon className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
+                                <span className="text-[10px] font-medium text-white">
+                                  {platformNames[acc.platform] || acc.platform}
+                                </span>
+                </div>
+                            )
+                          })}
+                        </div>
+
+                        {/* Stats - compact */}
+                        {hasScannedPosts && (
+                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-700/50 mt-1.5">
+                            <div className="flex items-center space-x-1">
+                              <Sparkles className="w-3 h-3 text-purple-400 flex-shrink-0" />
+                              <p className="text-[10px] font-medium text-slate-300">
+                                {scannedPosts.length} {scannedPosts.length === 1 ? 'post' : 'posts'}
+                        </p>
+                      </div>
+                            <div className="inline-flex items-center px-1.5 py-0.5 bg-green-500/30 rounded border border-green-500/50">
+                              <div className="w-1.5 h-1.5 bg-green-400 rounded-full mr-1"></div>
+                              <span className="text-[9px] font-semibold text-green-300">Active</span>
+                    </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Prompt Input - Same width as Type/Platform */}
             <div className="glass rounded-xl p-2.5 lg:p-4 border border-slate-700/50 flex-1 flex flex-col">
               <div className="flex items-center justify-between mb-1.5 lg:mb-2 flex-shrink-0">
@@ -1295,7 +1379,7 @@ export default function ContentPage() {
               />
             </div>
 
-            {/* Connected Social Accounts Status */}
+            {/* Connected Social Accounts Status - Desktop: At bottom */}
             {(contentType === 'post' || contentType === 'ad') && (() => {
               const adAccounts = settings.adAccounts || []
               const socialAccounts = settings.socialAccounts || []
@@ -1313,7 +1397,7 @@ export default function ContentPage() {
               if (connectedSocialAccounts.length === 0 && !isScanning) return null
               
               return (
-                <div className="glass rounded-xl p-2 lg:p-2.5 border border-green-500/30 bg-gradient-to-br from-green-500/10 to-blue-500/10 relative overflow-hidden flex-shrink-0">
+                <div className="hidden lg:block glass rounded-xl p-2 lg:p-2.5 border border-green-500/30 bg-gradient-to-br from-green-500/10 to-blue-500/10 relative overflow-hidden flex-shrink-0">
                   {/* Decorative gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
                   
@@ -1380,10 +1464,11 @@ export default function ContentPage() {
             })()}
           </div>
 
-          {/* Middle Column - Media */}
+          {/* Middle Column - Media - On mobile: only show if media selected, On desktop: always show */}
           {(contentType === 'post' || contentType === 'ad') && (
-            <div className="lg:col-span-1 flex flex-col lg:h-[503px]">
-              <div className="glass rounded-xl p-2.5 lg:p-4 border border-slate-700/50 h-full flex flex-col">
+            (selectedMedia || selectedBrandImage) ? (
+              <div className="lg:col-span-1 flex flex-col lg:h-[503px]">
+                <div className="glass rounded-xl p-2.5 lg:p-4 border border-slate-700/50 h-full flex flex-col">
                 <div className="flex items-center justify-between mb-2 lg:mb-3 flex-shrink-0">
                   <label className="text-xs lg:text-sm font-semibold text-white">Media</label>
                   <div className="flex items-center space-x-2">
@@ -1489,10 +1574,75 @@ export default function ContentPage() {
                 </div>
               </div>
             </div>
+            ) : (
+              /* Desktop: Show empty media box when no media selected */
+              <div className="hidden lg:flex lg:col-span-1 flex-col lg:h-[503px]">
+                <div className="glass rounded-xl p-2.5 lg:p-4 border border-slate-700/50 h-full flex flex-col">
+                  <div className="flex items-center justify-between mb-2 lg:mb-3 flex-shrink-0">
+                    <label className="text-xs lg:text-sm font-semibold text-white">Media</label>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          const fileInput = document.createElement('input')
+                          fileInput.type = 'file'
+                          fileInput.accept = 'image/*,video/*'
+                          fileInput.onchange = async (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0]
+                            if (!file) return
+                            
+                            const objectUrl = URL.createObjectURL(file)
+                            const mediaFile: MediaFile = {
+                              file,
+                              preview: objectUrl,
+                              type: file.type.startsWith('image/') ? 'image' : 'video',
+                              size: file.size,
+                              validated: true,
+                            }
+                            setSelectedMedia(mediaFile)
+                            setSelectedBrandImage(null)
+                            toast.success('Image loaded with original quality for posting')
+                          }
+                          fileInput.click()
+                        }}
+                        className="text-[10px] lg:text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors flex items-center space-x-1"
+                      >
+                        <Upload className="w-2.5 h-2.5 lg:w-3 lg:h-3" />
+                        <span>Upload</span>
+                      </button>
+                      <button
+                        onClick={() => setShowLibraryModal(true)}
+                        className="text-[10px] lg:text-xs text-purple-400 hover:text-purple-300 font-medium transition-colors relative pr-4 lg:pr-5"
+                      >
+                        Library
+                        {(() => {
+                          const currentPlatform = contentType === 'ad' ? adPlatform : platform
+                          const imageCount = (settings.brandImages || []).filter(
+                            img => img.platform === currentPlatform
+                          ).length
+                          if (imageCount > 0) {
+                            return (
+                              <span className="absolute -top-1.5 right-0 bg-purple-500 text-white text-[9px] lg:text-[10px] font-bold rounded-full min-w-[16px] lg:min-w-[18px] h-[16px] lg:h-[18px] px-1 lg:px-1.5 flex items-center justify-center border-2 border-slate-900 shadow-lg leading-none">
+                                {imageCount > 99 ? '99+' : imageCount}
+                              </span>
+                            )
+                          }
+                          return null
+                        })()}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="border border-dashed border-slate-700 rounded-lg p-2 lg:p-3 flex-1 flex items-center justify-center overflow-hidden min-h-0" style={{ minHeight: '150px' }}>
+                    <div className="flex items-center justify-center text-slate-500" style={{ minHeight: '150px' }}>
+                      <p className="text-xs text-center">No media selected</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
           )}
 
-          {/* Right Column - Generated Content Preview */}
-          <div className="lg:col-span-1 flex flex-col space-y-1.5 lg:h-[503px]">
+          {/* Right Column - Generated Content Preview - Hidden on mobile */}
+          <div className="hidden lg:flex lg:col-span-1 flex-col space-y-1.5 lg:h-[503px]">
             {/* Generate Button - Above content area */}
           <button
             onClick={() => handleGenerate()}
