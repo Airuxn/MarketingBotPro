@@ -362,6 +362,9 @@ export const useStore = create<Store>()(
         
         const originalSetItem = storage.setItem.bind(storage)
         storage.setItem = function(key: string, value: string) {
+          // Skip cleanup/toast for test keys (used by testLocalStorageLimit)
+          const isTestKey = key.startsWith('__localStorage_limit_test__')
+          
           try {
             originalSetItem(key, value)
             // Debounce backup creation (only backup every 30 seconds max)
@@ -380,6 +383,12 @@ export const useStore = create<Store>()(
               }, 30000) // 30 second debounce
             }
           } catch (error: any) {
+            // If this is a test key, just throw the error without cleanup/toast
+            // This allows testLocalStorageLimit() to handle the error itself
+            if (isTestKey) {
+              throw error
+            }
+            
             // Handle QuotaExceededError by cleaning up old data
             // Only show toast if not initial load and not spamming
             const now = Date.now()
