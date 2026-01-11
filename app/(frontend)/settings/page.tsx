@@ -1495,14 +1495,14 @@ export default function SettingsPage() {
                           {/* Two Column Layout - Swapped */}
                           <div className="grid grid-cols-2 gap-3">
                             {/* Storage Details Card - Now on Left */}
-                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col">
+                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col h-full">
                               <h5 className="text-xs font-semibold text-white mb-2.5 flex items-center space-x-1.5">
                                 <div className="p-1 rounded bg-purple-500/20 border border-purple-500/30">
                                   <Database className="w-2.5 h-2.5 text-purple-400" />
                                 </div>
                                 <span>Storage Details</span>
                               </h5>
-                              <div className="space-y-1.5 text-xs flex-1">
+                              <div className="space-y-1.5 text-xs">
                                 <div className="flex items-center justify-between py-1 px-2 rounded bg-slate-800/30 border border-slate-700/30">
                                   <span className="text-slate-400">Browser</span>
                                   <span className="text-white font-medium">{storageInfo?.browser || 'Unknown'}</span>
@@ -1537,7 +1537,7 @@ export default function SettingsPage() {
                                   </div>
                                 )}
                               </div>
-                              <div className="pt-2 mt-2 border-t border-slate-700/30 text-xs text-slate-400 leading-relaxed">
+                              <div className="pt-2 mt-auto border-t border-slate-700/30 text-xs text-slate-400 leading-relaxed">
                                 <strong className="text-slate-300 font-medium">Note:</strong> Data is stored locally in your browser (localStorage). 
                                 {storageQuota?.totalQuotaMB && storageQuota.totalQuotaMB > 1000 && (
                                   <> Your browser has {storageQuota.totalQuotaMB.toFixed(0)} MB total storage available, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB.toFixed(1)} MB limit per origin.</>
