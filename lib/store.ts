@@ -380,8 +380,6 @@ export const useStore = create<Store>()(
               }, 30000) // 30 second debounce
             }
           } catch (error: any) {
-            }
-            
             // Handle QuotaExceededError by cleaning up old data
             // Only show toast if not initial load and not spamming
             const now = Date.now()
