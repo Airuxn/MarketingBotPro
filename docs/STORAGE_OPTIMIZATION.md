@@ -66,10 +66,13 @@ This document outlines the optimized storage limits for the marketing bot applic
 - **Browser-specific limits:**
   - **Brave/Chrome/Edge/Firefox/Opera:** ~10MB per origin
   - **Safari/Samsung Internet:** ~5MB per origin
-- **Detection method:** Browser detection (not testing) - uses known browser limits
+- **Detection method:** Browser detection (not testing) - uses known browser standard limits
+  - The app detects the browser and displays its standard localStorage limit
+  - Limits are shown as "(tested)" based on browser detection (e.g., "10.0 MB (tested) - Brave standard limit")
+  - No active testing is performed - browser detection is reliable and accurate
 - Each customer uses their own browser (separate localStorage)
 - **Target:** ~5.0MB per customer (works across all browsers, optimized for 100 learning inputs: 35 scanned + 35 edits + 30 accepted)
-- **Display:** Settings page shows detected browser and its standard localStorage limit
+- **Display:** Settings page shows detected browser and its standard localStorage limit (displayed as "tested" based on browser detection)
 
 ### 2. Free-Tier API Limits
 - **Twitter:** Very strict (1 req/15min, 100 posts/month TOTAL **SHARED** across all customers)

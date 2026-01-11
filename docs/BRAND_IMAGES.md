@@ -75,15 +75,18 @@ When you select a brand image:
 ## 🔧 Technical Details
 
 - **Image Extraction**: Uses HTML parsing
-- **Storage**: Images stored as base64 or URLs in Zustand
+- **Storage**: Images stored as URLs (original social media URLs) in Zustand, not base64 (saves ~150KB per image)
 - **Editing**: Canvas API for real image manipulation
 - **Platform Adaptation**: Automatic resizing/cropping per platform specs
 - **Image Loading**: 
+  - **Server-side proxy** for Instagram/Facebook images (`/api/proxy-image`) to avoid CORS issues on mobile browsers
+  - Direct URLs for Twitter/LinkedIn images (no CORS issues)
   - Loading states with spinners while images load
   - Error handling with placeholders when images fail to load
-  - CORS-aware with `crossOrigin="anonymous"` attribute
+  - Preload images to check if they load successfully
   - Graceful fallback for network issues or blocked images
   - Console logging for debugging image loading issues
+  - **CORS Fix**: Instagram/Facebook images are proxied through server to avoid mobile browser CORS restrictions
 
 ## 🎯 Result
 

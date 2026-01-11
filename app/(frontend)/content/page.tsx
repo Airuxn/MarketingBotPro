@@ -660,7 +660,7 @@ export default function ContentPage() {
     
     if (shouldScan) {
       console.log('[Content Page] Starting scan...')
-      scanAccounts()
+    scanAccounts()
       sessionStorage.setItem('lastScanTime', Date.now().toString())
     } else {
       const cacheInfo = {

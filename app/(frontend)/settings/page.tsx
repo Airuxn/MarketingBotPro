@@ -1678,16 +1678,16 @@ export default function SettingsPage() {
                       return (
                         <>
                           {/* Stacked Layout - Storage Details on top, Storage Usage below */}
-                          <div className="flex flex-col gap-3">
+                          <div className="flex flex-col gap-2.5">
                             {/* Storage Details Card - On Top */}
-                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col">
-                              <h5 className="text-xs font-semibold text-white mb-2.5 flex items-center space-x-1.5">
+                            <div className="glass rounded-lg p-2.5 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col">
+                              <h5 className="text-xs font-semibold text-white mb-2 flex items-center space-x-1.5">
                                 <div className="p-1 rounded bg-purple-500/20 border border-purple-500/30">
                                   <Database className="w-2.5 h-2.5 text-purple-400" />
                                 </div>
                                 <span>Storage Details</span>
                               </h5>
-                              <div className="space-y-1.5 text-xs">
+                              <div className="space-y-1 text-xs">
                                 <div className="flex items-center justify-between py-1 px-2 rounded bg-slate-800/30 border border-slate-700/30">
                                   <span className="text-slate-400">Browser</span>
                                   <span className="text-white font-medium">{storageInfo?.browser || 'Unknown'}</span>
@@ -1730,7 +1730,7 @@ export default function SettingsPage() {
                                   </div>
                                 )}
                               </div>
-                              <div className="pt-2 mt-auto border-t border-slate-700/30 text-xs text-slate-400 leading-relaxed">
+                              <div className="pt-1.5 mt-1 border-t border-slate-700/30 text-[10px] text-slate-400 leading-tight">
                                   <strong className="text-slate-300 font-medium">Note:</strong> Data is stored locally in your browser (localStorage). 
                                   {storageQuota?.totalQuotaMB && storageQuota.totalQuotaMB > 1000 && (
                                     <> Your browser has {storageQuota.totalQuotaMB.toFixed(0)} MB total storage available, but this app uses localStorage which has its own ~{storageQuota.localStorageLimitMB.toFixed(1)} MB limit per origin.</>
@@ -1742,8 +1742,8 @@ export default function SettingsPage() {
                             </div>
 
                             {/* Main Storage Card - Combined Stats & Progress - Below Storage Details */}
-                            <div className="glass rounded-lg p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30">
-                              <div className="flex items-center justify-between mb-3">
+                            <div className="glass rounded-lg p-2.5 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30">
+                              <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center space-x-2">
                                   <div className="p-1.5 rounded-lg bg-cyan-500/20 border border-cyan-500/30">
                                     <HardDrive className="w-3.5 h-3.5 text-cyan-400" />
@@ -1797,7 +1797,7 @@ export default function SettingsPage() {
                               </div>
 
                               {/* Stats Row */}
-                              <div className="grid grid-cols-2 gap-2 mb-3 p-2 rounded-lg bg-slate-800/30 border border-slate-700/30">
+                              <div className="grid grid-cols-2 gap-2 mb-2 p-2 rounded-lg bg-slate-800/30 border border-slate-700/30">
                                 <div>
                                   <div className="text-[10px] text-slate-400 mb-0.5">Used</div>
                                   <div className="text-sm font-bold text-blue-400">
@@ -1831,8 +1831,8 @@ export default function SettingsPage() {
                               </div>
 
                               {/* Progress Bar */}
-                              <div className="mb-2">
-                                <div className="flex items-center justify-between mb-1.5 text-xs">
+                              <div className="mb-1.5">
+                                <div className="flex items-center justify-between mb-1 text-xs">
                                   <span className="text-slate-400 font-medium">localStorage Usage</span>
                                   <span className={`font-bold ${
                                     usagePercentage > 80 ? 'text-red-400' : 
@@ -1857,7 +1857,7 @@ export default function SettingsPage() {
                               </div>
 
                               {/* Limit Info */}
-                              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-700/30 mb-3">
+                              <div className="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-700/30 mb-2">
                                 <span>
                                   {storageQuota 
                                     ? `${storageQuota.localStorageLimitMB.toFixed(1)} MB ${
@@ -1877,7 +1877,7 @@ export default function SettingsPage() {
                               </div>
 
                               {/* Export/Import Buttons */}
-                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-700/30">
+                              <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-slate-700/30">
                                 <button
                                   onClick={() => {
                                     try {
