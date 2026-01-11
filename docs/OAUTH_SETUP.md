@@ -65,12 +65,12 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com
    
    **Note:** Without this configuration, Facebook JavaScript SDK login will NOT work. This is required for `FB.login()` to function.
 6. Add "Instagram Basic Display" and "Instagram Graph API" products (if using Instagram)
-6. Request required permissions:
+7. Request required permissions:
    - `pages_manage_posts`
    - `pages_read_engagement`
    - `instagram_basic`
    - `instagram_content_publish`
-7. Copy App ID and App Secret to `.env.local`
+8. Copy App ID and App Secret to `.env.local`
    - Use the same App ID for both `FACEBOOK_CLIENT_ID` and `NEXT_PUBLIC_FACEBOOK_APP_ID`
    - The App Secret goes in `FACEBOOK_CLIENT_SECRET`
 
