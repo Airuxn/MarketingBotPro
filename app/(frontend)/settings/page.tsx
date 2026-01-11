@@ -1130,7 +1130,7 @@ export default function SettingsPage() {
           {/* Tabs */}
           <div className="space-y-2 mb-4 border-b border-slate-700/50 pb-2">
             {/* First row: Overview, Accepted, Edits, Scanned */}
-            <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto">
+            <div className="flex flex-nowrap items-center gap-1.5 overflow-x-auto w-fit lg:w-full">
               {(['overview', 'accepted', 'edits', 'scanned'] as const).map((tab) => {
                 const counts = {
                   overview: 0,
