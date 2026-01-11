@@ -1677,9 +1677,9 @@ export default function SettingsPage() {
                       
                       return (
                         <>
-                          {/* Stacked Layout - Storage Details on top, Storage Usage below */}
-                          <div className="flex flex-col gap-2.5 lg:gap-3">
-                            {/* Storage Details Card - On Top */}
+                          {/* Responsive Layout - Stacked on mobile, side-by-side on desktop */}
+                          <div className="flex flex-col lg:grid lg:grid-cols-2 gap-2.5 lg:gap-3">
+                            {/* Storage Details Card - On Top (mobile) / Left (desktop) */}
                             <div className="glass rounded-lg p-2.5 lg:p-3 border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/30 flex flex-col">
                               <h5 className="text-xs font-semibold text-white mb-2 lg:mb-2.5 flex items-center space-x-1.5">
                                 <div className="p-1 rounded bg-purple-500/20 border border-purple-500/30">
