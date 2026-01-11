@@ -29,6 +29,7 @@
 6. **Open in Browser**
    - Go to [http://localhost:3000](http://localhost:3000)
    - Click on Settings
+   - Connect social media accounts (optional)
    - Add your Google Gemini API key
    - Fill in your business information
 
