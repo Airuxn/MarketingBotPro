@@ -272,21 +272,21 @@ export default function AnalyticsPage() {
                 className="glass rounded-lg p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <Icon className={`w-4 h-4 ${metric.color.replace('#', 'text-')} opacity-80 group-hover:opacity-100 transition-opacity`} style={{ color: metric.color }} />
+                  <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
                   <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
                     <ArrowUp className="w-3 h-3" />
                     <span className="font-medium">12%</span>
                   </div>
                 </div>
-                <div className="text-xl lg:text-2xl font-semibold text-white mb-1">
+                <div className="text-xl lg:text-2xl font-semibold text-white mb-1 truncate">
                   {metric.isPercentage ? (
                     displayValue
                   ) : (
                     <AnimatedCounter value={metric.value} />
                   )}
                 </div>
-                <div className="text-[10px] lg:text-xs text-slate-400 font-medium mb-1.5">{metric.label}</div>
-                <div className="h-6 -mx-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                <div className="text-[10px] lg:text-xs text-slate-400 font-medium mb-1.5 truncate">{metric.label}</div>
+                <div className="h-6 opacity-60 group-hover:opacity-100 transition-opacity overflow-hidden">
                   <MiniSparkline data={metric.sparklineData} color={metric.color} />
                 </div>
               </div>
