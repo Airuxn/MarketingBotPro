@@ -115,8 +115,7 @@ export default function AnalyticsPage() {
         day: format(date, 'EEE'),
         date: format(date, 'yyyy-MM-dd'),
         views: 0,
-        engagement: 0,
-        count: 0
+        engagement: 0, // Total engagements (likes + comments + shares)
       }
     })
 
@@ -127,8 +126,9 @@ export default function AnalyticsPage() {
         const dayData = days.find(d => d.date === postDate)
         if (dayData) {
           dayData.views += post.engagement.views || 0
-          dayData.engagement += calculateEngagementRate(post)
-          dayData.count += 1
+          // Engagement = likes + comments + shares (absolute number)
+          const { likes = 0, comments = 0, shares = 0 } = post.engagement
+          dayData.engagement += likes + comments + shares
         }
       }
     })
@@ -145,25 +145,16 @@ export default function AnalyticsPage() {
           // Estimate views: typically views are 20x likes
           const estimatedViews = likes > 0 ? likes * 20 : totalEngagements * 10
           dayData.views += estimatedViews
-          
-          // Estimate engagement rate: typically 2-5% engagement rate
-          // Use a conservative estimate: (engagements / estimated_reach) * 100
-          // Estimated reach is typically 2-3x views
-          const estimatedReach = estimatedViews * 2.5
-          const engagementRate = estimatedReach > 0 
-            ? (totalEngagements / estimatedReach) * 100
-            : 0
-          dayData.engagement += engagementRate
-          dayData.count += 1
+          // Engagement = likes + comments + shares (absolute number)
+          dayData.engagement += totalEngagements
         }
       }
     })
 
-    // Calculate averages for engagement
     return days.map(day => ({
       day: day.day,
       views: day.views,
-      engagement: day.count > 0 ? day.engagement / day.count : 0
+      engagement: day.engagement
     }))
   }, [postedPosts, scannedPosts])
 
@@ -308,92 +299,6 @@ export default function AnalyticsPage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-          {metrics.map((metric) => {
-            const Icon = metric.icon
-            const displayValue = metric.isPercentage 
-              ? `${metric.value.toFixed(2)}%`
-              : metric.value.toLocaleString()
-            
-            return (
-              <div
-                key={metric.label}
-                className="glass rounded-lg p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
-                  {metric.value > 0 && (
-                    <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
-                      <ArrowUp className="w-3 h-3" />
-                      <span className="font-medium">12%</span>
-                    </div>
-                  )}
-                </div>
-                <div className="text-xl lg:text-2xl font-semibold text-white mb-1 truncate">
-                  {metric.isPercentage ? (
-                    displayValue
-                  ) : (
-                    <AnimatedCounter value={metric.value} />
-                  )}
-                </div>
-                <div className="text-[10px] lg:text-xs text-slate-400 font-medium truncate">{metric.label}</div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Trend Chart */}
-        <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
-            <div className="flex items-center space-x-2 text-xs text-slate-400">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                <span>Views</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                <span>Engagement %</span>
-              </div>
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
-              <YAxis yAxisId="left" stroke="#94a3b8" fontSize={12} />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                stroke="#34d399" 
-                fontSize={12}
-                domain={[0, 100]}
-                tickFormatter={(value) => `${value}%`}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Line 
-                yAxisId="left"
-                type="monotone" 
-                dataKey="views" 
-                stroke="#60a5fa" 
-                strokeWidth={2}
-                dot={{ fill: '#60a5fa', r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey="engagement" 
-                stroke="#34d399" 
-                strokeWidth={2}
-                dot={{ fill: '#34d399', r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
         {/* AI Insights - Compact */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
           {/* AI Performance Insights */}
@@ -461,6 +366,90 @@ export default function AnalyticsPage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Trend Chart */}
+        <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
+            <div className="flex items-center space-x-2 text-xs text-slate-400">
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                <span>Views</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                <span>Engagement (likes + comments + shares)</span>
+              </div>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
+              <YAxis yAxisId="left" stroke="#94a3b8" fontSize={12} />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right" 
+                stroke="#34d399" 
+                fontSize={12}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line 
+                yAxisId="left"
+                type="monotone" 
+                dataKey="views" 
+                stroke="#60a5fa" 
+                strokeWidth={2}
+                dot={{ fill: '#60a5fa', r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+              <Line 
+                yAxisId="right"
+                type="monotone" 
+                dataKey="engagement" 
+                stroke="#34d399" 
+                strokeWidth={2}
+                dot={{ fill: '#34d399', r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Key Metrics Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          {metrics.map((metric) => {
+            const Icon = metric.icon
+            const displayValue = metric.isPercentage 
+              ? `${metric.value.toFixed(2)}%`
+              : metric.value.toLocaleString()
+            
+            return (
+              <div
+                key={metric.label}
+                className="glass rounded-lg p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
+                  {metric.value > 0 && (
+                    <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
+                      <ArrowUp className="w-3 h-3" />
+                      <span className="font-medium">12%</span>
+                    </div>
+                  )}
+                </div>
+                <div className="text-xl lg:text-2xl font-semibold text-white mb-1 truncate">
+                  {metric.isPercentage ? (
+                    displayValue
+                  ) : (
+                    <AnimatedCounter value={metric.value} />
+                  )}
+                </div>
+                <div className="text-[10px] lg:text-xs text-slate-400 font-medium truncate">{metric.label}</div>
+              </div>
+            )
+          })}
         </div>
 
         {/* Performance Breakdown - Tabbed Interface */}
