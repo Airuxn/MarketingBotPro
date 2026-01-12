@@ -1321,12 +1321,14 @@ export default function ContentPage() {
                             )
                           })}
                         </div>
-                        {hasScannedPosts && (
-                          <span className="text-[9px] text-slate-300 ml-1">
-                            {scannedPosts.length} {scannedPosts.length === 1 ? 'post' : 'posts'}
-                          </span>
-                        )}
-                        <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0 ml-auto" />
+                        <div className="flex items-center gap-1 ml-auto">
+                          {hasScannedPosts && (
+                            <span className="text-[9px] text-slate-300">
+                              {scannedPosts.length} {scannedPosts.length === 1 ? 'post' : 'posts'}
+                            </span>
+                          )}
+                          <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0" />
+                        </div>
                       </div>
                     ) : null}
                   </div>
