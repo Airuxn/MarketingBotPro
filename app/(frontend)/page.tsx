@@ -50,20 +50,30 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative bg-slate-900">
       {/* Dashboard Header */}
       <div className="glass-strong border-b border-slate-700/50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gradient mb-2 tracking-tight">Dashboard</h1>
-          <p className="text-sm text-slate-300">Overview of your marketing performance</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg blur-lg opacity-60"></div>
+              <div className="relative w-7 h-7 lg:w-10 lg:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-glow">
+                <Sparkles className="w-3.5 h-3.5 lg:w-5 lg:h-5 text-white" />
+              </div>
+            </div>
+            <div>
+              <h1 className="text-lg lg:text-2xl font-bold text-gradient">Dashboard</h1>
+              <p className="text-xs lg:text-sm text-slate-300 hidden sm:block">Overview of your marketing performance</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-6 relative z-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 pb-1.5 lg:py-3 relative z-10">
         {/* Quick Actions */}
-        <div className="mb-6">
-          <h2 className="text-xl font-bold text-white mb-4 tracking-tight">{t('quickActions')}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mb-4 lg:mb-6">
+          <h2 className="text-base lg:text-xl font-bold text-white mb-2.5 lg:mb-4 tracking-tight">{t('quickActions')}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-4">
             {[
               {
                 title: t('createContent'),
@@ -97,7 +107,7 @@ export default function Home() {
               <Link
                 key={action.href}
                 href={action.href}
-                className="group relative overflow-hidden glass rounded-xl p-4 hover-lift"
+                className="group relative overflow-hidden glass rounded-xl p-2.5 lg:p-4 hover-lift"
               >
                 <div 
                   className="absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-10 transition-opacity duration-300" 
@@ -107,13 +117,13 @@ export default function Home() {
                     ['--tw-gradient-to' as string]: action.gradient.split(' ')[3]
                   } as React.CSSProperties & Record<string, string>}
                 ></div>
-                <div className={`relative bg-gradient-to-br ${action.gradient} w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-glow`}>
-                  <action.icon className="w-5 h-5 text-white" />
+                <div className={`relative bg-gradient-to-br ${action.gradient} w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center mb-2 lg:mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-glow`}>
+                  <action.icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
                 </div>
-                <h3 className="relative text-base font-bold text-white mb-1.5 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-blue-400 transition-all duration-300 tracking-tight">
+                <h3 className="relative text-sm lg:text-base font-bold text-white mb-1 lg:mb-1.5 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-blue-400 transition-all duration-300 tracking-tight">
                   {action.title}
                 </h3>
-                <p className="relative text-xs text-slate-300 leading-relaxed group-hover:text-slate-200 transition-colors">
+                <p className="relative text-[10px] lg:text-xs text-slate-300 leading-tight lg:leading-relaxed group-hover:text-slate-200 transition-colors">
                   {action.description}
                 </p>
                 <div 
@@ -130,7 +140,7 @@ export default function Home() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 lg:gap-4 mb-4 lg:mb-6">
           <StatCard
             icon={MessageSquare}
             label={t('postsCreated')}
@@ -162,57 +172,58 @@ export default function Home() {
         </div>
 
         {/* Analytics Preview */}
-        <div className="glass rounded-xl p-5 hover-lift">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">{t('analytics')}</h2>
+        <div className="glass rounded-xl p-2.5 lg:p-5 hover-lift">
+          <div className="flex items-center justify-between mb-2.5 lg:mb-4">
+            <h2 className="text-base lg:text-xl font-bold text-white tracking-tight">{t('analytics')}</h2>
             <Link
               href="/analytics"
-              className="text-purple-400 hover:text-purple-300 font-semibold text-sm transition-all duration-300 flex items-center space-x-2 group"
+              className="text-purple-400 hover:text-purple-300 font-semibold text-[10px] lg:text-sm transition-all duration-300 flex items-center space-x-1 lg:space-x-2 group"
             >
-              <span>{t('viewFullReport')}</span>
+              <span className="hidden sm:inline">{t('viewFullReport')}</span>
+              <span className="sm:hidden">View</span>
               <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
             </Link>
           </div>
           {hasData ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
-                <div className="flex items-center space-x-2 mb-1">
-                  <TrendingUp className="w-4 h-4 text-blue-400" />
-                  <p className="text-xs text-slate-400">Total Views</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-4">
+              <div className="bg-slate-800/30 rounded-lg p-2 lg:p-3 border border-slate-700/50">
+                <div className="flex items-center space-x-1 lg:space-x-2 mb-0.5 lg:mb-1">
+                  <TrendingUp className="w-3 h-3 lg:w-4 lg:h-4 text-blue-400" />
+                  <p className="text-[10px] lg:text-xs text-slate-400">Total Views</p>
                 </div>
-                <p className="text-lg font-bold text-white">{totalViews.toLocaleString()}</p>
+                <p className="text-base lg:text-lg font-bold text-white">{totalViews.toLocaleString()}</p>
               </div>
-              <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
-                <div className="flex items-center space-x-2 mb-1">
-                  <MessageSquare className="w-4 h-4 text-purple-400" />
-                  <p className="text-xs text-slate-400">Total Likes</p>
+              <div className="bg-slate-800/30 rounded-lg p-2 lg:p-3 border border-slate-700/50">
+                <div className="flex items-center space-x-1 lg:space-x-2 mb-0.5 lg:mb-1">
+                  <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4 text-purple-400" />
+                  <p className="text-[10px] lg:text-xs text-slate-400">Total Likes</p>
                 </div>
-                <p className="text-lg font-bold text-white">{totalLikes.toLocaleString()}</p>
+                <p className="text-base lg:text-lg font-bold text-white">{totalLikes.toLocaleString()}</p>
               </div>
-              <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
-                <div className="flex items-center space-x-2 mb-1">
-                  <MessageSquare className="w-4 h-4 text-green-400" />
-                  <p className="text-xs text-slate-400">Comments</p>
+              <div className="bg-slate-800/30 rounded-lg p-2 lg:p-3 border border-slate-700/50">
+                <div className="flex items-center space-x-1 lg:space-x-2 mb-0.5 lg:mb-1">
+                  <MessageSquare className="w-3 h-3 lg:w-4 lg:h-4 text-green-400" />
+                  <p className="text-[10px] lg:text-xs text-slate-400">Comments</p>
                 </div>
-                <p className="text-lg font-bold text-white">{totalComments.toLocaleString()}</p>
+                <p className="text-base lg:text-lg font-bold text-white">{totalComments.toLocaleString()}</p>
               </div>
-              <div className="bg-slate-800/30 rounded-lg p-3 border border-slate-700/50">
-                <div className="flex items-center space-x-2 mb-1">
-                  <BarChart3 className="w-4 h-4 text-orange-400" />
-                  <p className="text-xs text-slate-400">Engagement</p>
+              <div className="bg-slate-800/30 rounded-lg p-2 lg:p-3 border border-slate-700/50">
+                <div className="flex items-center space-x-1 lg:space-x-2 mb-0.5 lg:mb-1">
+                  <BarChart3 className="w-3 h-3 lg:w-4 lg:h-4 text-orange-400" />
+                  <p className="text-[10px] lg:text-xs text-slate-400">Engagement</p>
                 </div>
-                <p className="text-lg font-bold text-white">{avgEngagementRate.toFixed(1)}%</p>
+                <p className="text-base lg:text-lg font-bold text-white">{avgEngagementRate.toFixed(1)}%</p>
               </div>
             </div>
           ) : (
-            <div className="h-40 flex items-center justify-center text-slate-400">
+            <div className="h-32 lg:h-40 flex items-center justify-center text-slate-400">
               <div className="text-center">
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full blur-2xl"></div>
-                  <BarChart3 className="relative w-12 h-12 mx-auto mb-3 text-purple-400" />
+                  <BarChart3 className="relative w-8 h-8 lg:w-12 lg:h-12 mx-auto mb-2 lg:mb-3 text-purple-400" />
                 </div>
-                <p className="text-xs text-slate-400">{t('analyticsDashboard')}</p>
-                <p className="text-xs text-slate-500 mt-2">Track engagement on your posts to see analytics here</p>
+                <p className="text-[10px] lg:text-xs text-slate-400">{t('analyticsDashboard')}</p>
+                <p className="text-[9px] lg:text-xs text-slate-500 mt-1 lg:mt-2">Track engagement on your posts to see analytics here</p>
               </div>
             </div>
           )}
@@ -246,17 +257,17 @@ function StatCard({
         } as React.CSSProperties & Record<string, string>}
       ></div>
       <div className="relative">
-        <div className={`bg-gradient-to-br ${gradient} w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-glow`}>
-          <Icon className="w-5 h-5 text-white" />
+        <div className={`bg-gradient-to-br ${gradient} w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center mb-2 lg:mb-3 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-glow`}>
+          <Icon className="w-4 h-4 lg:w-5 lg:h-5 text-white" />
         </div>
         <p 
-          className="text-2xl font-bold text-white mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r transition-all duration-300" 
+          className="text-lg lg:text-2xl font-bold text-white mb-0.5 lg:mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r transition-all duration-300" 
           style={{
             ['--tw-gradient-from' as string]: gradient.split(' ')[1],
             ['--tw-gradient-to' as string]: gradient.split(' ')[3]
           } as React.CSSProperties & Record<string, string>}
         >{value}</p>
-        <p className="text-xs text-slate-300 font-medium">{label}</p>
+        <p className="text-[10px] lg:text-xs text-slate-300 font-medium">{label}</p>
       </div>
     </div>
   )
