@@ -585,12 +585,12 @@ export default function AnalyticsPage() {
                     return (
                       <div
                         key={metric.label}
-                        className="glass rounded-lg p-2 lg:p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group flex flex-col justify-center"
+                        className="glass rounded-lg p-2 lg:p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group flex flex-col justify-center items-center text-center min-h-[100px]"
                         style={{
                           boxShadow: `0 0 15px ${metric.color}20`
                         }}
                       >
-                        <div className="flex items-center justify-between mb-1.5 lg:mb-2">
+                        <div className="flex items-center justify-between w-full mb-1.5 lg:mb-2">
                           <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
                           {metric.value > 0 && (
                             <div className="flex items-center space-x-0.5 text-[9px] lg:text-[10px] text-green-400">
@@ -599,14 +599,14 @@ export default function AnalyticsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="text-lg lg:text-xl xl:text-2xl font-semibold text-white mb-0.5 lg:mb-1 truncate">
+                        <div className="text-lg lg:text-xl xl:text-2xl font-semibold text-white mb-0.5 lg:mb-1 w-full truncate text-center">
                           {metric.isPercentage ? (
                             displayValue
                           ) : (
                             <AnimatedCounter value={metric.value} />
                           )}
                         </div>
-                        <div className="text-[9px] lg:text-[10px] xl:text-xs text-slate-400 font-medium truncate">{metric.label}</div>
+                        <div className="text-[9px] lg:text-[10px] xl:text-xs text-slate-400 font-medium truncate w-full text-center">{metric.label}</div>
                       </div>
                     )
                   })}
