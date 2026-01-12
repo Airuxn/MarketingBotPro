@@ -42,57 +42,6 @@ function AnimatedCounter({ value, duration = 2000 }: { value: number, duration?:
   return <>{displayValue.toLocaleString()}</>
 }
 
-// Mini Sparkline Component
-function MiniSparkline({ data, color = '#3b82f6' }: { data: number[], color?: string }) {
-  if (!data || data.length === 0) {
-    // Generate dummy data for demo
-    data = Array.from({ length: 12 }, () => Math.random() * 100)
-  }
-
-  const max = Math.max(...data)
-  const min = Math.min(...data)
-  const range = max - min || 1
-
-  const normalizedData = data.map((val, idx) => ({
-    value: val,
-    normalized: ((val - min) / range) * 100,
-    index: idx
-  }))
-
-  const pathData = normalizedData.map((point, idx) => {
-    const x = (idx / (normalizedData.length - 1)) * 100
-    const y = 100 - point.normalized
-    return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`
-  }).join(' ')
-
-  const gradientId = `gradient-${color.replace('#', '')}`
-
-  return (
-    <svg width="100%" height="24" viewBox="0 0 100 24" preserveAspectRatio="none" className="block">
-      <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <path
-        d={`${pathData} L 100 100 L 0 100 Z`}
-        fill={`url(#${gradientId})`}
-        className="transition-opacity duration-300"
-      />
-      <path
-        d={pathData}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="transition-opacity duration-300"
-      />
-    </svg>
-  )
-}
-
 export default function AnalyticsPage() {
   const { stats, posts, emailCampaigns, leads, updatePost, settings, updateSettings } = useStore()
   const [selectedPost, setSelectedPost] = useState<string | null>(null)
@@ -118,14 +67,39 @@ export default function AnalyticsPage() {
   const scannedPosts: ScannedPost[] = settings.contentPreferences?.scannedPosts || []
   const insights = analyzeContentPerformance(posts, scannedPosts)
 
-  // Generate trend data (last 7 days simulation)
+  // Generate real trend data from posted posts (last 7 days)
   const trendData = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => ({
-      day: format(subDays(new Date(), 6 - i), 'EEE'),
-      views: Math.floor(Math.random() * 500) + 200,
-      engagement: Math.random() * 10 + 2
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = subDays(new Date(), 6 - i)
+      return {
+        day: format(date, 'EEE'),
+        date: format(date, 'yyyy-MM-dd'),
+        views: 0,
+        engagement: 0,
+        count: 0
+      }
+    })
+
+    // Aggregate data from posted posts
+    postedPosts.forEach(post => {
+      if (post.engagement?.lastUpdated) {
+        const postDate = format(new Date(post.engagement.lastUpdated), 'yyyy-MM-dd')
+        const dayData = days.find(d => d.date === postDate)
+        if (dayData) {
+          dayData.views += post.engagement.views || 0
+          dayData.engagement += calculateEngagementRate(post)
+          dayData.count += 1
+        }
+      }
+    })
+
+    // Calculate averages for engagement
+    return days.map(day => ({
+      day: day.day,
+      views: day.views,
+      engagement: day.count > 0 ? day.engagement / day.count : 0
     }))
-  }, [])
+  }, [postedPosts])
 
   // Chart data for posting times
   const postingTimesChartData = useMemo(() => {
@@ -184,14 +158,12 @@ export default function AnalyticsPage() {
       value: totalViews,
       icon: Eye,
       color: '#60a5fa',
-      sparklineData: trendData.map(d => d.views),
     },
     {
       label: 'Total Reach',
       value: totalReach,
       icon: TrendingUp,
       color: '#a78bfa',
-      sparklineData: trendData.map(d => d.views * 1.5),
     },
     {
       label: 'Avg Engagement',
@@ -199,28 +171,24 @@ export default function AnalyticsPage() {
       isPercentage: true,
       icon: Zap,
       color: '#34d399',
-      sparklineData: trendData.map(d => d.engagement),
     },
     {
       label: 'Total Likes',
       value: totalLikes,
       icon: Heart,
       color: '#f87171',
-      sparklineData: trendData.map(d => d.views * 0.3),
     },
     {
       label: 'Total Comments',
       value: totalComments,
       icon: MessageCircle,
       color: '#fb923c',
-      sparklineData: trendData.map(d => d.views * 0.1),
     },
     {
       label: 'Total Shares',
       value: totalShares,
       icon: Share2,
       color: '#818cf8',
-      sparklineData: trendData.map(d => d.views * 0.05),
     },
   ]
 
@@ -231,13 +199,20 @@ export default function AnalyticsPage() {
     if (active && payload && payload.length) {
       return (
         <div className="glass rounded-lg p-2 border border-slate-700/50 shadow-lg">
-          <p className="text-xs text-white font-medium">{payload[0].payload.name}</p>
-          <p className="text-xs text-blue-400">{`Engagement: ${payload[0].value.toFixed(1)}%`}</p>
+          <p className="text-xs text-white font-medium">{payload[0].payload.day}</p>
+          {payload.find((p: any) => p.dataKey === 'views') && (
+            <p className="text-xs text-blue-400">{`Views: ${payload.find((p: any) => p.dataKey === 'views')?.value.toLocaleString() || 0}`}</p>
+          )}
+          {payload.find((p: any) => p.dataKey === 'engagement') && (
+            <p className="text-xs text-green-400">{`Engagement: ${payload.find((p: any) => p.dataKey === 'engagement')?.value.toFixed(2)}%`}</p>
+          )}
         </div>
       )
     }
     return null
   }
+
+  const hasTrendData = trendData.some(d => d.views > 0 || d.engagement > 0)
 
   return (
     <div className="min-h-screen relative bg-slate-900">
@@ -260,7 +235,7 @@ export default function AnalyticsPage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-        {/* Key Metrics Grid with Sparklines */}
+        {/* Key Metrics Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
           {metrics.map((metric) => {
             const Icon = metric.icon
@@ -275,10 +250,12 @@ export default function AnalyticsPage() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
-                  <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
-                    <ArrowUp className="w-3 h-3" />
-                    <span className="font-medium">12%</span>
-                  </div>
+                  {metric.value > 0 && (
+                    <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
+                      <ArrowUp className="w-3 h-3" />
+                      <span className="font-medium">12%</span>
+                    </div>
+                  )}
                 </div>
                 <div className="text-xl lg:text-2xl font-semibold text-white mb-1 truncate">
                   {metric.isPercentage ? (
@@ -287,55 +264,64 @@ export default function AnalyticsPage() {
                     <AnimatedCounter value={metric.value} />
                   )}
                 </div>
-                <div className="text-[10px] lg:text-xs text-slate-400 font-medium mb-1.5 truncate">{metric.label}</div>
-                <div className="h-6 opacity-60 group-hover:opacity-100 transition-opacity overflow-hidden">
-                  <MiniSparkline data={metric.sparklineData} color={metric.color} />
-                </div>
+                <div className="text-[10px] lg:text-xs text-slate-400 font-medium truncate">{metric.label}</div>
               </div>
             )
           })}
         </div>
 
-        {/* Trend Chart */}
-        <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
-            <div className="flex items-center space-x-2 text-xs text-slate-400">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                <span>Views</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                <span>Engagement</span>
+        {/* Trend Chart - Only show if we have data */}
+        {hasTrendData && (
+          <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
+              <div className="flex items-center space-x-2 text-xs text-slate-400">
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                  <span>Views</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                  <span>Engagement %</span>
+                </div>
               </div>
             </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={trendData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
+                <YAxis yAxisId="left" stroke="#94a3b8" fontSize={12} />
+                <YAxis 
+                  yAxisId="right" 
+                  orientation="right" 
+                  stroke="#34d399" 
+                  fontSize={12}
+                  domain={[0, 100]}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Line 
+                  yAxisId="left"
+                  type="monotone" 
+                  dataKey="views" 
+                  stroke="#60a5fa" 
+                  strokeWidth={2}
+                  dot={{ fill: '#60a5fa', r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+                <Line 
+                  yAxisId="right"
+                  type="monotone" 
+                  dataKey="engagement" 
+                  stroke="#34d399" 
+                  strokeWidth={2}
+                  dot={{ fill: '#34d399', r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} />
-              <Tooltip content={<CustomTooltip />} />
-              <Line 
-                type="monotone" 
-                dataKey="views" 
-                stroke="#60a5fa" 
-                strokeWidth={2}
-                dot={{ fill: '#60a5fa', r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="engagement" 
-                stroke="#34d399" 
-                strokeWidth={2}
-                dot={{ fill: '#34d399', r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        )}
 
         {/* AI Insights - Compact */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
@@ -350,7 +336,7 @@ export default function AnalyticsPage() {
             {insights.recommendations.length > 0 ? (
               <div className="space-y-1.5">
                 {insights.recommendations.slice(0, 4).map((rec, idx) => (
-                  <div key={idx} className="flex items-start space-x-2 text-xs text-slate-300 leading-relaxed animate-fadeIn" style={{ animationDelay: `${idx * 100}ms` }}>
+                  <div key={idx} className="flex items-start space-x-2 text-xs text-slate-300 leading-relaxed">
                     <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />
                     <span>{rec}</span>
                   </div>
@@ -681,23 +667,6 @@ export default function AnalyticsPage() {
           )}
         </div>
       </main>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(4px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out forwards;
-          opacity: 0;
-        }
-      `}</style>
     </div>
   )
 }
