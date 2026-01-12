@@ -683,7 +683,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Tab Content */}
-          <div className="min-h-[300px]">
+          <div>
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <div>
