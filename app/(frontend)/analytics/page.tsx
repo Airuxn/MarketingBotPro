@@ -47,6 +47,7 @@ export default function AnalyticsPage() {
   const [selectedPost, setSelectedPost] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'overview' | 'times' | 'content' | 'hashtags' | 'platforms' | 'top' | 'all'>('overview')
   const [trendRange, setTrendRange] = useState<'7d' | '14d' | '30d' | '90d' | 'all'>('7d')
+  const [activeInsightTab, setActiveInsightTab] = useState<'insights' | 'preferences'>('insights')
 
   // Calculate additional metrics
   const scheduledPosts = posts.filter((p) => p.status === 'scheduled').length
@@ -332,7 +333,104 @@ export default function AnalyticsPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 lg:py-3">
         {/* AI Insights - Highlighted & Compact */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 lg:gap-3 mb-2 lg:mb-3">
+        {/* Mobile: Combined Tabbed Interface */}
+        <div className="lg:hidden mb-2">
+          <div className="relative glass rounded-lg border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30 transition-all duration-300" style={{ minHeight: '240px', maxHeight: '260px' }}>
+            {/* Animated glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-lg blur-2xl animate-pulse"></div>
+            <div className="relative p-3 h-full flex flex-col overflow-hidden">
+              {/* Tab Selector */}
+              <div className="flex items-center justify-center mb-1.5 flex-shrink-0 gap-2">
+                <button
+                  onClick={() => setActiveInsightTab('insights')}
+                  className={`flex items-center space-x-2 transition-all ${
+                    activeInsightTab === 'insights'
+                      ? 'text-white'
+                      : 'text-slate-400'
+                  }`}
+                >
+                  <Zap className="w-4 h-4" />
+                  <span className="text-sm font-bold">Performance Insights</span>
+                </button>
+                <div className="text-slate-500 text-xl font-light mx-1">/</div>
+                <button
+                  onClick={() => setActiveInsightTab('preferences')}
+                  className={`flex items-center space-x-2 transition-all ${
+                    activeInsightTab === 'preferences'
+                      ? 'text-white'
+                      : 'text-slate-400'
+                  }`}
+                >
+                  <Brain className="w-4 h-4" />
+                  <span className="text-sm font-bold">Learned Preferences</span>
+                </button>
+              </div>
+              <div className="text-[10px] text-blue-300/90 font-medium text-center mb-2">
+                {activeInsightTab === 'insights' ? 'AI-powered recommendations' : 'Your content style DNA'}
+              </div>
+              
+              {/* Content Area */}
+              <div className="flex-1 overflow-hidden">
+                {activeInsightTab === 'insights' ? (
+                  <>
+                    {insights.recommendations.length > 0 ? (
+                      <div className="space-y-0.5">
+                        {insights.recommendations.slice(0, 5).map((rec, idx) => (
+                          <div key={idx} className="flex items-start space-x-2 text-[12px] text-slate-200 leading-relaxed py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-blue-500/10">
+                            <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0 shadow-lg shadow-blue-400/70 animate-pulse"></div>
+                            <span className="flex-1 font-medium">{rec}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[12px] text-slate-400 leading-relaxed py-3 px-3 rounded-md bg-slate-800/30 border border-blue-500/10 flex-1 flex items-center">
+                        Connect social accounts or add engagement data to see AI insights.
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {learnedStyle && Object.keys(learnedStyle).length > 0 ? (
+                      <div className="space-y-0.5">
+                        {learnedStyle.length && (
+                          <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                            <span className="text-sm text-slate-400 font-medium">Length</span>
+                            <span className="text-[10px] text-white font-semibold capitalize px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.length}</span>
+                          </div>
+                        )}
+                        {learnedStyle.tone && learnedStyle.tone.length > 0 && (
+                          <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                            <span className="text-sm text-slate-400 font-medium">Tone</span>
+                            <span className="text-[10px] text-white font-semibold px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
+                          </div>
+                        )}
+                        {learnedStyle.hashtagUsage && (
+                          <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                            <span className="text-sm text-slate-400 font-medium">Hashtags</span>
+                            <span className="text-[10px] text-white font-semibold capitalize px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.hashtagUsage}</span>
+                          </div>
+                        )}
+                        {learnedStyle.structure && learnedStyle.structure.length > 0 && (
+                          <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                            <span className="text-sm text-slate-400 font-medium">Structure</span>
+                            <span className="text-[10px] text-white font-semibold px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-[12px] text-slate-400 leading-relaxed py-3 px-3 rounded-md bg-slate-800/30 border border-purple-500/10 flex-1 flex items-center">
+                        AI learns from your scanned posts, accepted content, and edits.
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: Side-by-side Layout */}
+        <div className="hidden lg:grid grid-cols-2 gap-2.5 lg:gap-3 mb-2 lg:mb-3">
           {/* AI Performance Insights */}
           <div className="relative glass rounded-lg border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/40 transition-all duration-300" style={{ minHeight: '240px', maxHeight: '260px' }}>
             {/* Animated glow effect */}
@@ -576,20 +674,20 @@ export default function AnalyticsPage() {
             {activeTab === 'overview' && (
               <div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3">
-                  {metrics.map((metric) => {
-                    const Icon = metric.icon
+          {metrics.map((metric) => {
+            const Icon = metric.icon
                     const displayValue = metric.isPercentage 
                       ? `${metric.value.toFixed(2)}%`
                       : metric.value.toLocaleString()
                     
-                    return (
-                      <div
-                        key={metric.label}
+            return (
+              <div
+                key={metric.label}
                         className="glass rounded-lg p-2 lg:p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group flex flex-col justify-center items-center text-center min-h-[100px]"
                         style={{
                           boxShadow: `0 0 15px ${metric.color}20`
                         }}
-                      >
+              >
                         <div className="flex items-center justify-between w-full mb-1.5 lg:mb-2">
                           <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
                           {metric.value > 0 && (
@@ -598,19 +696,19 @@ export default function AnalyticsPage() {
                               <span className="font-medium">12%</span>
                             </div>
                           )}
-                        </div>
+                  </div>
                         <div className="text-lg lg:text-xl xl:text-2xl font-semibold text-white mb-0.5 lg:mb-1 w-full truncate text-center">
                           {metric.isPercentage ? (
                             displayValue
                           ) : (
                             <AnimatedCounter value={metric.value} />
                           )}
-                        </div>
-                        <div className="text-[9px] lg:text-[10px] xl:text-xs text-slate-400 font-medium truncate w-full text-center">{metric.label}</div>
-                      </div>
-                    )
-                  })}
                 </div>
+                        <div className="text-[9px] lg:text-[10px] xl:text-xs text-slate-400 font-medium truncate w-full text-center">{metric.label}</div>
+              </div>
+            )
+          })}
+        </div>
               </div>
             )}
 
