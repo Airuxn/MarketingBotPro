@@ -331,10 +331,10 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 lg:py-3">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4.5 pb-1.5 lg:py-3">
         {/* AI Insights - Highlighted & Compact */}
         {/* Mobile: Combined Tabbed Interface */}
-        <div className="lg:hidden mb-6">
+        <div className="lg:hidden mb-2">
           <div className={`relative glass rounded-lg border-2 transition-all duration-300 ${activeInsightTab === 'insights' ? 'border-blue-500/60 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 shadow-2xl shadow-blue-500/40' : 'border-purple-500/60 bg-gradient-to-br from-purple-500/20 to-pink-500/20 shadow-2xl shadow-purple-500/40'}`} style={{ minHeight: '240px', maxHeight: '260px' }}>
             {/* Animated glow effect - changes color based on active tab - stronger on mobile */}
             <div className={`absolute inset-0 rounded-lg blur-3xl animate-pulse ${activeInsightTab === 'insights' ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20' : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'}`}></div>
