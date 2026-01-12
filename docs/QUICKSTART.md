@@ -33,18 +33,18 @@ npm run dev
 - Pick date and time
 - Your posts are ready to go!
 
-### 3. Manage Leads
+### 4. Manage Leads
 - Click **"Manage Leads"**
 - Add new potential clients
 - Track their status (new → contacted → qualified → converted)
 
-### 4. Email Campaigns
+### 5. Email Campaigns
 - Click **"Email Campaigns"**
 - Create campaigns with AI
 - Select recipients from your leads
 - Send automated emails
 
-### 5. View Analytics
+### 6. View Analytics
 - Click **"Analytics"** to see:
   - Posts created and scheduled
   - Emails sent

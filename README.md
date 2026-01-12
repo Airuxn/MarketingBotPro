@@ -24,6 +24,14 @@ A modern, enterprise-grade Progressive Web App (PWA) that automates marketing ta
 - Performance-based content recommendations
 - Gets smarter with every use - learns what you like and adapts
 
+### 🤖 Automated Posting
+- **Automation Rules** - Create rules for automated posting
+- Schedule automated posts (daily, weekly, monthly)
+- AI-generated content automation
+- Template-based automation
+- Content from scanned posts automation
+- Track automation performance and statistics
+
 ### 📅 Smart Scheduling
 - Schedule posts across multiple platforms
 - Manage drafts and scheduled content
@@ -148,6 +156,7 @@ marketing-bot/
 ├── app/                      # Next.js App Router
 │   ├── (frontend)/          # Frontend pages (user interface)
 │   │   ├── page.tsx         # Home/Dashboard page
+│   │   ├── automate/        # Automated posting rules
 │   │   ├── analytics/       # Analytics dashboard
 │   │   ├── content/         # AI content generator
 │   │   ├── email/           # Email campaigns
@@ -257,17 +266,26 @@ marketing-bot/
    - Accept when happy - AI learns your preferences
    - Scroll down for full-size preview after generation
 
-3. **Schedule Posts**
+3. **Automate Posting**
+   - Navigate to Automate
+   - Create automation rules for scheduled posting
+   - Configure frequency (daily, weekly, monthly)
+   - Choose content type (AI-generated, template, or scanned)
+   - Select target platform
+   - Enable/disable rules as needed
+   - Track automation statistics
+
+4. **Schedule Posts**
    - Create or save content
    - Schedule for optimal times
    - Track engagement after posting
 
-4. **Manage Leads**
+5. **Manage Leads**
    - Add leads manually or import
    - Track status and notes
    - Convert leads to clients
 
-5. **Analytics**
+6. **Analytics**
    - View performance metrics
    - Get AI-powered insights
    - Optimize based on data

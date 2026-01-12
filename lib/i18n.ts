@@ -4,6 +4,7 @@ export const translations = {
   en: {
     // Navigation
     dashboard: 'Dashboard',
+    automate: 'Automate',
     content: 'Content',
     schedule: 'Schedule',
     email: 'Email',
@@ -147,6 +148,7 @@ export const translations = {
   fr: {
     // Navigation
     dashboard: 'Tableau de bord',
+    automate: 'Automatiser',
     content: 'Contenu',
     schedule: 'Planifier',
     email: 'Email',
@@ -290,6 +292,7 @@ export const translations = {
   nl: {
     // Navigation
     dashboard: 'Dashboard',
+    automate: 'Automatiseren',
     content: 'Content',
     schedule: 'Plannen',
     email: 'Email',

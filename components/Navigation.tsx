@@ -11,19 +11,20 @@ import {
   Users, 
   BarChart3, 
   Settings,
-  Zap
+  Zap,
+  Bot
 } from 'lucide-react'
 import { LanguageSelector } from './LanguageSelector'
 import { useLanguage } from '@/lib/language-context'
 
 const navigation = [
   { nameKey: 'dashboard', href: '/', icon: Home },
+  { nameKey: 'automate', href: '/automate', icon: Bot },
   { nameKey: 'content', href: '/content', icon: Sparkles },
   { nameKey: 'schedule', href: '/schedule', icon: Calendar },
   { nameKey: 'email', href: '/email', icon: Mail },
   { nameKey: 'leads', href: '/leads', icon: Users },
   { nameKey: 'analytics', href: '/analytics', icon: BarChart3 },
-  { nameKey: 'settings', href: '/settings', icon: Settings },
 ]
 
 export function Navigation() {
@@ -72,8 +73,21 @@ export function Navigation() {
             })}
           </div>
 
-          {/* Language Selector and Mobile Menu */}
+          {/* Settings Icon, Language Selector and Mobile Menu */}
           <div className="flex items-center space-x-2">
+            {/* Settings Icon */}
+            <Link
+              href="/settings"
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                pathname === '/settings'
+                  ? 'bg-slate-800/60 text-white'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+              }`}
+              aria-label="Settings"
+            >
+              <Settings className={`w-5 h-5 ${pathname === '/settings' ? 'text-white' : 'text-slate-400'}`} />
+            </Link>
+            
             <LanguageSelector />
             
             {/* Mobile Menu Button */}
