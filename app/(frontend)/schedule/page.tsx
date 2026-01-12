@@ -219,50 +219,53 @@ export default function SchedulePage() {
         {/* Scheduled Posts */}
         {scheduledPosts.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
-              <Clock className="w-5 h-5" />
+            <h2 className="text-base lg:text-xl font-bold text-white mb-3 lg:mb-4 flex items-center space-x-2">
+              <Clock className="w-4 h-4 lg:w-5 lg:h-5" />
               <span>Scheduled ({scheduledPosts.length})</span>
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 lg:gap-4">
               {scheduledPosts.map((post) => {
                 const Icon = platformIcons[post.platform]
                 return (
                   <div
                     key={post.id}
-                    className="glass rounded-xl p-5 hover-lift"
+                    className="glass rounded-lg p-3 lg:p-4 border border-slate-700/50 hover:border-slate-600/50 transition-all hover:shadow-lg"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Icon className="w-5 h-5 text-blue-600" />
-                        <span className="text-sm font-medium text-slate-200 capitalize">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-1.5">
+                        <div className="p-1.5 rounded-md bg-blue-500/20 border border-blue-500/30">
+                          <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-blue-400" />
+                        </div>
+                        <span className="text-xs lg:text-sm font-medium text-slate-300 capitalize">
                           {post.platform}
                         </span>
                       </div>
                       <button
                         onClick={() => handleDelete(post.id)}
-                        className="p-1 hover:bg-slate-700/50 rounded transition-colors"
+                        className="p-1.5 hover:bg-slate-700/50 rounded transition-colors"
+                        aria-label="Delete"
                       >
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
                       </button>
                     </div>
                     {post.media && (
-                      <div className="mb-3">
+                      <div className="mb-2.5 rounded-lg overflow-hidden">
                         {post.media.type === 'image' ? (
                           <img
                             src={post.media.file}
                             alt="Post media"
-                            className="w-full h-32 object-cover rounded-lg"
+                            className="w-full h-20 lg:h-24 object-cover"
                           />
                         ) : (
                           <video
                             src={post.media.file}
-                            className="w-full h-32 object-cover rounded-lg"
+                            className="w-full h-20 lg:h-24 object-cover"
                             controls
                           />
                         )}
                       </div>
                     )}
-                    <p className="text-sm text-slate-300 mb-3 line-clamp-3">
+                    <p className="text-xs lg:text-sm text-slate-300 mb-2 line-clamp-2 leading-relaxed">
                       {post.content}
                     </p>
                     {post.scheduledFor && (
