@@ -332,37 +332,37 @@ export default function AnalyticsPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
         {/* AI Insights - Highlighted & Compact */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-4">
           {/* AI Performance Insights */}
-          <div className="relative glass rounded-xl p-3 border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/40 transition-all duration-300">
+          <div className="relative glass rounded-lg p-2.5 border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/40 transition-all duration-300">
             {/* Animated glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-xl blur-2xl animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-lg blur-2xl animate-pulse"></div>
             <div className="relative">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center space-x-2.5">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
                   <div className="relative">
                     <div className="absolute inset-0 bg-blue-400/50 rounded-lg blur-lg animate-pulse"></div>
-                    <div className="relative w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-xl shadow-blue-500/50">
-                      <Zap className="w-5 h-5 text-white" />
+                    <div className="relative w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-xl shadow-blue-500/50">
+                      <Zap className="w-4 h-4 text-white" />
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-white drop-shadow-lg">Performance Insights</h2>
-                    <p className="text-[10px] text-blue-300/90 mt-0.5 font-medium">AI-powered recommendations</p>
+                    <h2 className="text-sm font-bold text-white drop-shadow-lg">Performance Insights</h2>
+                    <p className="text-[9px] text-blue-300/90 mt-0.5 font-medium">AI-powered recommendations</p>
                   </div>
                 </div>
               </div>
               {insights.recommendations.length > 0 ? (
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   {insights.recommendations.slice(0, 5).map((rec, idx) => (
-                    <div key={idx} className="flex items-start space-x-2 text-xs text-slate-200 leading-snug p-1.5 rounded-lg bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-blue-500/10">
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0 shadow-lg shadow-blue-400/70 animate-pulse"></div>
+                    <div key={idx} className="flex items-start space-x-1.5 text-[11px] text-slate-200 leading-tight p-1 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-blue-500/10">
+                      <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0 shadow-lg shadow-blue-400/70 animate-pulse"></div>
                       <span className="flex-1 font-medium">{rec}</span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-xs text-slate-400 leading-relaxed p-2 rounded-lg bg-slate-800/30 border border-blue-500/10">
+                <div className="text-[11px] text-slate-400 leading-relaxed p-1.5 rounded-md bg-slate-800/30 border border-blue-500/10">
                   Connect social accounts or add engagement data to see AI insights.
                 </div>
               )}
@@ -370,53 +370,53 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Learned Preferences */}
-          <div className="relative glass rounded-xl p-3 border-2 border-purple-500/50 bg-gradient-to-br from-purple-500/15 to-pink-500/15 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/40 transition-all duration-300">
+          <div className="relative glass rounded-lg p-2.5 border-2 border-purple-500/50 bg-gradient-to-br from-purple-500/15 to-pink-500/15 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/40 transition-all duration-300">
             {/* Animated glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl blur-2xl animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg blur-2xl animate-pulse"></div>
             <div className="relative">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center space-x-2.5">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
                   <div className="relative">
                     <div className="absolute inset-0 bg-purple-400/50 rounded-lg blur-lg animate-pulse"></div>
-                    <div className="relative w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-xl shadow-purple-500/50">
-                      <Brain className="w-5 h-5 text-white" />
+                    <div className="relative w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-xl shadow-purple-500/50">
+                      <Brain className="w-4 h-4 text-white" />
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-white drop-shadow-lg">Learned Preferences</h2>
-                    <p className="text-[10px] text-purple-300/90 mt-0.5 font-medium">Your content style DNA</p>
+                    <h2 className="text-sm font-bold text-white drop-shadow-lg">Learned Preferences</h2>
+                    <p className="text-[9px] text-purple-300/90 mt-0.5 font-medium">Your content style DNA</p>
                   </div>
                 </div>
               </div>
               {learnedStyle && Object.keys(learnedStyle).length > 0 ? (
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   {learnedStyle.length && (
-                    <div className="flex items-center justify-between p-1.5 rounded-lg bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
-                      <span className="text-xs text-slate-400 font-medium">Length</span>
-                      <span className="text-sm text-white font-bold capitalize px-2.5 py-1 bg-purple-500/30 rounded-lg border-2 border-purple-500/50 shadow-lg shadow-purple-500/30">{learnedStyle.length}</span>
+                    <div className="flex items-center justify-between p-1 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                      <span className="text-[11px] text-slate-400 font-medium">Length</span>
+                      <span className="text-[11px] text-white font-semibold capitalize px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.length}</span>
                     </div>
                   )}
                   {learnedStyle.tone && learnedStyle.tone.length > 0 && (
-                    <div className="flex items-center justify-between p-1.5 rounded-lg bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
-                      <span className="text-xs text-slate-400 font-medium">Tone</span>
-                      <span className="text-sm text-white font-bold px-2.5 py-1 bg-purple-500/30 rounded-lg border-2 border-purple-500/50 shadow-lg shadow-purple-500/30">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
+                    <div className="flex items-center justify-between p-1 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                      <span className="text-[11px] text-slate-400 font-medium">Tone</span>
+                      <span className="text-[11px] text-white font-semibold px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
                     </div>
                   )}
                   {learnedStyle.hashtagUsage && (
-                    <div className="flex items-center justify-between p-1.5 rounded-lg bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
-                      <span className="text-xs text-slate-400 font-medium">Hashtags</span>
-                      <span className="text-sm text-white font-bold capitalize px-2.5 py-1 bg-purple-500/30 rounded-lg border-2 border-purple-500/50 shadow-lg shadow-purple-500/30">{learnedStyle.hashtagUsage}</span>
+                    <div className="flex items-center justify-between p-1 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                      <span className="text-[11px] text-slate-400 font-medium">Hashtags</span>
+                      <span className="text-[11px] text-white font-semibold capitalize px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.hashtagUsage}</span>
                     </div>
                   )}
                   {learnedStyle.structure && learnedStyle.structure.length > 0 && (
-                    <div className="flex items-center justify-between p-1.5 rounded-lg bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
-                      <span className="text-xs text-slate-400 font-medium">Structure</span>
-                      <span className="text-sm text-white font-bold px-2.5 py-1 bg-purple-500/30 rounded-lg border-2 border-purple-500/50 shadow-lg shadow-purple-500/30">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
+                    <div className="flex items-center justify-between p-1 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                      <span className="text-[11px] text-slate-400 font-medium">Structure</span>
+                      <span className="text-[11px] text-white font-semibold px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-xs text-slate-400 leading-relaxed p-2 rounded-lg bg-slate-800/30 border border-purple-500/10">
+                <div className="text-[11px] text-slate-400 leading-relaxed p-1.5 rounded-md bg-slate-800/30 border border-purple-500/10">
                   AI learns from your scanned posts, accepted content, and edits.
                 </div>
               )}
