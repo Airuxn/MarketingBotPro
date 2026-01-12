@@ -65,17 +65,19 @@ function MiniSparkline({ data, color = '#3b82f6' }: { data: number[], color?: st
     return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`
   }).join(' ')
 
+  const gradientId = `gradient-${color.replace('#', '')}`
+
   return (
-    <svg width="100%" height="24" className="overflow-visible">
+    <svg width="100%" height="24" viewBox="0 0 100 24" preserveAspectRatio="none" className="block">
       <defs>
-        <linearGradient id={`gradient-${color}`} x1="0%" y1="0%" x2="0%" y2="100%">
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stopColor={color} stopOpacity="0.3" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
       <path
         d={`${pathData} L 100 100 L 0 100 Z`}
-        fill={`url(#gradient-${color})`}
+        fill={`url(#${gradientId})`}
         className="transition-opacity duration-300"
       />
       <path
