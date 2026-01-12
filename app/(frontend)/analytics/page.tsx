@@ -575,7 +575,7 @@ export default function AnalyticsPage() {
             {/* Overview Tab */}
             {activeTab === 'overview' && (
               <div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   {metrics.map((metric) => {
                     const Icon = metric.icon
                     const displayValue = metric.isPercentage 
@@ -585,27 +585,52 @@ export default function AnalyticsPage() {
                     return (
                       <div
                         key={metric.label}
-                        className="glass rounded-xl p-4 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group hover:shadow-lg hover:shadow-slate-800/50"
+                        className="relative glass rounded-lg p-3 border-2 transition-all duration-300 group overflow-hidden"
+                        style={{
+                          borderColor: `${metric.color}40`,
+                          boxShadow: `0 0 0 0 ${metric.color}20, 0 4px 12px rgba(0,0,0,0.1)`
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = `${metric.color}60`
+                          e.currentTarget.style.boxShadow = `0 0 20px ${metric.color}30, 0 8px 24px rgba(0,0,0,0.2)`
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = `${metric.color}40`
+                          e.currentTarget.style.boxShadow = `0 0 0 0 ${metric.color}20, 0 4px 12px rgba(0,0,0,0.1)`
+                        }}
                       >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${metric.color}15` }}>
-                            <Icon className="w-5 h-5 opacity-90 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
-                          </div>
-                          {metric.value > 0 && (
-                            <div className="flex items-center space-x-0.5 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
-                              <ArrowUp className="w-3 h-3" />
-                              <span className="font-medium">12%</span>
+                        {/* Subtle gradient background */}
+                        <div 
+                          className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity"
+                          style={{ background: `linear-gradient(135deg, ${metric.color} 0%, transparent 100%)` }}
+                        />
+                        <div className="relative">
+                          <div className="flex items-center justify-between mb-2">
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all group-hover:scale-110"
+                              style={{ 
+                                backgroundColor: `${metric.color}20`,
+                                boxShadow: `0 0 12px ${metric.color}30`
+                              }}
+                            >
+                              <Icon className="w-4 h-4 opacity-90 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
                             </div>
-                          )}
+                            {metric.value > 0 && (
+                              <div className="flex items-center space-x-0.5 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded border border-green-400/20">
+                                <ArrowUp className="w-3 h-3" />
+                                <span className="font-medium">12%</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-xl lg:text-2xl font-semibold text-white mb-1 truncate">
+                            {metric.isPercentage ? (
+                              displayValue
+                            ) : (
+                              <AnimatedCounter value={metric.value} />
+                            )}
+                          </div>
+                          <div className="text-[10px] lg:text-xs text-slate-400 font-medium truncate">{metric.label}</div>
                         </div>
-                        <div className="text-2xl lg:text-3xl font-bold text-white mb-1.5 truncate">
-                          {metric.isPercentage ? (
-                            displayValue
-                          ) : (
-                            <AnimatedCounter value={metric.value} />
-                          )}
-                        </div>
-                        <div className="text-xs lg:text-sm text-slate-400 font-medium truncate">{metric.label}</div>
                       </div>
                     )
                   })}
