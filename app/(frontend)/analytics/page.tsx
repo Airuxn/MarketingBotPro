@@ -330,7 +330,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 lg:py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.25 lg:py-3">
         {/* AI Insights - Highlighted & Compact */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 lg:gap-3 mb-2 lg:mb-3">
           {/* AI Performance Insights */}
@@ -353,9 +353,9 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               {insights.recommendations.length > 0 ? (
-                <div className="space-y-1.5 flex-1 overflow-hidden">
+                <div className="space-y-0.5 flex-1 overflow-hidden">
                   {insights.recommendations.slice(0, 5).map((rec, idx) => (
-                    <div key={idx} className="flex items-start space-x-2 text-[12px] lg:text-sm text-slate-200 leading-relaxed py-1.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-blue-500/10">
+                    <div key={idx} className="flex items-start space-x-2 text-[12px] lg:text-sm text-slate-200 leading-relaxed py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-blue-500/10">
                       <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0 shadow-lg shadow-blue-400/70 animate-pulse"></div>
                       <span className="flex-1 font-medium">{rec}</span>
                     </div>
@@ -389,29 +389,29 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               {learnedStyle && Object.keys(learnedStyle).length > 0 ? (
-                <div className="space-y-1 flex-1 overflow-hidden">
+                <div className="space-y-0.5 flex-1 overflow-hidden">
                   {learnedStyle.length && (
-                    <div className="flex items-center justify-between py-1 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                    <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Length</span>
-                      <span className="text-[10px] lg:text-xs text-white font-semibold capitalize px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.length}</span>
+                      <span className="text-[10px] lg:text-xs text-white font-semibold capitalize px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.length}</span>
                     </div>
                   )}
                   {learnedStyle.tone && learnedStyle.tone.length > 0 && (
-                    <div className="flex items-center justify-between py-1 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                    <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Tone</span>
-                      <span className="text-[10px] lg:text-xs text-white font-semibold px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
+                      <span className="text-[10px] lg:text-xs text-white font-semibold px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
                     </div>
                   )}
                   {learnedStyle.hashtagUsage && (
-                    <div className="flex items-center justify-between py-1 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                    <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Hashtags</span>
-                      <span className="text-[10px] lg:text-xs text-white font-semibold capitalize px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.hashtagUsage}</span>
+                      <span className="text-[10px] lg:text-xs text-white font-semibold capitalize px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.hashtagUsage}</span>
                     </div>
                   )}
                   {learnedStyle.structure && learnedStyle.structure.length > 0 && (
-                    <div className="flex items-center justify-between py-1 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
+                    <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Structure</span>
-                      <span className="text-[10px] lg:text-xs text-white font-semibold px-2 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
+                      <span className="text-[10px] lg:text-xs text-white font-semibold px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
                     </div>
                   )}
                 </div>
