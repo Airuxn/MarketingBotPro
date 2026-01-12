@@ -45,7 +45,7 @@ function AnimatedCounter({ value, duration = 2000 }: { value: number, duration?:
 export default function AnalyticsPage() {
   const { stats, posts, emailCampaigns, leads, updatePost, settings, updateSettings } = useStore()
   const [selectedPost, setSelectedPost] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'times' | 'content' | 'hashtags' | 'platforms' | 'top' | 'all'>('times')
+  const [activeTab, setActiveTab] = useState<'overview' | 'times' | 'content' | 'hashtags' | 'platforms' | 'top' | 'all'>('overview')
   const [trendRange, setTrendRange] = useState<'7d' | '14d' | '30d' | '90d' | 'all'>('7d')
 
   // Calculate additional metrics
@@ -301,6 +301,7 @@ export default function AnalyticsPage() {
   }
 
   const tabs = [
+    { id: 'overview' as const, label: 'Overview', icon: BarChart3, count: 0 },
     { id: 'times' as const, label: 'Times', icon: Clock, count: insights.bestPostingTimes.length },
     { id: 'content' as const, label: 'Content', icon: ImageIcon, count: insights.bestContentTypes.length },
     { id: 'hashtags' as const, label: 'Hashtags', icon: Hash, count: insights.bestHashtags.length },
@@ -330,72 +331,96 @@ export default function AnalyticsPage() {
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
-        {/* AI Insights - Compact */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
+        {/* AI Insights - Highlighted */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           {/* AI Performance Insights */}
-          <div className="glass rounded-lg p-3 border border-slate-700/50">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Zap className="w-4 h-4 text-blue-400" />
-                <h2 className="text-sm font-semibold text-white">Performance Insights</h2>
-              </div>
-            </div>
-            {insights.recommendations.length > 0 ? (
-              <div className="space-y-1.5">
-                {insights.recommendations.slice(0, 4).map((rec, idx) => (
-                  <div key={idx} className="flex items-start space-x-2 text-xs text-slate-300 leading-relaxed">
-                    <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />
-                    <span>{rec}</span>
+          <div className="relative glass rounded-xl p-5 border-2 border-blue-500/30 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all duration-300">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 rounded-xl blur-xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-blue-400/30 rounded-lg blur-md"></div>
+                    <div className="relative w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-lg">
+                      <Zap className="w-5 h-5 text-white" />
+                    </div>
                   </div>
-                ))}
+                  <div>
+                    <h2 className="text-lg font-bold text-white">Performance Insights</h2>
+                    <p className="text-[10px] text-blue-300/80 mt-0.5">AI-powered recommendations</p>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="text-xs text-slate-400 leading-relaxed">
-                Connect social accounts or add engagement data to see AI insights.
-              </div>
-            )}
+              {insights.recommendations.length > 0 ? (
+                <div className="space-y-2.5">
+                  {insights.recommendations.slice(0, 5).map((rec, idx) => (
+                    <div key={idx} className="flex items-start space-x-2.5 text-sm text-slate-200 leading-relaxed p-2 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 flex-shrink-0 shadow-sm shadow-blue-400/50"></div>
+                      <span className="flex-1">{rec}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-slate-400 leading-relaxed p-3 rounded-lg bg-slate-800/20">
+                  Connect social accounts or add engagement data to see AI insights.
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Learned Preferences */}
-          <div className="glass rounded-lg p-3 border border-slate-700/50">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Brain className="w-4 h-4 text-purple-400" />
-                <h2 className="text-sm font-semibold text-white">Learned Preferences</h2>
+          <div className="relative glass rounded-xl p-5 border-2 border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-pink-500/10 shadow-lg shadow-purple-500/10 hover:shadow-purple-500/20 transition-all duration-300">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 rounded-xl blur-xl"></div>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-purple-400/30 rounded-lg blur-md"></div>
+                    <div className="relative w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-lg">
+                      <Brain className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">Learned Preferences</h2>
+                    <p className="text-[10px] text-purple-300/80 mt-0.5">Your content style DNA</p>
+                  </div>
+                </div>
               </div>
+              {learnedStyle && Object.keys(learnedStyle).length > 0 ? (
+                <div className="space-y-3">
+                  {learnedStyle.length && (
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                      <span className="text-sm text-slate-400 font-medium">Length</span>
+                      <span className="text-base text-white font-bold capitalize px-3 py-1 bg-purple-500/20 rounded-lg border border-purple-500/30">{learnedStyle.length}</span>
+                    </div>
+                  )}
+                  {learnedStyle.tone && learnedStyle.tone.length > 0 && (
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                      <span className="text-sm text-slate-400 font-medium">Tone</span>
+                      <span className="text-base text-white font-bold px-3 py-1 bg-purple-500/20 rounded-lg border border-purple-500/30">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
+                    </div>
+                  )}
+                  {learnedStyle.hashtagUsage && (
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                      <span className="text-sm text-slate-400 font-medium">Hashtags</span>
+                      <span className="text-base text-white font-bold capitalize px-3 py-1 bg-purple-500/20 rounded-lg border border-purple-500/30">{learnedStyle.hashtagUsage}</span>
+                    </div>
+                  )}
+                  {learnedStyle.structure && learnedStyle.structure.length > 0 && (
+                    <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                      <span className="text-sm text-slate-400 font-medium">Structure</span>
+                      <span className="text-base text-white font-bold px-3 py-1 bg-purple-500/20 rounded-lg border border-purple-500/30">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-slate-400 leading-relaxed p-3 rounded-lg bg-slate-800/20">
+                  AI learns from your scanned posts, accepted content, and edits.
+                </div>
+              )}
             </div>
-            {learnedStyle && Object.keys(learnedStyle).length > 0 ? (
-              <div className="space-y-2">
-                {learnedStyle.length && (
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Length</span>
-                    <span className="text-white font-medium capitalize">{learnedStyle.length}</span>
-                  </div>
-                )}
-                {learnedStyle.tone && learnedStyle.tone.length > 0 && (
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Tone</span>
-                    <span className="text-white font-medium">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
-                  </div>
-                )}
-                {learnedStyle.hashtagUsage && (
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Hashtags</span>
-                    <span className="text-white font-medium capitalize">{learnedStyle.hashtagUsage}</span>
-                  </div>
-                )}
-                {learnedStyle.structure && learnedStyle.structure.length > 0 && (
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Structure</span>
-                    <span className="text-white font-medium">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-xs text-slate-400 leading-relaxed">
-                AI learns from your scanned posts, accepted content, and edits.
-              </div>
-            )}
           </div>
         </div>
 
@@ -443,73 +468,67 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={trendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
-              <YAxis yAxisId="left" stroke="#94a3b8" fontSize={12} />
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={trendData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+              <defs>
+                <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#60a5fa" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="engagementGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#34d399" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#34d399" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+              <XAxis 
+                dataKey="day" 
+                stroke="#94a3b8" 
+                fontSize={12}
+                tick={{ fill: '#94a3b8' }}
+                axisLine={{ stroke: '#334155' }}
+              />
+              <YAxis 
+                yAxisId="left" 
+                stroke="#94a3b8" 
+                fontSize={12}
+                tick={{ fill: '#94a3b8' }}
+                axisLine={{ stroke: '#334155' }}
+              />
               <YAxis 
                 yAxisId="right" 
                 orientation="right" 
                 stroke="#34d399" 
                 fontSize={12}
+                tick={{ fill: '#34d399' }}
+                axisLine={{ stroke: '#334155' }}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip 
+                content={<CustomTooltip />}
+                cursor={{ stroke: '#60a5fa', strokeWidth: 1, strokeDasharray: '5 5' }}
+              />
               <Line 
                 yAxisId="left"
                 type="monotone" 
                 dataKey="views" 
                 stroke="#60a5fa" 
-                strokeWidth={2}
-                dot={{ fill: '#60a5fa', r: 3 }}
-                activeDot={{ r: 5 }}
+                strokeWidth={3}
+                dot={{ fill: '#60a5fa', r: 4, strokeWidth: 2, stroke: '#1e293b' }}
+                activeDot={{ r: 6, strokeWidth: 2, stroke: '#60a5fa' }}
+                fill="url(#viewsGradient)"
               />
               <Line 
                 yAxisId="right"
                 type="monotone" 
                 dataKey="engagement" 
                 stroke="#34d399" 
-                strokeWidth={2}
-                dot={{ fill: '#34d399', r: 3 }}
-                activeDot={{ r: 5 }}
+                strokeWidth={3}
+                dot={{ fill: '#34d399', r: 4, strokeWidth: 2, stroke: '#1e293b' }}
+                activeDot={{ r: 6, strokeWidth: 2, stroke: '#34d399' }}
+                fill="url(#engagementGradient)"
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
-
-        {/* Key Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-          {metrics.map((metric) => {
-            const Icon = metric.icon
-            const displayValue = metric.isPercentage 
-              ? `${metric.value.toFixed(2)}%`
-              : metric.value.toLocaleString()
-            
-            return (
-              <div
-                key={metric.label}
-                className="glass rounded-lg p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
-                  {metric.value > 0 && (
-                    <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
-                      <ArrowUp className="w-3 h-3" />
-                      <span className="font-medium">12%</span>
-                    </div>
-                  )}
-                </div>
-                <div className="text-xl lg:text-2xl font-semibold text-white mb-1 truncate">
-                  {metric.isPercentage ? (
-                    displayValue
-                  ) : (
-                    <AnimatedCounter value={metric.value} />
-                  )}
-                </div>
-                <div className="text-[10px] lg:text-xs text-slate-400 font-medium truncate">{metric.label}</div>
-              </div>
-            )
-          })}
         </div>
 
         {/* Performance Breakdown - Tabbed Interface */}
@@ -553,22 +572,84 @@ export default function AnalyticsPage() {
 
           {/* Tab Content */}
           <div className="min-h-[300px]">
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                  {metrics.map((metric) => {
+                    const Icon = metric.icon
+                    const displayValue = metric.isPercentage 
+                      ? `${metric.value.toFixed(2)}%`
+                      : metric.value.toLocaleString()
+                    
+                    return (
+                      <div
+                        key={metric.label}
+                        className="glass rounded-xl p-4 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group hover:shadow-lg hover:shadow-slate-800/50"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${metric.color}15` }}>
+                            <Icon className="w-5 h-5 opacity-90 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
+                          </div>
+                          {metric.value > 0 && (
+                            <div className="flex items-center space-x-0.5 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded">
+                              <ArrowUp className="w-3 h-3" />
+                              <span className="font-medium">12%</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-2xl lg:text-3xl font-bold text-white mb-1.5 truncate">
+                          {metric.isPercentage ? (
+                            displayValue
+                          ) : (
+                            <AnimatedCounter value={metric.value} />
+                          )}
+                        </div>
+                        <div className="text-xs lg:text-sm text-slate-400 font-medium truncate">{metric.label}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Times Tab */}
             {activeTab === 'times' && (
               <div>
                 {insights.bestPostingTimes.length > 0 ? (
                   <>
                     {postingTimesChartData.length > 0 && (
-                      <div className="mb-4">
-                        <ResponsiveContainer width="100%" height={120}>
-                          <BarChart data={postingTimesChartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} angle={-45} textAnchor="end" height={60} />
-                            <YAxis stroke="#94a3b8" fontSize={10} />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Bar dataKey="engagement" radius={[4, 4, 0, 0]}>
+                      <div className="mb-4 bg-slate-800/20 rounded-xl p-4 border border-slate-700/30">
+                        <ResponsiveContainer width="100%" height={160}>
+                          <BarChart data={postingTimesChartData} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+                            <defs>
+                              <linearGradient id="timeGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.8} />
+                                <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.4} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                            <XAxis 
+                              dataKey="name" 
+                              stroke="#94a3b8" 
+                              fontSize={11} 
+                              angle={-45} 
+                              textAnchor="end" 
+                              height={60}
+                              tick={{ fill: '#94a3b8' }}
+                            />
+                            <YAxis 
+                              stroke="#94a3b8" 
+                              fontSize={11}
+                              tick={{ fill: '#94a3b8' }}
+                            />
+                            <Tooltip 
+                              content={<CustomTooltip />}
+                              cursor={{ fill: 'rgba(96, 165, 250, 0.1)' }}
+                            />
+                            <Bar dataKey="engagement" radius={[8, 8, 0, 0]} fill="url(#timeGradient)">
                               {postingTimesChartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill="#60a5fa" />
+                                <Cell key={`cell-${index}`} fill="url(#timeGradient)" />
                               ))}
                             </Bar>
                           </BarChart>
@@ -603,16 +684,39 @@ export default function AnalyticsPage() {
                 {insights.bestContentTypes.length > 0 ? (
                   <>
                     {contentTypesChartData.length > 0 && (
-                      <div className="mb-4">
-                        <ResponsiveContainer width="100%" height={120}>
-                          <BarChart data={contentTypesChartData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                            <YAxis stroke="#94a3b8" fontSize={10} />
-                            <Tooltip />
-                            <Bar dataKey="views" radius={[4, 4, 0, 0]}>
+                      <div className="mb-4 bg-slate-800/20 rounded-xl p-4 border border-slate-700/30">
+                        <ResponsiveContainer width="100%" height={160}>
+                          <BarChart data={contentTypesChartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+                            <defs>
+                              <linearGradient id="contentGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#a78bfa" stopOpacity={0.8} />
+                                <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.4} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
+                            <XAxis 
+                              dataKey="name" 
+                              stroke="#94a3b8" 
+                              fontSize={11}
+                              tick={{ fill: '#94a3b8' }}
+                            />
+                            <YAxis 
+                              stroke="#94a3b8" 
+                              fontSize={11}
+                              tick={{ fill: '#94a3b8' }}
+                            />
+                            <Tooltip 
+                              cursor={{ fill: 'rgba(167, 139, 250, 0.1)' }}
+                              contentStyle={{ 
+                                background: 'rgba(30, 41, 59, 0.95)',
+                                border: '1px solid rgba(51, 65, 85, 0.5)',
+                                borderRadius: '8px',
+                                padding: '8px'
+                              }}
+                            />
+                            <Bar dataKey="views" radius={[8, 8, 0, 0]} fill="url(#contentGradient)">
                               {contentTypesChartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill="#a78bfa" />
+                                <Cell key={`cell-${index}`} fill="url(#contentGradient)" />
                               ))}
                             </Bar>
                           </BarChart>
