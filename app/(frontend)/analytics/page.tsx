@@ -335,11 +335,11 @@ export default function AnalyticsPage() {
         {/* AI Insights - Highlighted & Compact */}
         {/* Mobile: Combined Tabbed Interface */}
         <div className="lg:hidden mb-2">
-          <div className="relative glass rounded-lg border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30 transition-all duration-300" style={{ minHeight: '240px', maxHeight: '260px' }}>
-            {/* Animated glow effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-lg blur-2xl animate-pulse"></div>
+          <div className={`relative glass rounded-lg border-2 transition-all duration-300 ${activeInsightTab === 'insights' ? 'border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30' : 'border-purple-500/50 bg-gradient-to-br from-purple-500/15 to-pink-500/15 shadow-2xl shadow-purple-500/30'}`} style={{ minHeight: '240px', maxHeight: '260px' }}>
+            {/* Animated glow effect - changes color based on active tab */}
+            <div className={`absolute inset-0 rounded-lg blur-2xl animate-pulse ${activeInsightTab === 'insights' ? 'bg-gradient-to-br from-blue-500/10 to-indigo-500/10' : 'bg-gradient-to-br from-purple-500/10 to-pink-500/10'}`}></div>
             <div className="relative p-3 h-full flex flex-col overflow-hidden">
-              {/* Tab Selector */}
+              {/* Tab Selector with Icons */}
               <div className="flex items-center justify-center mb-1.5 flex-shrink-0 gap-2">
                 <button
                   onClick={() => setActiveInsightTab('insights')}
@@ -349,7 +349,14 @@ export default function AnalyticsPage() {
                       : 'text-slate-400'
                   }`}
                 >
-                  <Zap className="w-4 h-4" />
+                  <div className="relative">
+                    {activeInsightTab === 'insights' && (
+                      <div className="absolute inset-0 bg-blue-400/50 rounded-lg blur-lg animate-pulse"></div>
+                    )}
+                    <div className={`relative w-6 h-6 rounded-lg flex items-center justify-center ${activeInsightTab === 'insights' ? 'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/50' : 'bg-slate-700/50'}`}>
+                      <Zap className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  </div>
                   <span className="text-sm font-bold">Performance Insights</span>
                 </button>
                 <div className="text-slate-500 text-xl font-light mx-1">/</div>
@@ -361,11 +368,18 @@ export default function AnalyticsPage() {
                       : 'text-slate-400'
                   }`}
                 >
-                  <Brain className="w-4 h-4" />
+                  <div className="relative">
+                    {activeInsightTab === 'preferences' && (
+                      <div className="absolute inset-0 bg-purple-400/50 rounded-lg blur-lg animate-pulse"></div>
+                    )}
+                    <div className={`relative w-6 h-6 rounded-lg flex items-center justify-center ${activeInsightTab === 'preferences' ? 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-xl shadow-purple-500/50' : 'bg-slate-700/50'}`}>
+                      <Brain className="w-3.5 h-3.5 text-white" />
+                    </div>
+                  </div>
                   <span className="text-sm font-bold">Learned Preferences</span>
                 </button>
               </div>
-              <div className="text-[10px] text-blue-300/90 font-medium text-center mb-2">
+              <div className={`text-[10px] font-medium text-center mb-2 ${activeInsightTab === 'insights' ? 'text-blue-300/90' : 'text-purple-300/90'}`}>
                 {activeInsightTab === 'insights' ? 'AI-powered recommendations' : 'Your content style DNA'}
               </div>
               
