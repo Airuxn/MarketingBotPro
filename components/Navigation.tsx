@@ -64,30 +64,16 @@ export function Navigation() {
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
                   } ${isAutomate ? 'font-semibold' : ''}`}
                 >
-                  {/* Glow effect for Automate button */}
-                  {isAutomate && (
-                    <>
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg blur-xl animate-pulse"></div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg"></div>
-                    </>
-                  )}
-                  <Icon className={`relative w-4 h-4 ${
+                  <Icon className={`w-4 h-4 transition-colors ${
                     isAutomate 
-                      ? 'text-cyan-400 drop-shadow-lg shadow-cyan-400/50' 
+                      ? 'text-cyan-400' 
                       : isActive 
                         ? 'text-white' 
                         : 'text-slate-500 group-hover:text-white'
                   }`} />
-                  <span className={`relative ${
-                    isAutomate 
-                      ? 'text-cyan-100 drop-shadow-sm' 
-                      : ''
-                  }`}>{t(item.nameKey)}</span>
-                  {isActive && !isAutomate && (
+                  <span className={isAutomate ? 'rainbow-text' : ''}>{t(item.nameKey)}</span>
+                  {isActive && (
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
-                  )}
-                  {isAutomate && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-lg shadow-cyan-400/50"></div>
                   )}
                 </Link>
               )
@@ -95,7 +81,7 @@ export function Navigation() {
           </div>
 
           {/* Settings Icon, Language Selector and Mobile Menu */}
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center gap-0.5">
             {/* Settings Icon */}
             <Link
               href="/settings"
@@ -167,31 +153,20 @@ function MobileMenu({ pathname }: { pathname: string }) {
                     key={item.nameKey}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`relative flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                    className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
                       isActive
                         ? 'text-white bg-slate-800/60'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
                     } ${isAutomate ? 'font-semibold' : ''}`}
                   >
-                    {/* Glow effect for Automate button in mobile menu */}
-                    {isAutomate && (
-                      <>
-                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg blur-xl animate-pulse"></div>
-                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg"></div>
-                      </>
-                    )}
-                    <Icon className={`relative w-5 h-5 ${
+                    <Icon className={`w-5 h-5 transition-colors ${
                       isAutomate 
-                        ? 'text-cyan-400 drop-shadow-lg shadow-cyan-400/50' 
+                        ? 'text-cyan-400' 
                         : isActive 
                           ? 'text-white' 
                           : 'text-slate-400'
                     }`} />
-                    <span className={`relative ${
-                      isAutomate 
-                        ? 'text-cyan-100 drop-shadow-sm' 
-                        : ''
-                    }`}>{t(item.nameKey)}</span>
+                    <span className={isAutomate ? 'rainbow-text' : ''}>{t(item.nameKey)}</span>
                   </Link>
                 )
               })}

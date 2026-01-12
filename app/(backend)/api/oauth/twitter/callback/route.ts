@@ -14,6 +14,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
   const error = searchParams.get('error')
+  const state = searchParams.get('state')
 
   if (error) {
     return NextResponse.redirect(
@@ -36,10 +37,17 @@ export async function GET(request: Request) {
   try {
     const cookieStore = await cookies()
     const codeVerifier = cookieStore.get('twitter_code_verifier')?.value
+    const storedState = cookieStore.get('twitter_oauth_state')?.value
     
     if (!codeVerifier) {
       throw new Error('Code verifier not found')
     }
+
+    if (!storedState || storedState !== state) {
+      throw new Error('Invalid state parameter')
+    }
+
+    cookieStore.delete('twitter_oauth_state')
 
     // Exchange code for access token
     const credentials = Buffer.from(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`).toString('base64')

@@ -77,7 +77,6 @@ export function SocialAccountConnector() {
               hasAccessToken: !!accessToken,
               hasUserId: !!userId,
               userId: userId || 'NOT SET',
-              accessTokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'NONE',
             })
 
             if (!accessToken || !platform) {

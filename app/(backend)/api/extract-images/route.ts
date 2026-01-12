@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { validatePublicHttpUrl } from '@/lib/api-security'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -9,8 +10,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Use CORS proxy to fetch content
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`
+    const validatedUrl = validatePublicHttpUrl(url)
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(validatedUrl.href)}`
     
     const response = await fetch(proxyUrl, {
       headers: {
@@ -26,15 +27,15 @@ export async function GET(request: NextRequest) {
     const html = data.contents
 
     // Extract image URLs from HTML
-    const images = extractImageUrls(html, url)
+    const images = extractImageUrls(html, validatedUrl.href)
 
     return NextResponse.json({ images })
   } catch (error: any) {
     console.error('Error extracting images:', error)
-    return NextResponse.json(
-      { error: 'Failed to extract images from URL' },
-      { status: 500 }
-    )
+    const message = error?.message?.includes('not allowed') || error?.message === 'Invalid URL'
+      ? error.message
+      : 'Failed to extract images from URL'
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 }
 

@@ -44,7 +44,7 @@ node --version
 Once Node.js is upgraded, come back to the project and run:
 
 ```bash
-cd "MarketingBotPro"
+cd MarketingBotPro
 npm install
 npm run dev
 ```

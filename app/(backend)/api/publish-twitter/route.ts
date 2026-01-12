@@ -14,8 +14,7 @@ export async function POST(request: Request) {
     console.log('[Publish Twitter API] Publishing tweet:', {
       contentLength: content.length,
       hasMedia: !!mediaUrl,
-      accessTokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'MISSING',
-      accessTokenLength: accessToken?.length || 0,
+      hasAccessToken: !!accessToken,
     })
 
     // First, verify the token is valid and can access user info (confirms it's User Context, not Application-Only)

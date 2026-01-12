@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getOAuthUrls } from '@/lib/vercel-url'
+import { createOAuthState, oauthStateCookieOptions } from '@/lib/api-security'
 
 // Instagram Business Login uses Facebook OAuth with Facebook App ID
 // Instagram Business accounts are accessed through Facebook Pages
@@ -45,13 +46,17 @@ export async function GET(request: Request) {
     'pages_manage_posts',           // Manage Instagram posts through pages
   ].join(',')
   
+  const state = createOAuthState()
+  const cookieStore = await import('next/headers').then(m => m.cookies())
+  cookieStore.set('instagram_oauth_state', state, oauthStateCookieOptions())
+
   // Use Facebook OAuth endpoint, not Instagram Basic Display
   let authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
     `client_id=${clientId}` +
     `&redirect_uri=${encodeURIComponent(instagramRedirectUri)}` +
     `&scope=${encodeURIComponent(scopes)}` +
     `&response_type=code` +
-    `&state=instagram`
+    `&state=${state}`
 
   // If using Facebook Login Config ID (Consumer app), add config_id parameter
   if (FACEBOOK_LOGIN_CONFIG_ID) {

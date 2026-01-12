@@ -1,5 +1,8 @@
 # MarketingBot Pro
 
+> ⚠️ **ABANDONED** ⚠️  
+> This project is no longer maintained. Some features may be incomplete or broken. Use at your own discretion.
+
 > AI-Powered Marketing Automation Platform
 
 A modern, enterprise-grade Progressive Web App (PWA) that automates marketing tasks using AI. Built for businesses that demand simplicity without compromising on power and sophistication.
@@ -329,18 +332,38 @@ npm run lint     # Run ESLint
 - Input validation and sanitization
 - Secure service worker implementation
 
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file for details
-
 ## 🤝 Contributing
 
-Contributions welcome! Please read our contributing guidelines before submitting PRs.
-
-## 📧 Support
-
-For issues, questions, or feature requests, please open an issue on GitHub.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit changes: `git commit -am 'Add feature'`
+4. Push to branch: `git push origin feature-name`
+5. Submit a Pull Request
 
 ---
 
-Built with ❤️ using Next.js and TypeScript
+## 📄 License
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Next.js](https://nextjs.org/) and the Vercel team for the React framework and deployment platform
+- [Google Gemini](https://deepmind.google/technologies/gemini/) for AI content generation capabilities
+- [Tailwind CSS](https://tailwindcss.com/), [Zustand](https://zustand-demo.pmnd.rs/), and the broader open-source React ecosystem
+- Social platform developers whose APIs make multi-channel marketing automation possible
+
+---
+
+## 📞 Support
+
+For support and questions:
+
+- Create an issue on GitHub
+- Documentation: see the [`docs/`](docs/) folder
+
+---
+
+**⭐ If this project helped you, please give it a star!**

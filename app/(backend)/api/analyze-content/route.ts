@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { validatePublicHttpUrl } from '@/lib/api-security'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -9,9 +10,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // In production, use a proper scraping service or API
-    // For now, we'll use a CORS proxy or direct fetch
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`
+    const validatedUrl = validatePublicHttpUrl(url)
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(validatedUrl.href)}`
     
     const response = await fetch(proxyUrl, {
       headers: {
@@ -33,10 +33,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ content: textContent })
   } catch (error: any) {
     console.error('Error fetching content:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch content from URL' },
-      { status: 500 }
-    )
+    const message = error?.message?.includes('not allowed') || error?.message === 'Invalid URL'
+      ? error.message
+      : 'Failed to fetch content from URL'
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 }
 

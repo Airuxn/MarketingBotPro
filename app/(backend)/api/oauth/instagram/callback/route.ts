@@ -17,6 +17,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
+  const state = searchParams.get('state')
   
   // Get redirect URI - use same helper as OAuth route (which uses '/api/oauth/instagram/callback')
   const { baseUrl, redirectUri: INSTAGRAM_REDIRECT_URI } = getOAuthUrls(request, '/api/oauth/instagram/callback')
@@ -65,6 +66,15 @@ export async function GET(request: Request) {
   }
 
   try {
+    const cookieStore = await cookies()
+    const storedState = cookieStore.get('instagram_oauth_state')?.value
+
+    if (!storedState || storedState !== state) {
+      throw new Error('Invalid state parameter')
+    }
+
+    cookieStore.delete('instagram_oauth_state')
+
     // Exchange code for access token
     // Try Instagram API first (if using direct Instagram OAuth), then Facebook Graph API
     console.log('[Instagram Callback] ========== TOKEN EXCHANGE START ==========')
@@ -299,7 +309,6 @@ export async function GET(request: Request) {
     }
 
     // Store token temporarily
-    const cookieStore = await cookies()
     cookieStore.set('oauth_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

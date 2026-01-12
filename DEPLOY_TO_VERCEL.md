@@ -1,12 +1,7 @@
 # Deployment naar Vercel - Stap voor Stap
 
-## Stap 1: Ga naar de juiste directory
+## Stap 1: Ga naar de project directory
 
-```bash
-cd "MarketingBotPro"
-```
-
-Of als je vanuit je home directory werkt:
 ```bash
 cd MarketingBotPro
 ```
@@ -16,19 +11,19 @@ cd MarketingBotPro
 ```bash
 git init
 git add .
-git commit -m "Vercel-ready version - all TypeScript errors fixed"
+git commit -m "Initial commit"
 ```
 
 ## Stap 3: Maak een GitHub repository
 
 1. Ga naar https://github.com/new
-2. Maak een nieuwe repository aan (bijv. `marketing-bot-vercel` of `marketing-bot-pro`)
+2. Maak een nieuwe repository aan (bijv. `MarketingBotPro`)
 3. **NIET** initialiseren met README, .gitignore of license (we hebben al code)
 
 ## Stap 4: Push naar GitHub
 
 ```bash
-git remote add origin https://github.com/Airuxn/[JOUW_REPO_NAAM].git
+git remote add origin https://github.com/YOUR_USERNAME/MarketingBotPro.git
 git branch -M main
 git push -u origin main
 ```
@@ -41,7 +36,6 @@ git push -u origin main
 4. Selecteer je GitHub repository
 5. Configureer:
    - **Framework Preset**: Next.js (wordt automatisch gedetecteerd)
-   - **Root Directory**: `marketing-bot-vercel-ready` (als je de hele repo gebruikt, anders leeg laten)
    - **Build Command**: `npm run build` (default)
    - **Output Directory**: `.next` (default)
 6. Klik op **"Deploy"**
@@ -69,6 +63,6 @@ Na de eerste deployment:
 4. Voeg toe aan **Valid OAuth Redirect URIs**:
    - `https://[jouw-project].vercel.app/api/oauth/facebook/callback`
 
-## Klaar! 🎉
+## Klaar!
 
-Je app draait nu op Vercel! 🚀
+Je app draait nu op Vercel.

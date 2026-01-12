@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const error = searchParams.get('error')
   const errorReason = searchParams.get('error_reason')
+  const state = searchParams.get('state')
 
   // Get URLs using helper function - NEVER uses localhost on Vercel
   const { baseUrl, redirectUri: finalRedirectUri, isVercel, isProduction, vercelUrl, requestUrl } = getOAuthUrls(request, '/api/oauth/facebook/callback')
@@ -45,6 +46,15 @@ export async function GET(request: Request) {
   }
 
   try {
+    const cookieStore = await cookies()
+    const storedState = cookieStore.get('facebook_oauth_state')?.value
+
+    if (!storedState || storedState !== state) {
+      throw new Error('Invalid state parameter')
+    }
+
+    cookieStore.delete('facebook_oauth_state')
+
     // Exchange code for access token
     const tokenResponse = await fetch(
       `https://graph.facebook.com/v18.0/oauth/access_token?` +
@@ -79,7 +89,6 @@ export async function GET(request: Request) {
     }
 
     // Store token temporarily in httpOnly cookie
-    const cookieStore = await cookies()
     cookieStore.set('oauth_token', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

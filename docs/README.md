@@ -14,7 +14,6 @@ This directory contains essential project documentation.
 - **[Brand Images](BRAND_IMAGES.md)** - Using the brand image library
 - **[Media Features](MEDIA_FEATURES.md)** - Media handling and optimization
 - **[How Learning Works](HOW_LEARNING_WORKS.md)** - AI learning system explained
-- **[Mobile Debugging](MOBILE_DEBUGGING.md)** - Mobile debug console and remote log viewer
 
 ## Technical
 

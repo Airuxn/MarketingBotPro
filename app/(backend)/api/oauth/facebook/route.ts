@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getOAuthUrls } from '@/lib/vercel-url'
+import { createOAuthState, oauthStateCookieOptions } from '@/lib/api-security'
 
 const FACEBOOK_CLIENT_ID = process.env.FACEBOOK_CLIENT_ID
 const FACEBOOK_CLIENT_SECRET = process.env.FACEBOOK_CLIENT_SECRET
@@ -30,12 +31,16 @@ export async function GET(request: Request) {
     )
   }
 
+  const state = createOAuthState()
+  const cookieStore = await import('next/headers').then(m => m.cookies())
+  cookieStore.set('facebook_oauth_state', state, oauthStateCookieOptions())
+
   // Build OAuth URL - use finalRedirectUri that matches Facebook settings
   const authParams = new URLSearchParams({
     client_id: FACEBOOK_CLIENT_ID,
     redirect_uri: finalRedirectUri,
     response_type: 'code',
-    state: 'social_post',
+    state,
   })
 
   // Use config_id if provided (Facebook Login for Business)
