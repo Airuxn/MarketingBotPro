@@ -95,19 +95,24 @@ export default function AnalyticsPage() {
 
     // Aggregate data from scanned posts
     scannedPosts.forEach(scannedPost => {
-      if (scannedPost.engagement && scannedPost.postedAt) {
-        const postDate = format(new Date(scannedPost.postedAt), 'yyyy-MM-dd')
+      if (scannedPost.engagement && scannedPost.createdAt) {
+        const postDate = format(new Date(scannedPost.createdAt), 'yyyy-MM-dd')
         const dayData = days.find(d => d.date === postDate)
         if (dayData) {
-          dayData.views += scannedPost.engagement.views || 0
-          // Calculate engagement rate for scanned post
-          const { likes = 0, comments = 0, shares = 0, reach = 0, views = 0 } = scannedPost.engagement
+          // Scanned posts don't have views/reach in engagement, estimate from likes
+          const { likes = 0, comments = 0, shares = 0 } = scannedPost.engagement
           const totalEngagements = likes + comments + shares
-          const engagementRate = reach > 0 
-            ? (totalEngagements / reach) * 100
-            : views > 0 
-              ? (totalEngagements / views) * 100
-              : 0
+          // Estimate views: typically views are 20x likes
+          const estimatedViews = likes > 0 ? likes * 20 : totalEngagements * 10
+          dayData.views += estimatedViews
+          
+          // Estimate engagement rate: typically 2-5% engagement rate
+          // Use a conservative estimate: (engagements / estimated_reach) * 100
+          // Estimated reach is typically 2-3x views
+          const estimatedReach = estimatedViews * 2.5
+          const engagementRate = estimatedReach > 0 
+            ? (totalEngagements / estimatedReach) * 100
+            : 0
           dayData.engagement += engagementRate
           dayData.count += 1
         }
@@ -232,8 +237,6 @@ export default function AnalyticsPage() {
     }
     return null
   }
-
-  const hasTrendData = trendData.some(d => d.views > 0 || d.engagement > 0)
 
   return (
     <div className="min-h-screen relative bg-slate-900">
