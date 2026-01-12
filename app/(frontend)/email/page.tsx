@@ -374,23 +374,27 @@ Generate the email content based on what "${campaignName}" suggests the email sh
     <div className="min-h-screen relative">
       {/* Page Header */}
       <div className="glass-strong border-b border-slate-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-white" />
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg blur-lg opacity-60"></div>
+                <div className="relative w-7 h-7 lg:w-10 lg:h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center shadow-glow">
+                  <Mail className="w-3.5 h-3.5 lg:w-5 lg:h-5 text-white" />
+                </div>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gradient">Email Campaigns</h1>
-                <p className="text-sm text-slate-300">Automate your email marketing</p>
+                <h1 className="text-lg lg:text-2xl font-bold text-gradient">Email Campaigns</h1>
+                <p className="text-xs lg:text-sm text-slate-300 hidden sm:block">Automate your email marketing</p>
               </div>
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md"
+              className="flex items-center space-x-2 bg-blue-600 text-white px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm hover:shadow-md text-xs lg:text-sm"
             >
-              <Plus className="w-5 h-5" />
-              <span>New Campaign</span>
+              <Plus className="w-4 h-4 lg:w-5 lg:h-5" />
+              <span className="hidden sm:inline">New Campaign</span>
+              <span className="sm:hidden">New</span>
             </button>
           </div>
         </div>

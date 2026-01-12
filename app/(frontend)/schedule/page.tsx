@@ -147,20 +147,23 @@ export default function SchedulePage() {
     <div className="min-h-screen relative">
       {/* Page Header */}
       <div className="glass-strong border-b border-slate-700/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-sm">
-              <Calendar className="w-5 h-5 text-white" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg blur-lg opacity-60"></div>
+              <div className="relative w-7 h-7 lg:w-10 lg:h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center shadow-glow">
+                <Calendar className="w-3.5 h-3.5 lg:w-5 lg:h-5 text-white" />
+              </div>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gradient mb-1">Schedule Posts</h1>
-              <p className="text-sm text-slate-300">Manage your social media content</p>
+              <h1 className="text-lg lg:text-2xl font-bold text-gradient">Schedule Posts</h1>
+              <p className="text-xs lg:text-sm text-slate-300 hidden sm:block">Manage your social media content</p>
             </div>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 pb-1.5 lg:py-3">
         {/* Schedule Modal */}
         {selectedPost && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
