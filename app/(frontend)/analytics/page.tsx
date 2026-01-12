@@ -697,7 +697,7 @@ export default function AnalyticsPage() {
             return (
               <div
                 key={metric.label}
-                        className="glass rounded-lg p-2 lg:p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group flex flex-col justify-center items-center text-center min-h-[100px]"
+                        className="glass rounded-lg p-2 lg:p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group flex flex-col justify-center items-center text-center"
                         style={{
                           boxShadow: `0 0 15px ${metric.color}20`
                         }}
