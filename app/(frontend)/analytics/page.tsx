@@ -332,9 +332,9 @@ export default function AnalyticsPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 lg:py-6">
         {/* AI Insights - Highlighted & Compact */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 lg:gap-3 mb-3 lg:mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 lg:gap-3 mb-2 lg:mb-3">
           {/* AI Performance Insights */}
-          <div className="relative glass rounded-lg border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/40 transition-all duration-300 overflow-hidden" style={{ height: 'calc(100% * 0.7)' }}>
+          <div className="relative glass rounded-lg border-2 border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/40 transition-all duration-300 overflow-hidden" style={{ height: 'calc(100% * 0.9)' }}>
             {/* Animated glow effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/10 rounded-lg blur-2xl animate-pulse"></div>
             <div className="relative p-2 lg:p-2.5 h-full flex flex-col">
@@ -370,7 +370,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Learned Preferences */}
-          <div className="relative glass rounded-lg border-2 border-purple-500/50 bg-gradient-to-br from-purple-500/15 to-pink-500/15 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/40 transition-all duration-300 overflow-hidden" style={{ height: 'calc(100% * 0.7)' }}>
+          <div className="relative glass rounded-lg border-2 border-purple-500/50 bg-gradient-to-br from-purple-500/15 to-pink-500/15 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/40 transition-all duration-300 overflow-hidden" style={{ height: 'calc(100% * 0.9)' }}>
             {/* Animated glow effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg blur-2xl animate-pulse"></div>
             <div className="relative p-2 lg:p-2.5 h-full flex flex-col">
