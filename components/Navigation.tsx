@@ -53,6 +53,7 @@ export function Navigation() {
             {navigation.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
+              const isAutomate = item.nameKey === 'automate'
               return (
                 <Link
                   key={item.nameKey}
@@ -61,12 +62,32 @@ export function Navigation() {
                     isActive
                       ? 'text-white bg-slate-800/60 font-semibold'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
-                  }`}
+                  } ${isAutomate ? 'font-semibold' : ''}`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-white'}`} />
-                  <span>{t(item.nameKey)}</span>
-                  {isActive && (
+                  {/* Glow effect for Automate button */}
+                  {isAutomate && (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg blur-xl animate-pulse"></div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg"></div>
+                    </>
+                  )}
+                  <Icon className={`relative w-4 h-4 ${
+                    isAutomate 
+                      ? 'text-cyan-400 drop-shadow-lg shadow-cyan-400/50' 
+                      : isActive 
+                        ? 'text-white' 
+                        : 'text-slate-500 group-hover:text-white'
+                  }`} />
+                  <span className={`relative ${
+                    isAutomate 
+                      ? 'text-cyan-100 drop-shadow-sm' 
+                      : ''
+                  }`}>{t(item.nameKey)}</span>
+                  {isActive && !isAutomate && (
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full"></div>
+                  )}
+                  {isAutomate && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-lg shadow-cyan-400/50"></div>
                   )}
                 </Link>
               )
@@ -74,7 +95,7 @@ export function Navigation() {
           </div>
 
           {/* Settings Icon, Language Selector and Mobile Menu */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {/* Settings Icon */}
             <Link
               href="/settings"
