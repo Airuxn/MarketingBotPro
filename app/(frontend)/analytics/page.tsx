@@ -296,8 +296,7 @@ export default function AnalyticsPage() {
 
         {/* Trend Chart */}
         <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
-          <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
               <div className="flex items-center space-x-2 text-xs text-slate-400">
                 <div className="flex items-center space-x-1">
