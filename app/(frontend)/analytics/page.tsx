@@ -537,8 +537,8 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Trend Chart */}
-        <div className="glass rounded-lg p-2.5 lg:p-4 border border-slate-700/50 mb-3 lg:mb-6">
-          <div className="flex items-center justify-between mb-2.5 lg:mb-4 flex-wrap gap-2">
+        <div className="glass rounded-lg px-1 py-2.5 lg:p-4 border border-slate-700/50 mb-3 lg:mb-6">
+          <div className="flex items-center justify-between mb-2.5 lg:mb-4 flex-wrap gap-2 px-1 lg:px-0">
             <h2 className="text-xs lg:text-sm font-semibold text-white">
               {trendRange === '7d' && '7-Day Engagement Trend'}
               {trendRange === '14d' && '14-Day Engagement Trend'}
@@ -581,7 +581,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={162} className="lg:h-[216px]">
-            <LineChart data={trendData} margin={{ top: 10, right: 20, left: 0, bottom: 10 }}>
+            <LineChart data={trendData} margin={{ top: 10, right: 5, left: -10, bottom: 10 }} className="lg:!ml-0 lg:!mr-5">
               <defs>
                 <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.3} />
