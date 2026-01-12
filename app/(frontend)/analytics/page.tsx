@@ -331,7 +331,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4.5 pb-1.5 lg:py-3">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-1.5 lg:py-3">
         {/* AI Insights - Highlighted & Compact */}
         {/* Mobile: Combined Tabbed Interface */}
         <div className="lg:hidden mb-2">
