@@ -401,16 +401,45 @@ export default function AnalyticsPage() {
 
         {/* Trend Chart */}
         <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
-            <div className="flex items-center space-x-2 text-xs text-slate-400">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                <span>Views</span>
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <h2 className="text-sm font-semibold text-white">
+              {trendRange === '7d' && '7-Day Engagement Trend'}
+              {trendRange === '14d' && '14-Day Engagement Trend'}
+              {trendRange === '30d' && '30-Day Engagement Trend'}
+              {trendRange === '90d' && '90-Day Engagement Trend'}
+              {trendRange === 'all' && 'All-Time Engagement Trend'}
+            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Time Range Selector */}
+              <div className="flex items-center gap-1 bg-slate-800/50 rounded-lg p-0.5 border border-slate-700/50">
+                {(['7d', '14d', '30d', '90d', 'all'] as const).map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setTrendRange(range)}
+                    className={`px-2 py-1 text-[10px] font-medium rounded transition-colors whitespace-nowrap ${
+                      trendRange === range
+                        ? 'bg-indigo-600 text-white'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                    }`}
+                  >
+                    {range === '7d' && '7D'}
+                    {range === '14d' && '14D'}
+                    {range === '30d' && '30D'}
+                    {range === '90d' && '90D'}
+                    {range === 'all' && 'All'}
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                <span>Engagement (likes + comments + shares)</span>
+              {/* Legend */}
+              <div className="flex items-center space-x-2 text-xs text-slate-400">
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                  <span>Views</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                  <span>Engagement</span>
+                </div>
               </div>
             </div>
           </div>
