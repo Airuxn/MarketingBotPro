@@ -465,7 +465,7 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               {insights.recommendations.length > 0 ? (
-                <div className="space-y-0.5 flex-1 overflow-hidden">
+                <div className="space-y-0.5 flex-1 overflow-hidden flex flex-col justify-center">
                   {insights.recommendations.slice(0, 5).map((rec, idx) => (
                     <div key={idx} className="flex items-start space-x-2 text-[12px] lg:text-sm text-slate-200 leading-relaxed py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-blue-500/10">
                       <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0 shadow-lg shadow-blue-400/70 animate-pulse"></div>
