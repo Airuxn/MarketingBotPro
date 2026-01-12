@@ -6,7 +6,7 @@ import { useStore } from '@/lib/store'
 import { analyzeContentPerformance, calculateEngagementRate, calculatePerformanceScore, ScannedPost } from '@/lib/content-performance-analyzer'
 import { EngagementTracker } from '@/components/EngagementTracker'
 import { analyzeEdit, combineAllLearningSources } from '@/lib/content-learner'
-import { format, subDays } from 'date-fns'
+import { format, subDays, subMonths, startOfDay } from 'date-fns'
 import toast from 'react-hot-toast'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
@@ -46,6 +46,7 @@ export default function AnalyticsPage() {
   const { stats, posts, emailCampaigns, leads, updatePost, settings, updateSettings } = useStore()
   const [selectedPost, setSelectedPost] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'times' | 'content' | 'hashtags' | 'platforms' | 'top' | 'all'>('times')
+  const [trendRange, setTrendRange] = useState<'7d' | '14d' | '30d' | '90d' | 'all'>('7d')
 
   // Calculate additional metrics
   const scheduledPosts = posts.filter((p) => p.status === 'scheduled').length
@@ -107,12 +108,42 @@ export default function AnalyticsPage() {
       })
   }, [postedPosts, scannedPosts])
 
-  // Generate real trend data from posted posts AND scanned posts (last 7 days)
+  // Generate real trend data from posted posts AND scanned posts
   const trendData = useMemo(() => {
-    const days = Array.from({ length: 7 }, (_, i) => {
-      const date = subDays(new Date(), 6 - i)
+    let daysCount = 7
+    let startDate = subDays(new Date(), 6)
+    
+    if (trendRange === '14d') {
+      daysCount = 14
+      startDate = subDays(new Date(), 13)
+    } else if (trendRange === '30d') {
+      daysCount = 30
+      startDate = subDays(new Date(), 29)
+    } else if (trendRange === '90d') {
+      daysCount = 90
+      startDate = subDays(new Date(), 89)
+    } else if (trendRange === 'all') {
+      // For "all time", get the oldest post date
+      const allPostDates = [
+        ...postedPosts.map(p => p.engagement?.lastUpdated || p.postedAt || p.createdAt),
+        ...scannedPosts.map(sp => sp.createdAt)
+      ].filter(Boolean).map(d => new Date(d).getTime())
+      
+      if (allPostDates.length > 0) {
+        const oldestDate = new Date(Math.min(...allPostDates))
+        const daysDiff = Math.floor((new Date().getTime() - oldestDate.getTime()) / (1000 * 60 * 60 * 24))
+        daysCount = Math.min(Math.max(daysDiff + 1, 7), 365) // Cap at 365 days, min 7
+        startDate = subDays(new Date(), daysCount - 1)
+      } else {
+        daysCount = 7
+        startDate = subDays(new Date(), 6)
+      }
+    }
+
+    const days = Array.from({ length: daysCount }, (_, i) => {
+      const date = subDays(new Date(), daysCount - 1 - i)
       return {
-        day: format(date, 'EEE'),
+        day: daysCount <= 30 ? format(date, 'EEE') : format(date, 'MMM d'),
         date: format(date, 'yyyy-MM-dd'),
         views: 0,
         engagement: 0, // Total engagements (likes + comments + shares)
@@ -156,7 +187,7 @@ export default function AnalyticsPage() {
       views: day.views,
       engagement: day.engagement
     }))
-  }, [postedPosts, scannedPosts])
+  }, [postedPosts, scannedPosts, trendRange])
 
   // Chart data for posting times
   const postingTimesChartData = useMemo(() => {
