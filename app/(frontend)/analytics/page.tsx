@@ -585,28 +585,27 @@ export default function AnalyticsPage() {
                     return (
                       <div
                         key={metric.label}
-                        className="relative glass rounded-lg p-3 border transition-all duration-300 group overflow-hidden"
+                        className="relative glass rounded-lg p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group overflow-hidden"
                         style={{
-                          borderColor: `${metric.color}50`,
-                          boxShadow: `0 0 0 1px ${metric.color}20, 0 4px 12px rgba(0,0,0,0.15)`
+                          boxShadow: `0 0 0 0 ${metric.color}30, 0 4px 12px rgba(0,0,0,0.1)`
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = `${metric.color}70`
-                          e.currentTarget.style.boxShadow = `0 0 0 2px ${metric.color}40, 0 8px 24px rgba(0,0,0,0.25)`
+                          e.currentTarget.style.borderColor = `${metric.color}60`
+                          e.currentTarget.style.boxShadow = `0 0 20px ${metric.color}40, 0 8px 24px rgba(0,0,0,0.2)`
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = `${metric.color}50`
-                          e.currentTarget.style.boxShadow = `0 0 0 1px ${metric.color}20, 0 4px 12px rgba(0,0,0,0.15)`
+                          e.currentTarget.style.borderColor = ''
+                          e.currentTarget.style.boxShadow = `0 0 0 0 ${metric.color}30, 0 4px 12px rgba(0,0,0,0.1)`
                         }}
                       >
-                        {/* Subtle gradient background */}
+                        {/* Subtle gradient background on hover */}
                         <div 
-                          className="absolute inset-0 opacity-5 group-hover:opacity-15 transition-opacity pointer-events-none"
+                          className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity pointer-events-none"
                           style={{ background: `linear-gradient(135deg, ${metric.color} 0%, transparent 100%)` }}
                         />
                         <div className="relative">
                           <div className="flex items-center justify-between mb-2">
-                            <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
+                            <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color, filter: 'drop-shadow(0 0 8px ' + metric.color + '40)' }} />
                             {metric.value > 0 && (
                               <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
                                 <ArrowUp className="w-3 h-3" />
