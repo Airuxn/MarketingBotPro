@@ -51,6 +51,7 @@ A modern, enterprise-grade Progressive Web App (PWA) that automates marketing ta
 - Real-time engagement metrics (views, likes, comments, shares, reach)
 - **AI Performance Insights** - actionable recommendations based on posted content and scanned social media
 - **AI Current Learned Preferences** - see what the AI has learned about your style
+- **Mobile-optimized interface** - Performance Insights and Learned Preferences combined in a tabbed interface on mobile with "/" separator
 - Best posting times analysis
 - Content type performance tracking
 - Platform performance comparison
@@ -58,6 +59,7 @@ A modern, enterprise-grade Progressive Web App (PWA) that automates marketing ta
 - Engagement rate calculations
 - Performance scoring system
 - Analyzes both manually tracked posts and automatically scanned social media posts
+- Time range selector for engagement trends (7D, 14D, 30D, 90D, All)
 
 ### 🌍 Internationalization
 - Multi-language support (English, French, Dutch)

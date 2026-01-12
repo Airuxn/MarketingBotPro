@@ -15,9 +15,9 @@ npm run dev
 ### Step 3: Configure
 1. Open http://localhost:3000
 2. Go to **Settings**
-3. Connect social media accounts (optional)
-4. Add your Google Gemini API key (get one at https://aistudio.google.com/app/apikey)
-5. Fill in your business info
+3. **1. Add API Key** - Add your Google Gemini API key (get one at https://aistudio.google.com/app/apikey)
+4. **2. Business Info** - Fill in your business name, type, and target audience
+5. **3. Connect Socials** - Connect social media accounts (optional, but recommended for learning)
 
 ## ✨ What You Can Do
 

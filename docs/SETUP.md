@@ -29,9 +29,9 @@
 6. **Open in Browser**
    - Go to [http://localhost:3000](http://localhost:3000)
    - Click on Settings
-   - Connect social media accounts (optional)
-   - Add your Google Gemini API key
-   - Fill in your business information
+   - **1. Add API Key** - Add your Google Gemini API key (required for AI features)
+   - **2. Business Info** - Fill in your business name, type, and target audience
+   - **3. Connect Socials** - Connect social media accounts (optional, but recommended for learning)
 
 ## PWA Icons
 
