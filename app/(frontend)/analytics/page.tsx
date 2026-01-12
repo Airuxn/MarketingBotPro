@@ -576,20 +576,20 @@ export default function AnalyticsPage() {
             {activeTab === 'overview' && (
               <div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3">
-          {metrics.map((metric) => {
-            const Icon = metric.icon
+                  {metrics.map((metric) => {
+                    const Icon = metric.icon
                     const displayValue = metric.isPercentage 
                       ? `${metric.value.toFixed(2)}%`
                       : metric.value.toLocaleString()
                     
-            return (
-              <div
-                key={metric.label}
-                        className="glass rounded-lg p-2 lg:p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group"
+                    return (
+                      <div
+                        key={metric.label}
+                        className="glass rounded-lg p-2 lg:p-3 border border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 group flex flex-col justify-center"
                         style={{
                           boxShadow: `0 0 15px ${metric.color}20`
                         }}
-              >
+                      >
                         <div className="flex items-center justify-between mb-1.5 lg:mb-2">
                           <Icon className="w-3.5 h-3.5 lg:w-4 lg:h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
                           {metric.value > 0 && (
@@ -598,19 +598,19 @@ export default function AnalyticsPage() {
                               <span className="font-medium">12%</span>
                             </div>
                           )}
-                  </div>
+                        </div>
                         <div className="text-lg lg:text-xl xl:text-2xl font-semibold text-white mb-0.5 lg:mb-1 truncate">
                           {metric.isPercentage ? (
                             displayValue
                           ) : (
                             <AnimatedCounter value={metric.value} />
                           )}
-                </div>
+                        </div>
                         <div className="text-[9px] lg:text-[10px] xl:text-xs text-slate-400 font-medium truncate">{metric.label}</div>
-              </div>
-            )
-          })}
-        </div>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             )}
 
