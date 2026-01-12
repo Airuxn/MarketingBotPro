@@ -161,19 +161,37 @@ function MobileMenu({ pathname }: { pathname: string }) {
               {navigation.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
+                const isAutomate = item.nameKey === 'automate'
                 return (
                   <Link
                     key={item.nameKey}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                    className={`relative flex items-center space-x-3 px-4 py-3 text-sm font-medium transition-all duration-200 ${
                       isActive
                         ? 'text-white bg-slate-800/60'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
-                    }`}
+                    } ${isAutomate ? 'font-semibold' : ''}`}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                    <span>{t(item.nameKey)}</span>
+                    {/* Glow effect for Automate button in mobile menu */}
+                    {isAutomate && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg blur-xl animate-pulse"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-lg"></div>
+                      </>
+                    )}
+                    <Icon className={`relative w-5 h-5 ${
+                      isAutomate 
+                        ? 'text-cyan-400 drop-shadow-lg shadow-cyan-400/50' 
+                        : isActive 
+                          ? 'text-white' 
+                          : 'text-slate-400'
+                    }`} />
+                    <span className={`relative ${
+                      isAutomate 
+                        ? 'text-cyan-100 drop-shadow-sm' 
+                        : ''
+                    }`}>{t(item.nameKey)}</span>
                   </Link>
                 )
               })}
