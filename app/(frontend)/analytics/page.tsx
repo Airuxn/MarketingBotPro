@@ -334,10 +334,10 @@ export default function AnalyticsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5 lg:py-3">
         {/* AI Insights - Highlighted & Compact */}
         {/* Mobile: Combined Tabbed Interface */}
-        <div className="lg:hidden mb-2">
-          <div className={`relative glass rounded-lg border-2 transition-all duration-300 ${activeInsightTab === 'insights' ? 'border-blue-500/50 bg-gradient-to-br from-blue-500/15 to-indigo-500/15 shadow-2xl shadow-blue-500/30' : 'border-purple-500/50 bg-gradient-to-br from-purple-500/15 to-pink-500/15 shadow-2xl shadow-purple-500/30'}`} style={{ minHeight: '240px', maxHeight: '260px' }}>
-            {/* Animated glow effect - changes color based on active tab */}
-            <div className={`absolute inset-0 rounded-lg blur-2xl animate-pulse ${activeInsightTab === 'insights' ? 'bg-gradient-to-br from-blue-500/10 to-indigo-500/10' : 'bg-gradient-to-br from-purple-500/10 to-pink-500/10'}`}></div>
+        <div className="lg:hidden mb-6">
+          <div className={`relative glass rounded-lg border-2 transition-all duration-300 ${activeInsightTab === 'insights' ? 'border-blue-500/60 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 shadow-2xl shadow-blue-500/40' : 'border-purple-500/60 bg-gradient-to-br from-purple-500/20 to-pink-500/20 shadow-2xl shadow-purple-500/40'}`} style={{ minHeight: '240px', maxHeight: '260px' }}>
+            {/* Animated glow effect - changes color based on active tab - stronger on mobile */}
+            <div className={`absolute inset-0 rounded-lg blur-3xl animate-pulse ${activeInsightTab === 'insights' ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20' : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20'}`}></div>
             <div className="relative p-3 h-full flex flex-col overflow-hidden">
               {/* Tab Selector with Icons */}
               <div className="flex items-center justify-center mb-1.5 flex-shrink-0 gap-2">
@@ -368,13 +368,13 @@ export default function AnalyticsPage() {
                       : 'text-slate-400'
                   }`}
                 >
-                  <div className="relative">
+              <div className="relative">
                     {activeInsightTab === 'preferences' && (
                       <div className="absolute inset-0 bg-purple-400/50 rounded-lg blur-lg animate-pulse"></div>
                     )}
                     <div className={`relative w-6 h-6 rounded-lg flex items-center justify-center ${activeInsightTab === 'preferences' ? 'bg-gradient-to-br from-purple-500 to-pink-600 shadow-xl shadow-purple-500/50' : 'bg-slate-700/50'}`}>
                       <Brain className="w-3.5 h-3.5 text-white" />
-                    </div>
+              </div>
                   </div>
                   <span className="text-sm font-bold">Learned Preferences</span>
                 </button>
@@ -393,9 +393,9 @@ export default function AnalyticsPage() {
                           <div key={idx} className="flex items-start space-x-2 text-[12px] text-slate-200 leading-relaxed py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-blue-500/10">
                             <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0 shadow-lg shadow-blue-400/70 animate-pulse"></div>
                             <span className="flex-1 font-medium">{rec}</span>
-                          </div>
-                        ))}
-                      </div>
+                  </div>
+                ))}
+                </div>
                     ) : (
                       <div className="text-[12px] text-slate-400 leading-relaxed py-3 px-3 rounded-md bg-slate-800/30 border border-blue-500/10 flex-1 flex items-center">
                         Connect social accounts or add engagement data to see AI insights.
@@ -461,7 +461,7 @@ export default function AnalyticsPage() {
                   <div>
                     <h2 className="text-sm lg:text-base font-bold text-white drop-shadow-lg">Performance Insights</h2>
                     <p className="text-xs lg:text-sm text-blue-300/90 font-medium">AI-powered recommendations</p>
-                  </div>
+              </div>
                 </div>
               </div>
               {insights.recommendations.length > 0 ? (
@@ -480,7 +480,7 @@ export default function AnalyticsPage() {
               )}
             </div>
           </div>
-
+          
           {/* Learned Preferences */}
           <div className="relative glass rounded-lg border-2 border-purple-500/50 bg-gradient-to-br from-purple-500/15 to-pink-500/15 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/40 transition-all duration-300" style={{ minHeight: '240px', maxHeight: '260px' }}>
             {/* Animated glow effect */}
@@ -488,11 +488,11 @@ export default function AnalyticsPage() {
             <div className="relative p-3 lg:p-4 h-full flex flex-col overflow-hidden">
               <div className="flex items-center justify-between mb-1.5 flex-shrink-0">
                 <div className="flex items-center space-x-2.5 lg:space-x-3">
-                  <div className="relative">
+              <div className="relative">
                     <div className="absolute inset-0 bg-purple-400/50 rounded-lg blur-lg animate-pulse"></div>
                     <div className="relative w-9 h-9 lg:w-10 lg:h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-xl shadow-purple-500/50">
                       <Brain className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
-                    </div>
+              </div>
                   </div>
                   <div>
                     <h2 className="text-sm lg:text-base font-bold text-white drop-shadow-lg">Learned Preferences</h2>
@@ -506,31 +506,31 @@ export default function AnalyticsPage() {
                     <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Length</span>
                       <span className="text-[10px] lg:text-xs text-white font-semibold capitalize px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.length}</span>
-                    </div>
-                  )}
+                  </div>
+                )}
                   {learnedStyle.tone && learnedStyle.tone.length > 0 && (
                     <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Tone</span>
                       <span className="text-[10px] lg:text-xs text-white font-semibold px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.tone.slice(0, 2).join(', ')}</span>
-                    </div>
-                  )}
+                  </div>
+                )}
                   {learnedStyle.hashtagUsage && (
                     <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Hashtags</span>
                       <span className="text-[10px] lg:text-xs text-white font-semibold capitalize px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.hashtagUsage}</span>
-                    </div>
-                  )}
+                  </div>
+                )}
                   {learnedStyle.structure && learnedStyle.structure.length > 0 && (
                     <div className="flex items-center justify-between py-0.5 px-2 rounded-md bg-slate-800/40 hover:bg-slate-800/60 transition-colors border border-purple-500/10">
                       <span className="text-sm lg:text-base text-slate-400 font-medium">Structure</span>
                       <span className="text-[10px] lg:text-xs text-white font-semibold px-1.5 py-0.5 bg-purple-500/30 rounded-md border border-purple-500/50 shadow-md shadow-purple-500/30">{learnedStyle.structure.slice(0, 2).join(', ')}</span>
-                    </div>
-                  )}
+                  </div>
+                )}
                 </div>
               ) : (
                 <div className="text-[12px] lg:text-sm text-slate-400 leading-relaxed py-3 px-3 rounded-md bg-slate-800/30 border border-purple-500/10 flex-1 flex items-center">
                   AI learns from your scanned posts, accepted content, and edits.
-                </div>
+              </div>
               )}
             </div>
           </div>
