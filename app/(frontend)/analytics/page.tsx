@@ -67,7 +67,7 @@ export default function AnalyticsPage() {
   const scannedPosts: ScannedPost[] = settings.contentPreferences?.scannedPosts || []
   const insights = analyzeContentPerformance(posts, scannedPosts)
 
-  // Generate real trend data from posted posts (last 7 days)
+  // Generate real trend data from posted posts AND scanned posts (last 7 days)
   const trendData = useMemo(() => {
     const days = Array.from({ length: 7 }, (_, i) => {
       const date = subDays(new Date(), 6 - i)
@@ -93,13 +93,34 @@ export default function AnalyticsPage() {
       }
     })
 
+    // Aggregate data from scanned posts
+    scannedPosts.forEach(scannedPost => {
+      if (scannedPost.engagement && scannedPost.postedAt) {
+        const postDate = format(new Date(scannedPost.postedAt), 'yyyy-MM-dd')
+        const dayData = days.find(d => d.date === postDate)
+        if (dayData) {
+          dayData.views += scannedPost.engagement.views || 0
+          // Calculate engagement rate for scanned post
+          const { likes = 0, comments = 0, shares = 0, reach = 0, views = 0 } = scannedPost.engagement
+          const totalEngagements = likes + comments + shares
+          const engagementRate = reach > 0 
+            ? (totalEngagements / reach) * 100
+            : views > 0 
+              ? (totalEngagements / views) * 100
+              : 0
+          dayData.engagement += engagementRate
+          dayData.count += 1
+        }
+      }
+    })
+
     // Calculate averages for engagement
     return days.map(day => ({
       day: day.day,
       views: day.views,
       engagement: day.count > 0 ? day.engagement / day.count : 0
     }))
-  }, [postedPosts])
+  }, [postedPosts, scannedPosts])
 
   // Chart data for posting times
   const postingTimesChartData = useMemo(() => {
@@ -270,8 +291,8 @@ export default function AnalyticsPage() {
           })}
         </div>
 
-        {/* Trend Chart - Only show if we have data */}
-        {hasTrendData && (
+        {/* Trend Chart */}
+        <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
           <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
