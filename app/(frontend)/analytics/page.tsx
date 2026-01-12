@@ -45,6 +45,7 @@ function AnimatedCounter({ value, duration = 2000 }: { value: number, duration?:
 export default function AnalyticsPage() {
   const { stats, posts, emailCampaigns, leads, updatePost, settings, updateSettings } = useStore()
   const [selectedPost, setSelectedPost] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'times' | 'content' | 'hashtags' | 'platforms' | 'top' | 'all'>('times')
 
   // Calculate additional metrics
   const scheduledPosts = posts.filter((p) => p.status === 'scheduled').length
@@ -66,6 +67,45 @@ export default function AnalyticsPage() {
   // Get performance insights (include scanned posts from social media)
   const scannedPosts: ScannedPost[] = settings.contentPreferences?.scannedPosts || []
   const insights = analyzeContentPerformance(posts, scannedPosts)
+
+  // Convert scanned posts to Post format for display
+  const allPostsWithEngagement = useMemo(() => {
+    const convertedScannedPosts = scannedPosts
+      .filter(sp => sp.engagement && (sp.engagement.likes || sp.engagement.comments || sp.engagement.shares))
+      .map(scannedPost => {
+        const { likes = 0, comments = 0, shares = 0 } = scannedPost.engagement || {}
+        const totalEngagements = likes + comments + shares
+        const estimatedViews = likes > 0 ? likes * 20 : totalEngagements * 10
+        const estimatedReach = estimatedViews * 2.5
+        const engagementRate = estimatedReach > 0 ? (totalEngagements / estimatedReach) * 100 : 0
+
+        return {
+          id: scannedPost.id,
+          content: scannedPost.content,
+          platform: scannedPost.platform as any,
+          status: 'posted' as const,
+          createdAt: scannedPost.createdAt,
+          postedAt: scannedPost.createdAt,
+          hasMedia: (scannedPost.images && scannedPost.images.length > 0) ?? false,
+          contentType: scannedPost.images && scannedPost.images.length > 0 ? (scannedPost.images.length > 1 ? 'carousel' : 'image') : 'text' as any,
+          engagement: {
+            views: estimatedViews,
+            likes: likes,
+            comments: comments,
+            shares: shares,
+            reach: estimatedReach,
+            lastUpdated: scannedPost.createdAt,
+          },
+        }
+      })
+
+    return [...postedPosts, ...convertedScannedPosts]
+      .sort((a, b) => {
+        const dateA = a.postedAt || a.createdAt
+        const dateB = b.postedAt || b.createdAt
+        return new Date(dateB).getTime() - new Date(dateA).getTime()
+      })
+  }, [postedPosts, scannedPosts])
 
   // Generate real trend data from posted posts AND scanned posts (last 7 days)
   const trendData = useMemo(() => {
@@ -218,7 +258,7 @@ export default function AnalyticsPage() {
     },
   ]
 
-  const selectedPostData = selectedPost ? posts.find(p => p.id === selectedPost) : null
+  const selectedPostData = selectedPost ? allPostsWithEngagement.find(p => p.id === selectedPost) : null
   const learnedStyle = settings.contentPreferences?.learnedStyle
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -237,6 +277,15 @@ export default function AnalyticsPage() {
     }
     return null
   }
+
+  const tabs = [
+    { id: 'times' as const, label: 'Times', icon: Clock, count: insights.bestPostingTimes.length },
+    { id: 'content' as const, label: 'Content', icon: ImageIcon, count: insights.bestContentTypes.length },
+    { id: 'hashtags' as const, label: 'Hashtags', icon: Hash, count: insights.bestHashtags.length },
+    { id: 'platforms' as const, label: 'Platforms', icon: TrendingUp, count: insights.bestPlatforms.length },
+    { id: 'top' as const, label: 'Top Posts', icon: Zap, count: insights.topPerformingPosts.length },
+    { id: 'all' as const, label: 'All Posts', icon: BarChart3, count: allPostsWithEngagement.length },
+  ]
 
   return (
     <div className="min-h-screen relative bg-slate-900">
@@ -297,53 +346,53 @@ export default function AnalyticsPage() {
         {/* Trend Chart */}
         <div className="glass rounded-lg p-4 border border-slate-700/50 mb-6">
           <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
-              <div className="flex items-center space-x-2 text-xs text-slate-400">
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                  <span>Views</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 rounded-full bg-green-400"></div>
-                  <span>Engagement %</span>
-                </div>
+            <h2 className="text-sm font-semibold text-white">7-Day Engagement Trend</h2>
+            <div className="flex items-center space-x-2 text-xs text-slate-400">
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                <span>Views</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                <span>Engagement %</span>
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
-                <YAxis yAxisId="left" stroke="#94a3b8" fontSize={12} />
-                <YAxis 
-                  yAxisId="right" 
-                  orientation="right" 
-                  stroke="#34d399" 
-                  fontSize={12}
-                  domain={[0, 100]}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <Tooltip content={<CustomTooltip />} />
-                <Line 
-                  yAxisId="left"
-                  type="monotone" 
-                  dataKey="views" 
-                  stroke="#60a5fa" 
-                  strokeWidth={2}
-                  dot={{ fill: '#60a5fa', r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-                <Line 
-                  yAxisId="right"
-                  type="monotone" 
-                  dataKey="engagement" 
-                  stroke="#34d399" 
-                  strokeWidth={2}
-                  dot={{ fill: '#34d399', r: 3 }}
-                  activeDot={{ r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
           </div>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} />
+              <YAxis yAxisId="left" stroke="#94a3b8" fontSize={12} />
+              <YAxis 
+                yAxisId="right" 
+                orientation="right" 
+                stroke="#34d399" 
+                fontSize={12}
+                domain={[0, 100]}
+                tickFormatter={(value) => `${value}%`}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Line 
+                yAxisId="left"
+                type="monotone" 
+                dataKey="views" 
+                stroke="#60a5fa" 
+                strokeWidth={2}
+                dot={{ fill: '#60a5fa', r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+              <Line 
+                yAxisId="right"
+                type="monotone" 
+                dataKey="engagement" 
+                stroke="#34d399" 
+                strokeWidth={2}
+                dot={{ fill: '#34d399', r: 3 }}
+                activeDot={{ r: 5 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* AI Insights - Compact */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
@@ -414,185 +463,330 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Performance Breakdown with Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-6">
-          {/* Best Posting Times with Chart */}
-          {insights.bestPostingTimes.length > 0 && (
-            <div className="glass rounded-lg p-3 border border-slate-700/50">
-              <div className="flex items-center space-x-2 mb-3">
-                <Clock className="w-4 h-4 text-slate-400" />
-                <h3 className="text-sm font-semibold text-white">Best Posting Times</h3>
-              </div>
-              {postingTimesChartData.length > 0 && (
-                <div className="mb-3">
-                  <ResponsiveContainer width="100%" height={120}>
-                    <BarChart data={postingTimesChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} angle={-45} textAnchor="end" height={60} />
-                      <YAxis stroke="#94a3b8" fontSize={10} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="engagement" radius={[4, 4, 0, 0]}>
-                        {postingTimesChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill="#60a5fa" />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              <div className="space-y-1.5">
-                {insights.bestPostingTimes.slice(0, 5).map((time, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-1.5 text-xs border-b border-slate-700/30 last:border-0">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-white font-medium">{time.day}</span>
-                      <span className="text-slate-400">{time.hour}:00</span>
-                    </div>
-                    <span className="text-slate-300 font-medium">{time.avgEngagement.toFixed(1)}%</span>
-                  </div>
-                ))}
-              </div>
+        {/* Performance Breakdown - Tabbed Interface */}
+        <div className="glass rounded-lg p-3 border border-slate-700/50 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-5 h-5 text-indigo-400" />
+              <h3 className="text-base font-semibold text-white">Performance Analysis</h3>
             </div>
-          )}
+          </div>
 
-          {/* Best Content Types with Chart */}
-          {insights.bestContentTypes.length > 0 && (
-            <div className="glass rounded-lg p-3 border border-slate-700/50">
-              <div className="flex items-center space-x-2 mb-3">
-                <ImageIcon className="w-4 h-4 text-slate-400" />
-                <h3 className="text-sm font-semibold text-white">Content Type Performance</h3>
-              </div>
-              {contentTypesChartData.length > 0 && (
-                <div className="mb-3">
-                  <ResponsiveContainer width="100%" height={120}>
-                    <BarChart data={contentTypesChartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                      <YAxis stroke="#94a3b8" fontSize={10} />
-                      <Tooltip />
-                      <Bar dataKey="views" radius={[4, 4, 0, 0]}>
-                        {contentTypesChartData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill="#a78bfa" />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-              <div className="space-y-1.5">
-                {insights.bestContentTypes.map((type, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-1.5 text-xs border-b border-slate-700/30 last:border-0">
-                    <span className="text-white font-medium capitalize">{type.type}</span>
-                    <div className="text-right">
-                      <div className="text-white font-medium">{type.avgViews.toLocaleString()}</div>
-                      <div className="text-slate-400 text-[10px]">{type.avgEngagement.toFixed(1)}% engagement</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Top Hashtags */}
-          {insights.bestHashtags.length > 0 && (
-            <div className="glass rounded-lg p-3 border border-slate-700/50">
-              <div className="flex items-center space-x-2 mb-3">
-                <Hash className="w-4 h-4 text-slate-400" />
-                <h3 className="text-sm font-semibold text-white">Top Hashtags</h3>
-              </div>
-              <div className="space-y-1.5">
-                {insights.bestHashtags.slice(0, 8).map((tag, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-1.5 text-xs border-b border-slate-700/30 last:border-0">
-                    <span className="text-white font-medium">#{tag.tag}</span>
-                    <div className="text-right">
-                      <div className="text-white font-medium">{tag.avgViews.toLocaleString()}</div>
-                      <div className="text-slate-400 text-[10px]">{tag.usageCount}x used</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Platform Performance */}
-          {insights.bestPlatforms.length > 0 && (
-            <div className="glass rounded-lg p-3 border border-slate-700/50">
-              <div className="flex items-center space-x-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-slate-400" />
-                <h3 className="text-sm font-semibold text-white">Platform Performance</h3>
-              </div>
-              <div className="space-y-1.5">
-                {insights.bestPlatforms.map((platform, idx) => (
-                  <div key={idx} className="flex items-center justify-between py-1.5 text-xs border-b border-slate-700/30 last:border-0">
-                    <span className="text-white font-medium capitalize">{platform.platform}</span>
-                    <div className="text-right">
-                      <div className="text-white font-medium">{platform.avgReach.toLocaleString()}</div>
-                      <div className="text-slate-400 text-[10px]">{platform.avgEngagement.toFixed(1)}% engagement</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Top Performing Posts */}
-        {insights.topPerformingPosts.length > 0 && (
-          <div className="glass rounded-lg p-3 border border-slate-700/50 mb-6">
-            <h3 className="text-sm font-semibold text-white mb-3">Top Performing Posts</h3>
-            <div className="space-y-2">
-              {insights.topPerformingPosts.slice(0, 5).map((post) => {
-                const score = calculatePerformanceScore(post)
-                const engagement = calculateEngagementRate(post)
+          {/* Tabs */}
+          <div className="mb-4 border-b border-slate-700/50 pb-2">
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
                 return (
-                  <div
-                    key={post.id}
-                    className="p-3 rounded-lg glass border border-slate-700/30 hover:border-slate-600/50 transition-all duration-300 cursor-pointer group"
-                    onClick={() => setSelectedPost(post.id)}
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap flex items-center space-x-1.5 flex-shrink-0 ${
+                      activeTab === tab.id
+                        ? 'bg-indigo-600 text-white shadow-lg'
+                        : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                    }`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1.5">
-                          <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-700/50 text-slate-200 rounded capitalize">
-                            {post.platform}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            {post.postedAt ? format(new Date(post.postedAt), 'MMM d, yyyy') : 'Not posted'}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">{post.content}</p>
-                      </div>
-                      <div className="ml-3 text-right flex-shrink-0">
-                        <div className="text-base font-semibold text-white">{score}</div>
-                        <div className="text-[10px] text-slate-400">Score</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 text-xs text-slate-400 pt-2 border-t border-slate-700/30">
-                      <div className="flex items-center space-x-1">
-                        <Eye className="w-3 h-3" />
-                        <span>{post.engagement?.views || 0}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Heart className="w-3 h-3" />
-                        <span>{post.engagement?.likes || 0}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <MessageCircle className="w-3 h-3" />
-                        <span>{post.engagement?.comments || 0}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Share2 className="w-3 h-3" />
-                        <span>{post.engagement?.shares || 0}</span>
-                      </div>
-                      <div className="ml-auto text-slate-300 font-medium">
-                        {engagement.toFixed(1)}%
-                      </div>
-                    </div>
-                  </div>
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{tab.label}</span>
+                    {tab.count > 0 && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded ${
+                        activeTab === tab.id ? 'bg-indigo-500' : 'bg-slate-700'
+                      }`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
                 )
               })}
             </div>
           </div>
-        )}
+
+          {/* Tab Content */}
+          <div className="min-h-[300px]">
+            {/* Times Tab */}
+            {activeTab === 'times' && (
+              <div>
+                {insights.bestPostingTimes.length > 0 ? (
+                  <>
+                    {postingTimesChartData.length > 0 && (
+                      <div className="mb-4">
+                        <ResponsiveContainer width="100%" height={120}>
+                          <BarChart data={postingTimesChartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} angle={-45} textAnchor="end" height={60} />
+                            <YAxis stroke="#94a3b8" fontSize={10} />
+                            <Tooltip content={<CustomTooltip />} />
+                            <Bar dataKey="engagement" radius={[4, 4, 0, 0]}>
+                              {postingTimesChartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill="#60a5fa" />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    <div className="space-y-1.5">
+                      {insights.bestPostingTimes.slice(0, 10).map((time, idx) => (
+                        <div key={idx} className="flex items-center justify-between py-2 text-xs border-b border-slate-700/30 last:border-0">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-white font-medium">{time.day}</span>
+                            <span className="text-slate-400">{time.hour}:00</span>
+                          </div>
+                          <span className="text-slate-300 font-medium">{time.avgEngagement.toFixed(1)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <Clock className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No posting time data yet.</p>
+                    <p className="text-xs mt-1">Post content or scan accounts to see best posting times.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Content Tab */}
+            {activeTab === 'content' && (
+              <div>
+                {insights.bestContentTypes.length > 0 ? (
+                  <>
+                    {contentTypesChartData.length > 0 && (
+                      <div className="mb-4">
+                        <ResponsiveContainer width="100%" height={120}>
+                          <BarChart data={contentTypesChartData}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                            <YAxis stroke="#94a3b8" fontSize={10} />
+                            <Tooltip />
+                            <Bar dataKey="views" radius={[4, 4, 0, 0]}>
+                              {contentTypesChartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill="#a78bfa" />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    <div className="space-y-1.5">
+                      {insights.bestContentTypes.map((type, idx) => (
+                        <div key={idx} className="flex items-center justify-between py-2 text-xs border-b border-slate-700/30 last:border-0">
+                          <span className="text-white font-medium capitalize">{type.type}</span>
+                          <div className="text-right">
+                            <div className="text-white font-medium">{type.avgViews.toLocaleString()}</div>
+                            <div className="text-slate-400 text-[10px]">{type.avgEngagement.toFixed(1)}% engagement</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <ImageIcon className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No content type data yet.</p>
+                    <p className="text-xs mt-1">Post content or scan accounts to see performance by type.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Hashtags Tab */}
+            {activeTab === 'hashtags' && (
+              <div>
+                {insights.bestHashtags.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {insights.bestHashtags.slice(0, 15).map((tag, idx) => (
+                      <div key={idx} className="flex items-center justify-between py-2 text-xs border-b border-slate-700/30 last:border-0">
+                        <span className="text-white font-medium">#{tag.tag}</span>
+                        <div className="text-right">
+                          <div className="text-white font-medium">{tag.avgViews.toLocaleString()}</div>
+                          <div className="text-slate-400 text-[10px]">{tag.usageCount}x used</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <Hash className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No hashtag data yet.</p>
+                    <p className="text-xs mt-1">Post content with hashtags or scan accounts to see top performers.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Platforms Tab */}
+            {activeTab === 'platforms' && (
+              <div>
+                {insights.bestPlatforms.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {insights.bestPlatforms.map((platform, idx) => (
+                      <div key={idx} className="flex items-center justify-between py-2 text-xs border-b border-slate-700/30 last:border-0">
+                        <span className="text-white font-medium capitalize">{platform.platform}</span>
+                        <div className="text-right">
+                          <div className="text-white font-medium">{platform.avgReach.toLocaleString()}</div>
+                          <div className="text-slate-400 text-[10px]">{platform.avgEngagement.toFixed(1)}% engagement</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <TrendingUp className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No platform data yet.</p>
+                    <p className="text-xs mt-1">Post content or scan accounts to see platform performance.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Top Posts Tab */}
+            {activeTab === 'top' && (
+              <div>
+                {insights.topPerformingPosts.length > 0 ? (
+                  <div className="space-y-2">
+                    {insights.topPerformingPosts.slice(0, 10).map((post) => {
+                      const score = calculatePerformanceScore(post)
+                      const engagement = calculateEngagementRate(post)
+                      return (
+                        <div
+                          key={post.id}
+                          className="p-3 rounded-lg glass border border-slate-700/30 hover:border-slate-600/50 transition-all duration-300 cursor-pointer group"
+                          onClick={() => setSelectedPost(post.id)}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2 mb-1.5">
+                                <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-700/50 text-slate-200 rounded capitalize">
+                                  {post.platform}
+                                </span>
+                                <span className="text-[10px] text-slate-400">
+                                  {post.postedAt ? format(new Date(post.postedAt), 'MMM d, yyyy') : 'Not posted'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">{post.content}</p>
+                            </div>
+                            <div className="ml-3 text-right flex-shrink-0">
+                              <div className="text-base font-semibold text-white">{score}</div>
+                              <div className="text-[10px] text-slate-400">Score</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-3 text-xs text-slate-400 pt-2 border-t border-slate-700/30">
+                            <div className="flex items-center space-x-1">
+                              <Eye className="w-3 h-3" />
+                              <span>{post.engagement?.views || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Heart className="w-3 h-3" />
+                              <span>{post.engagement?.likes || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <MessageCircle className="w-3 h-3" />
+                              <span>{post.engagement?.comments || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Share2 className="w-3 h-3" />
+                              <span>{post.engagement?.shares || 0}</span>
+                            </div>
+                            <div className="ml-auto text-slate-300 font-medium">
+                              {engagement.toFixed(1)}%
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <Zap className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No top performing posts yet.</p>
+                    <p className="text-xs mt-1">Post content or scan accounts to see top performers.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* All Posts Tab */}
+            {activeTab === 'all' && (
+              <div>
+                {allPostsWithEngagement.length > 0 ? (
+                  <div className="space-y-2">
+                    {allPostsWithEngagement.map((post) => {
+                      const engagement = post.engagement ? calculateEngagementRate(post) : 0
+                      return (
+                        <div
+                          key={post.id}
+                          className="p-3 rounded-lg glass border border-slate-700/30 hover:border-slate-600/50 transition-colors cursor-pointer"
+                          onClick={() => setSelectedPost(post.id)}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-2 mb-1.5">
+                                <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-700/50 text-slate-200 rounded capitalize">
+                                  {post.platform}
+                                </span>
+                                {post.engagement && (
+                                  <span className="text-[10px] text-slate-400">
+                                    {format(new Date(post.postedAt || post.createdAt), 'MMM d, yyyy')}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">{post.content}</p>
+                            </div>
+                            {post.engagement && (
+                              <div className="ml-3 text-right flex-shrink-0">
+                                <div className="text-sm font-semibold text-white">
+                                  {engagement.toFixed(1)}%
+                                </div>
+                                <div className="text-[10px] text-slate-400">Engagement</div>
+                              </div>
+                            )}
+                          </div>
+                          {post.engagement ? (
+                            <div className="flex items-center space-x-3 text-xs text-slate-400 pt-2 border-t border-slate-700/30">
+                              <div className="flex items-center space-x-1">
+                                <Eye className="w-3 h-3" />
+                                <span>{post.engagement.views.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Heart className="w-3 h-3" />
+                                <span>{post.engagement.likes.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <MessageCircle className="w-3 h-3" />
+                                <span>{post.engagement.comments.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <Share2 className="w-3 h-3" />
+                                <span>{post.engagement.shares.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center space-x-1 ml-auto">
+                                <TrendingUp className="w-3 h-3" />
+                                <span>{post.engagement.reach.toLocaleString()}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-700/30">
+                              Click to add engagement metrics
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <BarChart3 className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No posts with engagement data yet.</p>
+                    <p className="text-xs mt-1">Track engagement metrics or scan accounts to see posts here.</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Engagement Tracker Modal */}
         {selectedPostData && (
@@ -609,85 +803,6 @@ export default function AnalyticsPage() {
             </div>
           </div>
         )}
-
-        {/* All Posts */}
-        <div className="glass rounded-lg p-3 border border-slate-700/50">
-          <h3 className="text-sm font-semibold text-white mb-3">All Posts</h3>
-          {postedPosts.length === 0 ? (
-            <div className="text-center py-12 text-slate-400">
-              <BarChart3 className="w-10 h-10 mx-auto mb-3 opacity-50" />
-              <p className="text-sm">No posts with engagement data yet.</p>
-              <p className="text-xs mt-1 text-slate-500">Track engagement metrics to see insights here.</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {posts
-                .filter(p => p.status === 'posted')
-                .map((post) => {
-                  const engagement = post.engagement ? calculateEngagementRate(post) : 0
-                  return (
-                    <div
-                      key={post.id}
-                      className="p-3 rounded-lg glass border border-slate-700/30 hover:border-slate-600/50 transition-colors cursor-pointer"
-                      onClick={() => setSelectedPost(post.id)}
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1.5">
-                            <span className="text-[10px] font-medium px-1.5 py-0.5 bg-slate-700/50 text-slate-200 rounded capitalize">
-                              {post.platform}
-                            </span>
-                            {post.engagement && (
-                              <span className="text-[10px] text-slate-400">
-                                Updated {format(new Date(post.engagement.lastUpdated), 'MMM d')}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-200 line-clamp-2 leading-relaxed">{post.content}</p>
-                        </div>
-                        {post.engagement && (
-                          <div className="ml-3 text-right flex-shrink-0">
-                            <div className="text-sm font-semibold text-white">
-                              {engagement.toFixed(1)}%
-                            </div>
-                            <div className="text-[10px] text-slate-400">Engagement</div>
-                          </div>
-                        )}
-                      </div>
-                      {post.engagement ? (
-                        <div className="flex items-center space-x-3 text-xs text-slate-400 pt-2 border-t border-slate-700/30">
-                          <div className="flex items-center space-x-1">
-                            <Eye className="w-3 h-3" />
-                            <span>{post.engagement.views.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Heart className="w-3 h-3" />
-                            <span>{post.engagement.likes.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle className="w-3 h-3" />
-                            <span>{post.engagement.comments.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Share2 className="w-3 h-3" />
-                            <span>{post.engagement.shares.toLocaleString()}</span>
-                          </div>
-                          <div className="flex items-center space-x-1 ml-auto">
-                            <TrendingUp className="w-3 h-3" />
-                            <span>{post.engagement.reach.toLocaleString()}</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-700/30">
-                          Click to add engagement metrics
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-            </div>
-          )}
-        </div>
       </main>
     </div>
   )
