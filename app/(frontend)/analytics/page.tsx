@@ -585,38 +585,30 @@ export default function AnalyticsPage() {
                     return (
                       <div
                         key={metric.label}
-                        className="relative glass rounded-lg p-3 border-2 transition-all duration-300 group overflow-hidden"
+                        className="relative glass rounded-lg p-3 border transition-all duration-300 group overflow-hidden"
                         style={{
-                          borderColor: `${metric.color}40`,
-                          boxShadow: `0 0 0 0 ${metric.color}20, 0 4px 12px rgba(0,0,0,0.1)`
+                          borderColor: `${metric.color}50`,
+                          boxShadow: `0 0 0 1px ${metric.color}20, 0 4px 12px rgba(0,0,0,0.15)`
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = `${metric.color}60`
-                          e.currentTarget.style.boxShadow = `0 0 20px ${metric.color}30, 0 8px 24px rgba(0,0,0,0.2)`
+                          e.currentTarget.style.borderColor = `${metric.color}70`
+                          e.currentTarget.style.boxShadow = `0 0 0 2px ${metric.color}40, 0 8px 24px rgba(0,0,0,0.25)`
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = `${metric.color}40`
-                          e.currentTarget.style.boxShadow = `0 0 0 0 ${metric.color}20, 0 4px 12px rgba(0,0,0,0.1)`
+                          e.currentTarget.style.borderColor = `${metric.color}50`
+                          e.currentTarget.style.boxShadow = `0 0 0 1px ${metric.color}20, 0 4px 12px rgba(0,0,0,0.15)`
                         }}
                       >
                         {/* Subtle gradient background */}
                         <div 
-                          className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity"
+                          className="absolute inset-0 opacity-5 group-hover:opacity-15 transition-opacity pointer-events-none"
                           style={{ background: `linear-gradient(135deg, ${metric.color} 0%, transparent 100%)` }}
                         />
                         <div className="relative">
                           <div className="flex items-center justify-between mb-2">
-                            <div 
-                              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all group-hover:scale-110"
-                              style={{ 
-                                backgroundColor: `${metric.color}20`,
-                                boxShadow: `0 0 12px ${metric.color}30`
-                              }}
-                            >
-                              <Icon className="w-4 h-4 opacity-90 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
-                            </div>
+                            <Icon className="w-4 h-4 opacity-80 group-hover:opacity-100 transition-opacity" style={{ color: metric.color }} />
                             {metric.value > 0 && (
-                              <div className="flex items-center space-x-0.5 text-[10px] text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded border border-green-400/20">
+                              <div className="flex items-center space-x-0.5 text-[10px] text-green-400">
                                 <ArrowUp className="w-3 h-3" />
                                 <span className="font-medium">12%</span>
                               </div>
