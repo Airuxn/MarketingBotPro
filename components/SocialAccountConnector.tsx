@@ -281,7 +281,7 @@ export function SocialAccountConnector() {
       <div>
         <h4 className="text-sm font-medium text-slate-200 mb-2">Social Media Accounts</h4>
         <p className="text-xs text-slate-400 mb-4">
-          Click "Connect" to log in with your social media account - no tokens needed!
+          Click Connect to log in with your social media account — no tokens needed!
         </p>
       </div>
 
@@ -400,7 +400,7 @@ export function SocialAccountConnector() {
                     className="w-full px-3 py-2 glass rounded-lg focus:ring-2 focus:ring-purple-500 text-white placeholder:text-slate-400 text-sm"
                   />
                   <p className="text-xs text-slate-400 mt-1">
-                    Your Instagram Business Account ID. We'll try to detect it automatically from your token.
+                    Your Instagram Business Account ID. We will try to detect it automatically from your token.
                   </p>
                 </div>
                 <button
