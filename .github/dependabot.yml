@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Abandoned app: keep Actions fresh; avoid weekly npm major-bump noise.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Brussels
+    open-pull-requests-limit: 1
+    groups:
+      github-actions:
+        patterns: ["*"]
+    labels:
+      - dependencies
+      - github-actions

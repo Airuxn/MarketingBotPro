@@ -6,6 +6,8 @@ Next.js PWA for AI-assisted marketing automation — content generation (Google 
 
 [![CI](https://github.com/Airuxn/MarketingBotPro/actions/workflows/ci.yml/badge.svg)](https://github.com/Airuxn/MarketingBotPro/actions/workflows/ci.yml)
 
+**Quality:** CI (test, lint, typecheck, build) · CodeQL · Dependabot (Actions only)
+
 > **No longer maintained.** Some features may be incomplete or broken. Use at your own discretion. PRs for critical fixes welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---

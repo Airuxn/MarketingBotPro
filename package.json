@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "node --test test/smoke.test.mjs",
     "clean": "rm -rf .next out dist"
   },
   "dependencies": {
