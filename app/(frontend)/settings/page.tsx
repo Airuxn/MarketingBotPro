@@ -1254,7 +1254,7 @@ export default function SettingsPage() {
                         )}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-400">No preferences learned yet. Start using the app to build your AI's understanding.</p>
+                      <p className="text-xs text-slate-400">No preferences learned yet. Start using the app to build your AI&apos;s understanding.</p>
                     )}
                   </div>
 
@@ -2171,7 +2171,7 @@ export default function SettingsPage() {
                     </button>
                   </div>
                   <p className="text-xs text-slate-400 mt-2">
-                    Enter your Access Token and click "Auto-detect ID" to find your Business Account ID, OR enter your Business Account ID first and click "Get Token" to authenticate via OAuth.
+                    Enter your Access Token and click &quot;Auto-detect ID&quot; to find your Business Account ID, OR enter your Business Account ID first and click &quot;Get Token&quot; to authenticate via OAuth.
                   </p>
                 </div>
               </div>
@@ -2302,7 +2302,7 @@ export default function SettingsPage() {
                     className="w-full px-4 py-2.5 bg-slate-800/80 border border-slate-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder:text-slate-500 outline-none transition-all"
                   />
                   <p className="text-xs text-slate-400 mt-2">
-                    Your Facebook User ID. We'll automatically detect it from your token if not provided. You can also connect via OAuth using the "Social" button above.
+                    Your Facebook User ID. We&apos;ll automatically detect it from your token if not provided. You can also connect via OAuth using the &quot;Social&quot; button above.
                   </p>
                 </div>
               </div>
