@@ -8,7 +8,7 @@ Next.js PWA for AI-assisted marketing automation — content generation (Google 
 
 **Quality:** CI (test, lint, typecheck, build) · CodeQL · Dependabot (Actions only) · Vercel waits for CI + CodeQL on `main`
 
-> **No longer maintained.** Some features may be incomplete or broken. Use at your own discretion. PRs for critical fixes welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+> **No longer maintained.** Archived; kept public as reference architecture. Some features may be incomplete or broken. Use at your own discretion. PRs for critical fixes welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
