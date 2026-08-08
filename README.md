@@ -6,7 +6,7 @@ Next.js PWA for AI-assisted marketing automation — content generation (Google 
 
 [![CI](https://github.com/Airuxn/MarketingBotPro/actions/workflows/ci.yml/badge.svg)](https://github.com/Airuxn/MarketingBotPro/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Airuxn/MarketingBotPro/branch/main/graph/badge.svg)](https://codecov.io/gh/Airuxn/MarketingBotPro)
-[![License](https://img.shields.io/github/license/Airuxn/MarketingBotPro)](LICENSE)
+[![License](https://img.shields.io/github/license/airuxn/marketingbotpro)](LICENSE)
 
 **Quality:** CI (test, lint, typecheck, build) · CodeQL · Dependabot (Actions only) · Vercel waits for CI + CodeQL before production and preview deploys
 
