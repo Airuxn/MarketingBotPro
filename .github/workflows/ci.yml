@@ -36,7 +36,7 @@ jobs:
         run: npm ci
 
       - name: Unit tests
-        run: npx c8@8 --reporter=lcov --reporter=text node --test test/smoke.test.mjs
+        run: npx c8@8 --reporter=lcov --reporter=text node --import tsx --test test/smoke.test.mjs test/lib.test.mjs
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
