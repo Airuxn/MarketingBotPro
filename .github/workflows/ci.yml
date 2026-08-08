@@ -36,7 +36,17 @@ jobs:
         run: npm ci
 
       - name: Unit tests
-        run: npm test
+        run: |
+          npm install -D c8
+          npx c8 --reporter=lcov --reporter=text node --test test/smoke.test.mjs
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+          verbose: true
 
       - name: Lint
         run: npm run lint
