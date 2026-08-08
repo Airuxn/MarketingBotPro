@@ -23,3 +23,11 @@ test("same-origin helper blocks unknown production hosts", () => {
   const originHost = hostFromHeader("https://evil.example");
   assert.notEqual(originHost && allowedHosts.has(originHost), true);
 });
+
+test("next.config.js exports a valid config", async () => {
+  const { default: config } = await import("../next.config.js");
+  assert.equal(config.reactStrictMode, true);
+  assert.equal(typeof config.headers, "function");
+  const headers = await config.headers();
+  assert.ok(Array.isArray(headers));
+});
